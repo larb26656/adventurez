@@ -16,6 +16,7 @@ import EmptyState from "./EmptyState";
 export default function GameCartridgeGrid({ courses }: GameCartridgeGridProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [swiperReady, setSwiperReady] = useState(false);
   const swiperRef = useRef<SwiperType | null>(null);
 
   const filteredCourses = useMemo(() => {
@@ -110,6 +111,7 @@ export default function GameCartridgeGrid({ courses }: GameCartridgeGridProps) {
           }}
           onInit={(swiper) => {
             swiperRef.current = swiper;
+            setSwiperReady(true);
           }}
           spaceBetween={20}
           onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
@@ -136,13 +138,13 @@ export default function GameCartridgeGrid({ courses }: GameCartridgeGridProps) {
           <>
             <button
               onClick={() => swiperRef.current?.slidePrev()}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 flex items-center justify-center !text-[var(--color-primary)] !bg-black/70 !w-12 !h-12 !rounded-full transition-transform active:scale-90 shadow-xl cursor-pointer"
+              className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 flex items-center justify-center !text-[var(--color-primary)] !bg-black/70 !w-12 !h-12 !rounded-full transition-all duration-500 cursor-pointer ${swiperReady ? "opacity-100" : "opacity-0"}`}
             >
               <ChevronLeft className="!w-6 !h-6" />
             </button>
             <button
               onClick={() => swiperRef.current?.slideNext()}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 flex items-center justify-center !text-[var(--color-primary)] !bg-black/70 !w-12 !h-12 !rounded-full transition-transform active:scale-90 shadow-xl cursor-pointer"
+              className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 flex items-center justify-center !text-[var(--color-primary)] !bg-black/70 !w-12 !h-12 !rounded-full transition-all duration-500 cursor-pointer ${swiperReady ? "opacity-100" : "opacity-0"}`}
             >
               <ChevronRight className="!w-6 !h-6" />
             </button>
@@ -191,6 +193,8 @@ export default function GameCartridgeGrid({ courses }: GameCartridgeGridProps) {
         .swiper-pagination-bullet { background: #555 !important; opacity: 1 !important; }
         .swiper-pagination-bullet-active { background: var(--color-primary) !important; }
         .swiper-button-next:after, .swiper-button-prev:after { font-size: 20px !important; }
+        .mySwiper { opacity: 0; transition: opacity 0.5s ease; }
+        .mySwiper.swiper-initialized { opacity: 1; }
       `}</style>
     </div>
   );
