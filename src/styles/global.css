@@ -1,0 +1,41 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+@layer base, starlight, rapide, theme, components, utilities;
+
+@import "@astrojs/starlight-tailwind";
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@theme {
+  --font-sans: "Noto Sans Thai Looped";
+
+  --font-mono: "IBM Plex Mono";
+
+  --color-accent-200: #d0c6c5;
+  --color-accent-600: #7f6462;
+  --color-accent-900: #3b2f2e;
+  --color-accent-950: #292221;
+
+  --color-gray-100: #f5f6f8;
+  --color-gray-200: #eceef2;
+  --color-gray-300: #c0c2c7;
+  --color-gray-400: #888b96;
+  --color-gray-500: #545861;
+  --color-gray-700: #353841;
+  --color-gray-800: #24272f;
+  --color-gray-900: #17181c;
+}
+
+.course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.sidebar-topics,
+[data-sidebar-topics],
+.starlight-sidebar-topics {
+  display: none !important;
+}

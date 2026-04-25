@@ -1,0 +1,29 @@
+---
+import CourseCard from "./CourseCard.astro";
+import { getCourses } from "../data/courses";
+
+interface Props {
+  title: string;
+  description: string;
+  thumbnail: string;
+  tags: string[];
+  href: string;
+}
+
+const courses = await getCourses();
+console.log(courses);
+---
+
+<div class="course-grid">
+  {
+    courses.map((course) => (
+      <CourseCard
+        title={course.title}
+        description={course.description}
+        thumbnail={course.thumbnail}
+        tags={course.tags}
+        href={course.href}
+      />
+    ))
+  }
+</div>
