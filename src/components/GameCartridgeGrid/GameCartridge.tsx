@@ -53,6 +53,13 @@ const GameCartridge = ({ course, isActive }: GameCartridgeProps) => {
               {course.id}
             </div>
           </div>
+          {course.comingSoon && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <div className="bg-yellow-400 text-black text-[8px] md:text-[10px] font-black px-3 py-1 rotate-[-12deg] shadow-lg uppercase tracking-wider">
+                Coming Soon
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="h-[12%] relative flex justify-center items-end pb-1">
