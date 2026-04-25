@@ -1,0 +1,322 @@
+---
+title: "Side Quest: React Internals"
+description: ดูในระบบ React ว่า state ทำงานยังไง, reconciliation คืออะไร, immutable ทำไมต้องระวัง
+sidebar:
+  order: 1
+---
+
+## React Internals
+
+ในบทนี้เราจะ "เปิดฝาเครื่อง" React ดูว่าข้างในมันทำงานยังไง ความรู้นี้จะช่วยให้คุณ:
+
+- เขียน code ที่ predictable ขึ้น
+- ไม่ตกใน common pitfalls เช่น infinite loops หรือ stale closures
+- Debug ปัญหา performance ได้เร็วขึ้น
+
+:::tip ก่อนอ่าน
+บทนี้เหมาะกับคนที่ผ่าน Part 1-3 มาแล้ว และอยากเข้าใจ "ทำไม"ไม่ใช่แค่ "ทำยังไง"
+:::
+
+---
+
+## Render Tree กับ State
+
+### React Component คืออะไร?
+
+React component ก็คือ function ธรรมดา ที่ return JSX
+
+```tsx
+function Counter() {
+  return <button>0</button>
+}
+```
+
+เมื่อ state เปลี่ยน React จะ **re-render** component นั้น
+
+### State Update ทำให้ re-render ยังไง?
+
+เมื่อคุณเรียก `setCount(1)`:
+
+1. React อัพเดต state ใน memory
+2. React สร้าง **new render tree** จาก root
+3. React compare ต้นไม้ใหม่กับต้นไม้เก่า (reconciliation)
+4. React apply เฉพาะส่วนที่เปลี่ยน
+
+### ตัวอย่าง: Render Tree
+
+```tsx
+function App() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <Counter count={count} />
+      <button onClick={() => setCount(c => c + 1)}>+1</button>
+    </div>
+  )
+}
+```
+
+เมื่อ click +1:
+
+```
+Render #1:        Render #2:
+<App>             <App>
+  <Counter/>        <Counter count={1}/>
+  <button>+1</button>  <button>+1</button>
+
+React: "มีอะไรเปลี่ยนบ้าง?"
+→ count: 0 → 1 ✓
+→ อัพเดต UI
+```
+
+---
+
+## Reconciliation
+
+### Reconciliation คืออะไร?
+
+Reconciliation คือ **algorithm** ที่ React ใช้เปรียบเทียบ render tree ใหม่กับเก่้า เพื่อหาว่าอะไรเปลี่ยน
+
+### Key Concepts: Keys
+
+```tsx
+const list = ['apple', 'banana', 'cherry']
+
+// ❌ Bad: ไม่มี key
+list.map(item => <li>{item}</li>)
+
+// ✅ Good: key ช่วยให้ React รู้ว่าอะไรเปลี่ยน
+list.map((item, index) => <li key={item}>{item}</li>)
+```
+
+### ทำไม key ถึงสำคัญ?
+
+ถ้าไม่มี key React จะ match ตาม index:
+
+```
+Before: [🍎, 🍌, 🍒]  (key: 0, 1, 2)
+After:  [🍒, 🍎, 🍌]  (key: 0, 1, 2)
+
+React เห็น: index 0 = 🍒 (เปลี่ยน!), index 1 = 🍎 (เปลี่ยน!), index 2 = 🍌 (เปลี่ยน!)
+→ ถอย element ทั้งหมด!
+
+กับ key:
+Before: [🍎(id:1), 🍌(id:2), 🍒(id:3)]
+After:  [🍒(id:3), 🍎(id:1), 🍌(id:2)]
+
+React เห็น: id:3 ขยับไป index 0, id:1 ไป index 1, id:2 ไป index 2
+→ แค่ reorder ไม่ต้อง re-render ทั้งหมด
+```
+
+### กฎพื้นฐานของ Key
+
+1. **Unique** ในระดับ sibling list
+2. **Stable** — ค่าเดิมทุกครั้ง render
+3. **ไม่ใช้ index** ถ้า list อาจ reorder
+
+---
+
+## Immutable State
+
+### ทำไม React ต้องการ Immutable?
+
+React ใช้ object reference comparison เพื่อรู้ว่า "ข้อมูลเปลี่ยนไหม"
+
+```tsx
+// ❌ Mutation: React ตรวจไม่เจอ!
+const [items, setItems] = useState(['a', 'b', 'c'])
+
+function addItem() {
+  items.push('d')           // ตรวจไม่เจอ เพราะ reference เดิม
+  setItems(items)           // component ไม่ re-render
+}
+
+// ✅ Immutable: React ตรวจเจอ!
+function addItemFixed() {
+  setItems([...items, 'd']) // spread สร้าง array ใหม่
+}
+```
+
+### ตัวอย่าง: Object Update
+
+```tsx
+const [user, setUser] = useState({ name: 'Somchai', age: 25 })
+
+// ❌ Mutation
+function birthday() {
+  user.age = 26              // ไม่ re-render!
+  setUser(user)
+}
+
+// ✅ Immutable
+function birthdayFixed() {
+  setUser({ ...user, age: user.age + 1 })
+}
+```
+
+### กฎง่ายๆ
+
+| Mutation (❌) | Immutable (✅) |
+|--------------|----------------|
+| `arr.push(x)` | `setArr([...arr, x])` |
+| `arr.splice(i, 1)` | `setArr(arr.filter((_, idx) => idx !== i))` |
+| `obj.x = val` | `setObj({ ...obj, x: val })` |
+| `arr.sort()` | `setArr([...arr].sort())` |
+
+---
+
+## Infinite Loop Cases
+
+### Case 1: useEffect ไม่มี dependency
+
+```tsx
+function BadComponent() {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    setCount(c => c + 1) // เรียกทุกครั้ง render → infinite loop!
+  }) // ❌ ไม่มี dependency array
+
+  return <div>{count}</div>
+}
+```
+
+**ทำไมเกิด infinite loop?**
+
+1. useEffect รันหลัง render
+2. setState ทำให้ re-render
+3. useEffect รันอีก → loop
+
+### Case 2: setState ใน dependency array
+
+```tsx
+function BadComponent() {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCount(count + 1) // ❌ count เป็น stale closure
+    }, 1000)
+    return () => clearInterval(id)
+  }, [count]) // เพิ่ม count เข้า dependency → unmount/remount ทุกครั้ง
+}
+```
+
+### Case 3: Object dependency
+
+```tsx
+function BadComponent() {
+  const [data, setData] = useState({ count: 0 })
+
+  useEffect(() => {
+    fetchData(data) // รันทุกครั้งเพราะ object reference เปลี่ยนทุก render
+  }, [data]) // ❌ { count: 0 } !== { count: 0 }
+}
+```
+
+### วิธีแก้
+
+**Case 2 & 3: ใช้ functional update + stable reference**
+
+```tsx
+// Case 2: ใช้ functional update
+useEffect(() => {
+  const id = setInterval(() => {
+    setCount(c => c + 1) // ไม่ต้องการ count ใน closure
+  }, 1000)
+  return () => clearInterval(id)
+}, []) // empty dependency = รันครั้งเดียว
+
+// Case 3: ใช้ primitive value หรือ useMemo
+useEffect(() => {
+  fetchData(data.count)
+}, [data.count]) // ใช้ primitive value
+```
+
+---
+
+## Stale Closures
+
+### Stale Closure คืออะไร?
+
+เกิดเมื่อ function "captures" ค่าเก่า
+
+```tsx
+function Counter() {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      console.log(count) // ❌ count จะเป็น 0 ตลอด!
+      setCount(count + 1)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  return <div>{count}</div>
+}
+```
+
+### วิธีแก้
+
+```tsx
+// วิธีที่ 1: Functional update
+setCount(c => c + 1) // ใช้ function แทนค่า
+
+// วิธีที่ 2: ย้ายไป useRef
+function Counter() {
+  const countRef = useRef(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      countRef.current += 1
+      console.log(countRef.current) // ✅ current ล่าสุด
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  return <div>{countRef.current}</div>
+}
+```
+
+---
+
+## Common Mistakes Summary
+
+| Mistake | Symptom | Fix |
+|---------|---------|-----|
+| `state.push()` | UI ไม่ update | `[...state, newItem]` |
+| `useEffect` ไม่มี deps | Infinite loop | เพิ่ม deps หรือ cleanup |
+| Object ใน deps | useEffect รันทุก render | ใช้ primitive หรือ `useMemo` |
+| setState ใน loop | Performance ตก | functional update |
+| ไม่ใส่ key | List re-render ไม่ถูก | ใส่ unique, stable key |
+
+---
+
+## Recap
+
+1. **State update → Re-render** — React สร้าง render tree ใหม่ทุกครั้ง state เปลี่ยน
+
+2. **Reconciliation** — Algorithm เปรียบเทียบต้นไม้เก่ากับใหม่ ใช้ key เพื่อ match list items
+
+3. **Immutable state** — React เช็ค reference ดังนั้นต้องสร้าง object/array ใหม่เมื่อ update
+
+4. **Infinite loops** — เกิดจาก useEffect ไม่มี dependency หรือ setState ใน dependency array
+
+5. **Stale closures** — วิธีแก้คือ functional update หรือ useRef
+
+:::tip กลับไป practice!
+ตอนนี้คุณเข้าใจ "ทำไม" แล้ว กลับไปดู code เดิมของคุณ ลองหาว่าใช้ immutable pattern ถูกไหม?
+:::
+
+---
+
+## What's Next?
+
+กลับไปที่ main lessons:
+- [Lesson 2: Hooks](../02-hooks) — ฝึกใช้ useState, useEffect ให้ถูกต้อง
+- [Lesson 4: Styling & UI](../04-styling-ui) — ใช้ state กับ animations
+
+หรือไปต่อที่:
+- [React DevTools](../side-quest/02-devtools) — ใช้เครื่องมือ debug

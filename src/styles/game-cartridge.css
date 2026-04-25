@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans Thai Looped", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --color-primary: #fcb87b;
+}

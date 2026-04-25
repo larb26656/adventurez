@@ -1,9 +1,9 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import react from "@astrojs/react";
 
 import tailwindcss from "@tailwindcss/vite";
-import starlightThemeRapide from "starlight-theme-rapide";
 import mermaid from "astro-mermaid";
 import starlightSidebarTopics from "starlight-sidebar-topics";
 
@@ -11,10 +11,12 @@ import starlightSidebarTopics from "starlight-sidebar-topics";
 export default defineConfig({
   site: "https://docs.luckytime1996.dev",
   integrations: [
+    react(),
     starlight({
       title: "Adventurez",
       logo: {
         src: "/public/favicon.png",
+        replacesTitle: true,
       },
       social: [
         {
@@ -23,23 +25,9 @@ export default defineConfig({
           href: "https://github.com/larb26656",
         },
       ],
-      // sidebar: [
-      //   {
-      //     label: "React Adventure",
-      //     autogenerate: { directory: "react-adventure" },
-      //   },
-      //   {
-      //     label: "n8n Adventure",
-      //     autogenerate: { directory: "n8n-adventure" },
-      //   },
-      //   {
-      //     label: "Cheatsheet",
-      //     autogenerate: { directory: "cheatsheet" },
-      //   },
-      // ],
       customCss: ["./src/styles/global.css"],
       plugins: [
-        starlightThemeRapide(),
+        // starlightThemeNova(),
         starlightSidebarTopics([
           {
             label: "React Adventure",

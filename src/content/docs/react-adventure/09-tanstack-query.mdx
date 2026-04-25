@@ -1,0 +1,437 @@
+---
+title: "Bonus: TanStack Query"
+description: Data fetching ขั้นสุดด้วย TanStack Query — แทน custom fetch hook
+sidebar:
+  order: 9
+---
+
+## บทนี้เราจะได้อะไร
+
+- เข้าใจว่า **TanStack Query** (เดิมชื่อ React Query) ช่วยอะไร
+- แทนที่ **custom useFetch hook** ด้วย TanStack Query
+- ได้ **caching, background refetch, pagination** ฟรี
+- เห็นว่าทำไมถึงเป็น standard สำหรับ data fetching
+
+---
+
+## 1. ทำไมต้อง TanStack Query?
+
+### ปัญหาของ Custom Fetch Hook
+
+ถ้าเคยเขียน useFetch เอง:
+
+```tsx
+// Custom hook ต้องจัดการหลายอย่าง:
+- Loading states
+- Error states
+- Caching?
+- Refetch on focus?
+- Pagination?
+- Retry on failure?
+```
+
+### TanStack Query ช่วยอะไร?
+
+| Feature | Custom Hook | TanStack Query |
+|---------|-------------|----------------|
+| Data fetching | ✅ | ✅ |
+| Loading/Error | ✅ | ✅ |
+| Caching | ❌ | ✅ |
+| Background refetch | ❌ | ✅ |
+| Pagination | ❌ | ✅ |
+| Optimistic updates | ❌ | ✅ |
+| DevTools | ❌ | ✅ |
+
+---
+
+## 2. Setup TanStack Query
+
+### ติดตั้ง
+
+```bash
+npm install @tanstack/react-query
+```
+
+### Wrap App with Provider
+
+แก้ `src/main.tsx`:
+
+```tsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { RouterProvider } from '@tanstack/react-router'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { router } from './router'
+import { ThemeProvider } from './contexts/ThemeContext'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 นาที
+      gcTime: 1000 * 60 * 10,   // 10 นาที (เดิมเรียก cacheTime)
+      retry: 2
+    }
+  }
+})
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
+)
+```
+
+---
+
+## 3. useQuery: Fetching Data
+
+### Basic Usage
+
+```tsx
+import { useQuery } from '@tanstack/react-query'
+
+interface Product {
+  id: string
+  name: string
+  price: number
+  image: string
+  category: string
+}
+
+async function fetchProducts(): Promise<Product[]> {
+  const res = await fetch('/api/products')
+  if (!res.ok) throw new Error('Failed to fetch')
+  return res.json()
+}
+
+function ProductList() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts
+  })
+
+  if (isLoading) return <div>กำลังโหลด...</div>
+  if (error) return <div>เกิดข้อผิดพลาด</div>
+
+  return (
+    <div>
+      {data?.map(product => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  )
+}
+```
+
+### Query Key + Fetch Function
+
+```tsx
+// queryKey ใช้เป็น cache key
+const { data } = useQuery({
+  queryKey: ['products', category], // ถ้า category เปลี่ยน จะ refetch
+  queryFn: () => fetchProductsByCategory(category)
+})
+
+// fetch by ID
+const { data } = useQuery({
+  queryKey: ['product', productId],
+  queryFn: () => fetchProduct(productId)
+})
+```
+
+---
+
+## 4. useMutation: Creating/Updating Data
+
+### สำหรับ POST/PUT/DELETE
+
+```tsx
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+
+function AddProductForm() {
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationFn: (newProduct: NewProduct) =>
+      fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct)
+      }).then(res => res.json()),
+
+    onSuccess: () => {
+      // Invalidate cache → refetch products
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    }
+  })
+
+  return (
+    <form onSubmit={handleSubmit(data => mutation.mutate(data))}>
+      <button type="submit" disabled={mutation.isPending}>
+        {mutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+      </button>
+      {mutation.isError && <p>เกิดข้อผิดพลาด</p>}
+    </form>
+  )
+}
+```
+
+---
+
+## 5. Workshop: แทน useFetch ด้วย useQuery
+
+### แก้ useProducts Hook
+
+```tsx
+// src/features/products/hooks/useProducts.ts
+import { useQuery } from '@tanstack/react-query'
+import type { Product } from '../types'
+import { products as mockProducts } from '../../../data/products'
+
+async function getProducts(): Promise<Product[]> {
+  // ใช้ real API ได้เลยตอนพร้อม
+  // const res = await fetch('/api/products')
+  // return res.json()
+
+  // Mock delay สำหรับ demo
+  await new Promise(resolve => setTimeout(resolve, 500))
+  return mockProducts
+}
+
+export function useProducts() {
+  return useQuery({
+    queryKey: ['products'],
+    queryFn: getProducts
+  })
+}
+
+export function useProduct(id: string) {
+  return useQuery({
+    queryKey: ['product', id],
+    queryFn: async () => {
+      await new Promise(resolve => setTimeout(resolve, 300))
+      const product = mockProducts.find(p => p.id === id)
+      if (!product) throw new Error('Product not found')
+      return product
+    }
+  })
+}
+```
+
+### แก้ Component ใช้งาน
+
+```tsx
+// src/routes/products.tsx
+import { createRoute } from '@tanstack/react-router'
+import { useProducts } from '../../features/products/hooks/useProducts'
+import { ProductCard } from '../../features/products/components/ProductCard'
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
+import { ErrorMessage } from '../../components/ui/ErrorMessage'
+
+export const ProductsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/products',
+  component: ProductsComponent
+})
+
+function ProductsComponent() {
+  const { data: products, isLoading, error, refetch } = useProducts()
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-6">สินค้าทั้งหมด</h1>
+
+      {isLoading && <LoadingSpinner />}
+
+      {error && <ErrorMessage message={error.message} onRetry={refetch} />}
+
+      {products && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {products.map((product, index) => (
+            <ProductCard key={product.id} product={product} index={index} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+---
+
+## 6. Advanced Features
+
+### Prefetching
+
+```tsx
+import { useQueryClient } from '@tanstack/react-query'
+
+function ProductCard({ product }: { product: Product }) {
+  const queryClient = useQueryClient()
+
+  function handleHover() {
+    queryClient.prefetchQuery({
+      queryKey: ['product', product.id],
+      queryFn: () => fetchProduct(product.id)
+    })
+  }
+
+  return (
+    <div onMouseEnter={handleHover}>
+      {/* ... */}
+    </div>
+  )
+}
+```
+
+### Optimistic Updates
+
+```tsx
+const mutation = useMutation({
+  mutationFn: (newProduct) => addProduct(newProduct),
+
+  onMutate: async (newProduct) => {
+    // Cancel outgoing refetches
+    await queryClient.cancelQueries({ queryKey: ['products'] })
+
+    // Snapshot previous value
+    const previousProducts = queryClient.getQueryData(['products'])
+
+    // Optimistically update
+    queryClient.setQueryData(['products'], old => [...old, newProduct])
+
+    return { previousProducts }
+  },
+
+  onError: (err, newProduct, context) => {
+    // Rollback on error
+    queryClient.setQueryData(['products'], context.previousProducts)
+  },
+
+  onSettled: () => {
+    // Refetch to ensure consistency
+    queryClient.invalidateQueries({ queryKey: ['products'] })
+  }
+})
+```
+
+### Infinite Query (Pagination)
+
+```tsx
+import { useInfiniteQuery } from '@tanstack/react-query'
+
+function ProductList() {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
+    queryKey: ['products'],
+    queryFn: ({ pageParam = 0 }) => fetchProducts(pageParam),
+    getNextPageParam: (lastPage) => lastPage.nextPage
+  })
+
+  return (
+    <div>
+      {data?.pages.map(page => (
+        page.products.map(product => (
+          <ProductCard key={product.id} product={product} />
+        ))
+      ))}
+      <button onClick={fetchNextPage} disabled={!hasNextPage}>
+        โหลดเพิ่มเติม
+      </button>
+    </div>
+  )
+}
+```
+
+---
+
+## 7. DevTools
+
+### React Query DevTools
+
+```tsx
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
+// ใน main.tsx
+<QueryClientProvider client={queryClient}>
+  {/* ... */}
+  <ReactQueryDevtools initialIsOpen={false} />
+</QueryClientProvider>
+```
+
+### DevTools Features
+
+- ดู queries ที่กำลัง active
+- ดู cache data
+- Refetch manually
+- Clear cache
+
+---
+
+## Recap
+
+| Hook | ใช้ทำอะไร |
+|------|----------|
+| **useQuery** | Fetch data, caching, background refetch |
+| **useMutation** | Create/Update/Delete พร้อม optimistic updates |
+| **useInfiniteQuery** | Pagination, infinite scroll |
+| **QueryClient** | Config caching, retry, stale time |
+| **useQueryClient** | Prefetch, invalidate, set data |
+
+| TanStack Query Feature | Custom Hook |
+|------------------------|-------------|
+| Automatic caching | ❌ |
+| Background refetch | ❌ |
+| Stale-while-revalidate | ❌ |
+| Optimistic updates | ❌ |
+| DevTools | ❌ |
+| Infinite/pagination | ❌ |
+
+:::tip เมื่อไหร่ใช้?
+TanStack Query เหมาะกับ app ที่:
+- Fetch data จาก API หลายที่
+- ต้องการ caching
+- ต้องการ optimistic updates
+- มี pagination/infinite scroll
+
+สำหรับ app ง่ายๆ ที่ไม่มีปัญหาเหล่านี้ custom hook ก็เพียงพอ
+:::
+
+---
+
+## สรุป: ทั้งหมดที่เรียนมา
+
+ตอนนี้คุณได้เรียนรู้ทุกอย่างตั้งแต่ React พื้นฐานจนถึง deployment:
+
+1. **Setup** — Vite + React + TypeScript
+2. **JSX & Components** — UI building blocks
+3. **Props & State** — Data flow
+4. **Hooks** — useState, useEffect, useRef, useCallback
+5. **Context & Zustand** — Global state management
+6. **Styling** — Tailwind CSS + Framer Motion
+7. **Routing** — TanStack Router (type-safe)
+8. **Forms** — React Hook Form + Zod validation
+9. **Data Fetching** — Custom hooks → TanStack Query
+10. **Deployment** — Vercel
+
+---
+
+## Next Steps
+
+อยากเรียนรู้ต่อ?
+
+- [React Internals](./side-quest/01-react-internals) — เข้าใจว่า React ทำงานยังไงข้างใน
+- [React DevTools](./side-quest/02-devtools) — Debug performance issues
+- ลองทำ project ของตัวเอง!
+- สร้าง REST API ด้วย Node.js + Express
+- ลอง Prisma + PostgreSQL
+
+ขอให้โชคดีในการเดินทาง React! 🚀

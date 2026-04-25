@@ -1,0 +1,311 @@
+---
+title: "Lesson 1: Setup & Fundamentals"
+description: ติดตั้ง React ด้วย Vite, เรียนรู้ JSX, Components และ Props
+sidebar:
+  order: 1
+---
+
+## บทนี้เราจะได้อะไร
+
+- สร้าง React project ด้วย Vite
+- เข้าใจ JSX — syntax ที่ React ใช้เขียน UI
+- เขียน Component แรก
+- ส่งข้อมูลระหว่าง component ด้วย Props
+- สร้าง **Counter app** เป็น project แรก
+
+---
+
+## 1. Setup: สร้าง Project ด้วย Vite
+
+### ติดตั้ง Node.js ก่อน
+
+ถ้ายังไม่มี Node.js, ดาวน์โหลดจาก [nodejs.org](https://nodejs.org) (แนะนำ LTS version)
+
+เช็คว่าติดตั้งได้หรือยัง:
+
+```bash
+node --version
+npm --version
+```
+
+### สร้าง React Project
+
+เปิด terminal แล้วรันคำสั่งนี้:
+
+```bash
+npm create vite@latest my-portfolio -- --template react-ts
+```
+
+**คำอธิบาย:**
+- `npm create vite` — ใช้ Vite สร้าง project
+- `my-portfolio` — ชื่อ folder ที่จะสร้าง
+- `--template react-ts` — template สำหรับ React + TypeScript
+
+### ติดตั้ง Dependencies
+
+```bash
+cd my-portfolio
+npm install
+```
+
+### รัน Development Server
+
+```bash
+npm run dev
+```
+
+เปิด browser ไปที่ `http://localhost:5173` จะเห็นหน้าว่างๆ พร้อมโลโก้ Vite
+
+---
+
+## 2. โครงสร้าง Project
+
+หลังจากสร้าง project เสร็จ, โครงสร้างจะเป็นแบบนี้:
+
+```
+my-portfolio/
+├── index.html
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── src/
+    ├── App.tsx
+    ├── App.css
+    ├── main.tsx
+    └── index.css
+```
+
+### ไฟล์สำคัญ
+
+| File | ทำหน้าที่ |
+|------|----------|
+| `index.html` | Entry point ของ web app |
+| `src/main.tsx` | ไฟล์ที่ React จะ render เป็นรูปแบบ web |
+| `src/App.tsx` | Component หลัก — เราจะเขียน code ตรงนี้เป็นส่วนใหญ่ |
+| `vite.config.ts` | Config ของ Vite |
+
+---
+
+## 3. JSX คืออะไร?
+
+JSX คือ **syntax extension** ที่ให้คุณเขียน HTML-like code ใน JavaScript
+
+### JSX vs HTML
+
+| HTML | JSX |
+|------|-----|
+| `class="box"` | `className="box"` |
+| `onclick="fn()"` | `onClick={fn}` |
+| `<input type="text">` | `<input type="text" />` |
+| `background-color` | `backgroundColor` |
+
+### ตัวอย่าง: JSX เบื้องต้น
+
+```tsx
+// เขียนแบบ JSX
+const element = <h1 className="title">สวัสดี!</h1>
+
+// เขียนแบบ JS ธรรมดา (ไม่ใช้ JSX)
+const element = React.createElement('h1', { className: 'title' }, 'สวัสดี!')
+```
+
+JSX อ่านง่ายกว่า → ใช้ JSX ใน React
+
+### Embed Expressions ใน JSX
+
+```tsx
+const name = 'Somchai'
+const greeting = <h1>สวัสดีครับ {name}!</h1>
+
+// คำนวณใน JSX ได้
+const sum = <p>ผลรวม = {2 + 3}</p>
+
+// เรียก function
+const user = { firstName: 'Somchai', lastName: 'Suksom'}
+const fullName = <span>{user.firstName} {user.lastName}</span>
+```
+
+### Conditional Rendering
+
+```tsx
+const isLoggedIn = true
+
+// แบบ ternary
+const greeting = (
+  <div>
+    {isLoggedIn ? <p>ยินดีต้อนรับ!</p> : <p>กรุณา login</p>}
+  </div>
+)
+
+// แบบ && (ซ่อน element เมื่อ condition เป็น false)
+const showWarning = false
+const warning = showWarning && <p>⚠️ Warning!</p>
+```
+
+### List Rendering
+
+```tsx
+const fruits = ['Apple', 'Banana', 'Cherry']
+
+const list = (
+  <ul>
+    {fruits.map(fruit => (
+      <li key={fruit}>{fruit}</li>
+    ))}
+  </ul>
+)
+```
+
+:::tip สังเกต: key attribute
+ตอน render list, React ต้องการ `key` prop เพื่อ track ว่า item ไหนเป็น item ไหน ใช้ index หรือ unique ID ก็ได้
+:::
+
+---
+
+## 4. Component พื้นฐาน
+
+### Component คืออะไร?
+
+Component คือ **function** ที่ return JSX — คล้ายกับ building block ของ UI
+
+### สร้าง Component แรก
+
+เปิด `src/App.tsx` แล้วแก้ไข:
+
+```tsx
+function App() {
+  return (
+    <div>
+      <h1>สวัสดี React!</h1>
+      <p>นี่คือ component แรกของฉัน</p>
+    </div>
+  )
+}
+
+export default App
+```
+
+### กฎของ Component
+
+1. **ขึ้นต้นด้วยตัวใหญ่** — `<App />` ✅, `<app />` ❌
+2. **Return JSX** — ต้อง return อะไรสักอย่าง
+3. **มี single root element** — wrap ด้วย `<div>` หรือ `<>`
+
+### Component แบบ Arrow Function
+
+```tsx
+const Header = () => {
+  return <header><h1>My Site</h1></header>
+}
+```
+
+---
+
+## 5. Props: ส่งข้อมูลระหว่าง Component
+
+### Props คืออะไร?
+
+Props ย่อมาจาก "properties" — คือ **arguments** ที่ส่งเข้า component
+
+### ส่ง Props
+
+```tsx
+// Parent component
+function App() {
+  return <Greeting name="Somchai" />
+}
+
+// Child component (รับ props เป็น parameter)
+function Greeting({ name }: { name: string }) {
+  return <h1>สวัสดีครับ {name}!</h1>
+}
+```
+
+### Multiple Props
+
+```tsx
+function UserCard({ name, age, city }: { name: string; age: number; city: string }) {
+  return (
+    <div className="card">
+      <h2>{name}</h2>
+      <p>อายุ: {age}</p>
+      <p>เมือง: {city}</p>
+    </div>
+  )
+}
+
+// ใช้งาน
+<UserCard name="Somchai" age={25} city="กรุงเทพ" />
+```
+
+### Default Props
+
+```tsx
+function Badge({ text = "New", color = "blue" }: { text?: string; color?: string }) {
+  return <span className={`badge badge-${color}`}>{text}</span>
+}
+
+// <Badge /> → <span class="badge badge-blue">New</span>
+// <Badge text="Sale" /> → <span class="badge badge-blue">Sale</span>
+```
+
+---
+
+## 6. Workshop: สร้าง Counter App
+
+ตอนนี้เราพร้อมสร้าง app แรกแล้ว! ค่อยๆทำตาม step ไป
+
+### Step 1: แก้ App.tsx
+
+แทนที่ code เดิมใน `src/App.tsx`:
+
+```tsx
+function App() {
+  return (
+    <div>
+      <h1>Counter App</h1>
+      <p>ค่าปัจจุบัน: 0</p>
+      <button>+</button>
+      <button>-</button>
+    </div>
+  )
+}
+
+export default App
+```
+
+### Step 2: Run
+
+```bash
+npm run dev
+```
+
+เปิด `http://localhost:5173` จะเห็น:
+- หัวข้อ "Counter App"
+- ค่า "0"
+- ปุ่ม + และ -
+
+แต่ปุ่มยังไม่ทำงาน — เพราะเรายังไม่มี state ในบทต่อไปเราจะเพิ่ม
+
+---
+
+## Recap
+
+| หัวข้อ | สิ่งที่ได้เรียนรู้ |
+|--------|------------------|
+| **Vite** | สร้าง React project เร็ว |
+| **JSX** | เขียน UI ใน JavaScript |
+| **Components** | Function ที่ return UI |
+| **Props** | ส่งข้อมูลระหว่าง components |
+
+---
+
+## What's Next?
+
+ตอนนี้ UI ยัง static อยู่ (ไม่เปลี่ยนแปลง) บทต่อไปเราจะเพิ่ม **state** เพื่อให้ Counter ทำงานได้จริง
+
+→ [Lesson 2: Hooks](./02-hooks) — เรียนรู้ useState ทำให้ UI เปลี่ยนแปลงได้
+
+:::tip Side Quest
+อยากเข้าใจลึกขึ้นว่า React ทำงานยังไงข้างใน? → [React Internals](./side-quest/01-react-internals)
+:::

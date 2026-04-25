@@ -1,0 +1,687 @@
+---
+title: "Lesson 5: Routing"
+description: เรียนรู้ TanStack Router สำหรับ type-safe routing, layouts, nested routes และ data loading
+sidebar:
+  order: 5
+---
+
+## บทนี้เราจะได้อะไร
+
+- ติดตั้งและ setup **TanStack Router**
+- สร้าง type-safe routes
+- ใช้ **layouts** และ **nested routes**
+- โหลดข้อมูลด้วย **load functions**
+- เพิ่มหน้า **Home, Products, Cart** ให้ app
+
+---
+
+## 1. TanStack Router Setup
+
+### ทำไมต้อง TanStack Router?
+
+- **Type-safe** — route params เป็น type-safe
+- **Nested routes** — layout nesting ง่าย
+- **Data loading** — load functions ในตัว
+- **Code splitting** — auto ตาม route
+
+### ติดตั้ง
+
+```bash
+npm install @tanstack/react-router
+```
+
+### สร้าง Router Config
+
+สร้าง `src/router.tsx`:
+
+```tsx
+import { createRouter, createRootRoute, createRoute, Outlet } from '@tanstack/react-router'
+
+// สร้าง root route
+const rootRoute = createRootRoute({
+  component: () => (
+    <div>
+      <Outlet />
+    </div>
+  )
+})
+
+// สร้าง home route
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: () => <div>หน้าแรก</div>
+})
+
+// สร้าง route tree
+const routeTree = rootRoute.addChildren([indexRoute])
+
+// สร้าง router
+export const router = createRouter({ routeTree })
+
+// สร้าง type สำหรับ router
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router
+  }
+}
+```
+
+### เพิ่ม Router ใน main.tsx
+
+แก้ `src/main.tsx`:
+
+```tsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { RouterProvider } from '@tanstack/react-router'
+import { router } from './router'
+import { ThemeProvider } from './contexts/ThemeContext'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  </React.StrictMode>
+)
+```
+
+### เพิ่ม TanStack Router Vite plugin
+
+แก้ `vite.config.ts`:
+
+```tsx
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tsconfigPaths from 'vite-tsconfig-paths'
+import { tanstackRouterVite } from '@tanstack/react-router-vite'
+
+export default defineConfig({
+  plugins: [
+    react(),
+    tsconfigPaths(),
+    tanstackRouterVite() // เพิ่ม plugin นี้
+  ]
+})
+```
+
+---
+
+## 2. Type-Safe Routes
+
+### Route แบบ Type-Safe
+
+TanStack Router สร้าง types อัตโนมัติจาก route definitions:
+
+```tsx
+// สร้าง route พร้อม params
+const productRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/products/$productId', // $ หมายถึง dynamic param
+  component: ProductDetailPage
+})
+
+// ใช้งาน — productId จะเป็น string type
+function ProductDetailPage() {
+  const { productId } = useParams({ from: '/products/$productId' })
+  // productId: string
+}
+```
+
+### Link Component
+
+```tsx
+import { Link } from '@tanstack/react-router'
+
+// ใช้ Link แทน <a>
+<Link to="/">หน้าแรก</Link>
+<Link to="/products/$productId" params={{ productId: '1' }}>ดูสินค้า</Link>
+```
+
+### useNavigate
+
+```tsx
+import { useNavigate } from '@tanstack/react-router'
+
+function MyComponent() {
+  const navigate = useNavigate()
+
+  return (
+    <button onClick={() => navigate({ to: '/products' })}>
+      ไปหน้า products
+    </button>
+  )
+}
+```
+
+---
+
+## 3. Layouts & Nested Routes
+
+### สร้าง App Layout
+
+```tsx
+// src/routes/__root.tsx
+import { createRootRoute, Outlet } from '@tanstack/react-router'
+import { Layout } from '../components/Layout'
+
+export const RootRoute = createRootRoute({
+  component: () => <Layout><Outlet /></Layout>
+})
+```
+
+### Nested Routes
+
+```tsx
+// src/router.tsx
+import { createRouter, createRootRoute, createRoute } from '@tanstack/react-router'
+import { RootRoute } from './routes/__root'
+import { HomePage } from './routes/home'
+import { ProductsPage } from './routes/products'
+import { ProductDetailPage } from './routes/products.$productId'
+import { CartPage } from './routes/cart'
+
+const rootRoute = createRootRoute({
+  component: () => <RootRoute />
+})
+
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: HomePage
+})
+
+const productsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/products',
+  component: ProductsPage
+})
+
+const productDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/products/$productId',
+  component: ProductDetailPage
+})
+
+const cartRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/cart',
+  component: CartPage
+})
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  productsRoute,
+  productDetailRoute,
+  cartRoute
+])
+
+export const router = createRouter({ routeTree })
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router
+  }
+}
+```
+
+### Layout Component (Navigation)
+
+```tsx
+// src/components/Layout.tsx
+import { Link } from '@tanstack/react-router'
+import { ThemeToggle } from './ThemeToggle'
+import { CartBadge } from './CartBadge'
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white">
+              🛒 Mini Shop
+            </Link>
+            <nav className="flex gap-4">
+              <Link
+                to="/"
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                activeProps={{ className: 'text-blue-600 dark:text-blue-400 font-medium' }}
+              >
+                หน้าแรก
+              </Link>
+              <Link
+                to="/products"
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                activeProps={{ className: 'text-blue-600 dark:text-blue-400 font-medium' }}
+              >
+                สินค้า
+              </Link>
+              <Link
+                to="/cart"
+                className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                activeProps={{ className: 'text-blue-600 dark:text-blue-400 font-medium' }}
+              >
+                ตะกร้า
+              </Link>
+            </nav>
+          </div>
+          <div className="flex items-center gap-4">
+            <CartBadge />
+            <ThemeToggle />
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        {children}
+      </main>
+
+      <footer className="text-center py-4 text-gray-500 dark:text-gray-400">
+        © 2026 Mini Shop
+      </footer>
+    </div>
+  )
+}
+```
+
+---
+
+## 4. Load Functions
+
+### ทำไมต้องมี Load Function?
+
+Load functions ใช้สำหรับ **โหลดข้อมูลก่อน render** — เหมือน data fetching แต่เป็น route-level
+
+### ตัวอย่าง: Product Detail Load Function
+
+```tsx
+// src/routes/products.$productId.tsx
+import { createRoute, useParams, useLoaderData } from '@tanstack/react-router'
+import { products } from '../../data/products'
+
+export const ProductDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/products/$productId',
+  loader: ({ params }) => {
+    const product = products.find(p => p.id === params.productId)
+    if (!product) {
+      throw new Error('Product not found')
+    }
+    return { product }
+  },
+  component: ProductDetailPage
+})
+
+function ProductDetailPage() {
+  const { product } = useLoaderData({ from: '/products/$productId' })
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <span className="text-8xl block text-center mb-4">{product.image}</span>
+      <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+      <p className="text-gray-500 dark:text-gray-400 mb-4">{product.category}</p>
+      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-6">
+        ฿{product.price.toLocaleString()}
+      </p>
+      <AddToCartButton product={product} />
+    </div>
+  )
+}
+```
+
+### Data Loading Pattern
+
+```tsx
+// สำหรับ product list
+const productsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/products',
+  loader: () => {
+    return { products }
+  },
+  component: ProductsPage
+})
+
+function ProductsPage() {
+  const { products } = useLoaderData({ from: '/products' })
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-6">สินค้าทั้งหมด</h1>
+      <ProductGrid products={products} />
+    </div>
+  )
+}
+```
+
+### Error Handling
+
+```tsx
+const productRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/products/$productId',
+  loader: ({ params }) => {
+    const product = products.find(p => p.id === params.productId)
+    if (!product) {
+      throw router.navigate({ to: '/products', throw: true })
+    }
+    return { product }
+  },
+  errorComponent: () => (
+    <div className="text-center py-12">
+      <p className="text-xl text-red-500">ไม่พบสินค้านี้</p>
+      <Link to="/products" className="text-blue-500 hover:underline mt-4 block">
+        กลับไปหน้ารายการสินค้า
+      </Link>
+    </div>
+  ),
+  component: ProductDetailPage
+})
+```
+
+---
+
+## 5. Workshop: เพิ่ม Routes ทั้งหมด
+
+### Home Page
+
+```tsx
+// src/routes/home.tsx
+import { createRoute } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
+import { motion } from 'framer-motion'
+import { useCartStore } from '../stores/cartStore'
+import { products } from '../data/products'
+import { ProductCard } from '../components/ProductCard'
+
+export const HomePage = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: HomeComponent
+})
+
+function HomeComponent() {
+  const featuredProducts = products.slice(0, 3)
+  const totalItems = useCartStore(state =>
+    state.items.reduce((sum, item) => sum + item.quantity, 0)
+  )
+
+  return (
+    <div>
+      <section className="text-center py-12">
+        <motion.h1
+          className="text-4xl font-bold mb-4 text-gray-900 dark:text-white"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          ยินดีต้อนรับสู่ Mini Shop
+        </motion.h1>
+        <motion.p
+          className="text-xl text-gray-600 dark:text-gray-400 mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          สินค้าคุณภาพดี ราคาถูกใจ
+        </motion.p>
+        <Link
+          to="/products"
+          className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        >
+          ดูสินค้าทั้งหมด
+        </Link>
+      </section>
+
+      <section className="py-8">
+        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+          🔥 สินค้าแนะนำ
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {featuredProducts.map((product, index) => (
+            <ProductCard key={product.id} product={product} index={index} />
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
+```
+
+### Products Page
+
+```tsx
+// src/routes/products.tsx
+import { createRoute } from '@tanstack/react-router'
+import { useState } from 'react'
+import { products, categories } from '../../data/products'
+import { FilterBar } from '../../components/FilterBar'
+import { ProductCard } from '../../components/ProductCard'
+
+export const ProductsPage = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/products',
+  component: ProductsComponent
+})
+
+function ProductsComponent() {
+  const [selectedCategory, setSelectedCategory] = useState('all')
+
+  const filteredProducts = selectedCategory === 'all'
+    ? products
+    : products.filter(p => p.category === selectedCategory)
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+        สินค้าทั้งหมด
+      </h1>
+      <FilterBar
+        categories={categories}
+        selected={selectedCategory}
+        onSelect={setSelectedCategory}
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredProducts.map((product, index) => (
+          <ProductCard key={product.id} product={product} index={index} />
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+### Product Detail Page
+
+```tsx
+// src/routes/products.$productId.tsx
+import { createRoute } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
+import { useCartStore } from '../../stores/cartStore'
+import type { Product } from '../../data/products'
+import { products } from '../../data/products'
+
+export const ProductDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/products/$productId',
+  loader: ({ params }) => {
+    const product = products.find(p => p.id === params.productId)
+    if (!product) {
+      throw new Error('Product not found')
+    }
+    return { product }
+  },
+  component: ProductDetailComponent
+})
+
+function ProductDetailComponent() {
+  const { product } = ProductDetailRoute.useLoaderData()
+  const addItem = useCartStore(state => state.addItem)
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <Link
+        to="/products"
+        className="text-blue-500 hover:underline mb-4 inline-block"
+      >
+        ← กลับไปรายการสินค้า
+      </Link>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
+        <span className="text-8xl block text-center mb-4">{product.image}</span>
+        <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">
+          {product.name}
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-4 capitalize">
+          {product.category}
+        </p>
+        <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-6">
+          ฿{product.price.toLocaleString()}
+        </p>
+        <button
+          onClick={() => addItem(product)}
+          className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+        >
+          เพิ่มลงตะกร้า
+        </button>
+      </div>
+    </div>
+  )
+}
+```
+
+### Cart Page
+
+```tsx
+// src/routes/cart.tsx
+import { createRoute } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
+import { motion } from 'framer-motion'
+import { useCartStore } from '../../stores/cartStore'
+
+export const CartPage = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/cart',
+  component: CartComponent
+})
+
+function CartComponent() {
+  const { items, removeItem, clearCart } = useCartStore()
+  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+        🛒 ตะกร้าสินค้า
+      </h1>
+
+      {items.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-xl text-gray-500 dark:text-gray-400 mb-4">
+            ยังไม่มีสินค้าในตะกร้า
+          </p>
+          <Link
+            to="/products"
+            className="text-blue-500 hover:underline"
+          >
+            ไปหน้าสินค้า
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {items.map((item) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex items-center gap-4"
+            >
+              <span className="text-4xl">{item.image}</span>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  {item.name}
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  ฿{item.price.toLocaleString()} x {item.quantity}
+                </p>
+              </div>
+              <p className="font-bold text-gray-900 dark:text-white">
+                ฿{(item.price * item.quantity).toLocaleString()}
+              </p>
+              <button
+                onClick={() => removeItem(item.id)}
+                className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+              >
+                ลบ
+              </button>
+            </motion.div>
+          ))}
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 flex justify-between items-center">
+            <button
+              onClick={clearCart}
+              className="text-red-500 hover:text-red-600"
+            >
+              ล้างตะกร้า
+            </button>
+            <div className="text-right">
+              <p className="text-xl font-bold text-gray-900 dark:text-white">
+                รวม: ฿{totalPrice.toLocaleString()}
+              </p>
+              <Link
+                to="/checkout"
+                className="inline-block mt-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              >
+                ชำระเงิน
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+---
+
+## 6. Route Types Reference
+
+| Syntax | Meaning |
+|--------|---------|
+| `path: '/'` | Static route |
+| `path: '/products/$id'` | Dynamic route param |
+| `path: '/products'` | Nested route parent |
+| `loader: () => {...}` | Load data before render |
+| `errorComponent: () => ...` | Show on error |
+| `<Link to="/path">` | Navigate |
+| `useNavigate()` | Programmatic navigation |
+| `useParams({ from: '/route' })` | Get URL params |
+| `useLoaderData({ from: '/route' })` | Get loader data |
+
+:::tip Type Safety
+ใช้ `from` parameter ใน `useParams` และ `useLoaderData` เพื่อให้ TypeScript รู้ว่า route ไหน และ params/data มี type อะไร
+:::
+
+---
+
+## Recap
+
+| หัวข้อ | สิ่งที่ได้เรียนรู้ |
+|--------|------------------|
+| **TanStack Router** | Type-safe routing พร้อม Vite plugin |
+| **Nested Routes** | Layout nesting ด้วย `__root.tsx` |
+| **Loaders** | โหลดข้อมูลก่อน render |
+| **Navigation** | `Link` component และ `useNavigate` |
+
+---
+
+## What's Next?
+
+ตอนนี้ app มีหลายหน้าแล้ว บทต่อไปจะเพิ่ม **form validation** สำหรับหน้า checkout ด้วย React Hook Form และ Zod
+
+→ [Lesson 6: Forms](./06-forms) — สร้าง checkout form พร้อม validation
+
+:::tip Side Quest
+อยากรู้ว่า DevTools ช่วย debug routing ได้ยังไง? → [React DevTools](./side-quest/02-devtools)
+:::

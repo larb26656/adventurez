@@ -1,0 +1,460 @@
+---
+title: "Lesson 4: Styling & UI"
+description: เพิ่ม Tailwind CSS, Dark/Light mode, และ Framer Motion animations
+sidebar:
+  order: 4
+---
+
+## บทนี้เราจะได้อะไร
+
+- ติดตั้งและ setup **Tailwind CSS**
+- สร้าง **Dark/Light mode** ด้วย Tailwind + Context
+- เพิ่ม **animations** ด้วย Framer Motion
+- ปรับ UI ของ E-commerce app ให้สวยงาม
+
+---
+
+## 1. Tailwind CSS Setup
+
+### ทำไมต้อง Tailwind?
+
+- เขียน style ใน JSX โดยตรง (ไม่ต้องสร้าง .css file ใหม่)
+- Utility-first → ปรับ responsive ได้ง่าย
+- มี design system สำเร็จรูป
+
+### ติดตั้ง Tailwind
+
+```bash
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+
+### Configure Tailwind
+
+แก้ `tailwind.config.js`:
+
+```js
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  darkMode: 'class', // เพิ่ม dark mode support
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+### เพิ่ม Tailwind directives
+
+แก้ `src/index.css`:
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+    @apply transition-colors duration-200;
+  }
+}
+```
+
+### ลบ App.css
+
+ลบ `src/App.css` และ import ที่ `App.tsx` ออก
+
+---
+
+## 2. Dark/Light Mode with Tailwind
+
+### ใช้ Tailwind Dark Mode
+
+Tailwind มี `dark:` prefix สำหรับ dark mode styles:
+
+```tsx
+<div className="bg-white dark:bg-gray-800 text-black dark:text-white">
+  <h1 className="text-xl dark:text-yellow-400">สวัสดี</h1>
+  <button className="bg-blue-500 dark:bg-yellow-500 text-white dark:text-black">
+    กดปุ่ม
+  </button>
+</div>
+```
+
+### ปรับ ThemeContext ให้ใช้ Tailwind
+
+แก้ `src/contexts/ThemeContext.tsx`:
+
+```tsx
+import { createContext, useContext, useState, type ReactNode } from 'react'
+
+type Theme = 'light' | 'dark'
+
+interface ThemeContextType {
+  theme: Theme
+  toggleTheme: () => void
+}
+
+const ThemeContext = createContext<ThemeContextType | null>(null)
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>('light')
+
+  function toggleTheme() {
+    setTheme(t => {
+      const newTheme = t === 'light' ? 'dark' : 'light'
+      // เพิ่ม/ลบ 'dark' class ที่ <html> element
+      if (newTheme === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+      return newTheme
+    })
+  }
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext)
+  if (!context) {
+    throw new Error('useTheme must be used within ThemeProvider')
+  }
+  return context
+}
+```
+
+### Theme Toggle Button
+
+```tsx
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme()
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+      aria-label="Toggle theme"
+    >
+      {theme === 'light' ? '🌙' : '☀️'}
+    </button>
+  )
+}
+```
+
+---
+
+## 3. Framer Motion Setup
+
+### ติดตั้ง Framer Motion
+
+```bash
+npm install framer-motion
+```
+
+### Animation พื้นฐาน
+
+```tsx
+import { motion } from 'framer-motion'
+
+function FadeIn({ children }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+```
+
+### Workshop: Product Card Animation
+
+เพิ่ม animation ให้ ProductCard ที่หน้า home:
+
+```tsx
+// src/components/ProductCard.tsx
+import { motion } from 'framer-motion'
+import type { Product } from '../data/products'
+
+interface ProductCardProps {
+  product: Product
+  index: number
+}
+
+export function ProductCard({ product, index }: ProductCardProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+      whileHover={{ scale: 1.05 }}
+      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 transition-colors"
+    >
+      <span className="text-5xl block text-center mb-2">{product.image}</span>
+      <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+        {product.name}
+      </h3>
+      <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
+        {product.category}
+      </p>
+      <p className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-4">
+        ฿{product.price.toLocaleString()}
+      </p>
+      <button
+        className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        onClick={() => addItem(product)}
+      >
+        เพิ่มลงตะกร้า
+      </button>
+    </motion.div>
+  )
+}
+```
+
+### Page Transitions
+
+```tsx
+import { motion, AnimatePresence } from 'framer-motion'
+
+function PageWrapper({ children }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      transition={{ duration: 0.2 }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+```
+
+### Stagger Animation สำหรับ List
+
+```tsx
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+}
+
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 }
+}
+
+function ProductGrid({ products }) {
+  return (
+    <motion.div
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="grid grid-cols-1 md:grid-cols-3 gap-6"
+    >
+      {products.map((product, index) => (
+        <motion.div key={product.id} variants={item}>
+          <ProductCard product={product} index={index} />
+        </motion.div>
+      ))}
+    </motion.div>
+  )
+}
+```
+
+---
+
+## 4. Workshop: ปรับ E-commerce UI
+
+### สร้าง Layout Component
+
+```tsx
+// src/components/Layout.tsx
+import { motion } from 'framer-motion'
+import { ThemeToggle } from './ThemeToggle'
+import { CartBadge } from './CartBadge'
+
+interface LayoutProps {
+  children: React.ReactNode
+}
+
+export function Layout({ children }: LayoutProps) {
+  return (
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <motion.h1
+            className="text-2xl font-bold text-gray-900 dark:text-white"
+            whileHover={{ scale: 1.05 }}
+          >
+            🛒 Mini Shop
+          </motion.h1>
+          <div className="flex items-center gap-4">
+            <CartBadge />
+            <ThemeToggle />
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        {children}
+      </main>
+
+      <footer className="text-center py-4 text-gray-500 dark:text-gray-400">
+        © 2026 Mini Shop
+      </footer>
+    </div>
+  )
+}
+```
+
+### Filter Bar Component
+
+```tsx
+// src/components/FilterBar.tsx
+import { motion } from 'framer-motion'
+
+interface FilterBarProps {
+  categories: string[]
+  selected: string
+  onSelect: (cat: string) => void
+}
+
+export function FilterBar({ categories, selected, onSelect }: FilterBarProps) {
+  return (
+    <div className="flex flex-wrap gap-2 mb-8">
+      {categories.map((cat) => (
+        <motion.button
+          key={cat}
+          onClick={() => onSelect(cat)}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+            cat === selected
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+          }`}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {cat === 'all' ? 'ทั้งหมด' : cat}
+        </motion.button>
+      ))}
+    </div>
+  )
+}
+```
+
+### Cart Badge Component
+
+```tsx
+// src/components/CartBadge.tsx
+import { motion, AnimatePresence } from 'framer-motion'
+import { useCartStore } from '../stores/cartStore'
+
+export function CartBadge() {
+  const totalItems = useCartStore(state =>
+    state.items.reduce((sum, item) => sum + item.quantity, 0)
+  )
+
+  return (
+    <motion.button
+      className="relative p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+    >
+      <span className="text-xl">🛒</span>
+      <AnimatePresence>
+        {totalItems > 0 && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center"
+          >
+            {totalItems}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
+  )
+}
+```
+
+### ปรับ App.tsx
+
+```tsx
+// src/App.tsx
+import { motion } from 'framer-motion'
+import { products, categories } from './data/products'
+import { Layout } from './components/Layout'
+import { FilterBar } from './components/FilterBar'
+import { ProductCard } from './components/ProductCard'
+
+function App() {
+  const [selectedCategory, setSelectedCategory] = useState('all')
+
+  const filteredProducts = selectedCategory === 'all'
+    ? products
+    : products.filter(p => p.category === selectedCategory)
+
+  return (
+    <Layout>
+      <FilterBar
+        categories={categories}
+        selected={selectedCategory}
+        onSelect={setSelectedCategory}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredProducts.map((product, index) => (
+          <ProductCard key={product.id} product={product} index={index} />
+        ))}
+      </div>
+    </Layout>
+  )
+}
+
+export default App
+```
+
+---
+
+## Recap
+
+| Tool | ใช้ทำอะไร | Key Features |
+|------|-----------|--------------|
+| **Tailwind CSS** | Styling | Utility-first, responsive, dark mode |
+| **Dark Mode** | Theme toggle | `dark:` prefix, class-based switching |
+| **Framer Motion** | Animations | `motion.div`, `whileHover`, `AnimatePresence` |
+
+:::tip Tip
+ใช้ `dark:` prefix ใน className เพื่อเพิ่ม dark mode styles และ toggle `dark` class ที่ `<html>` element
+:::
+
+---
+
+## What's Next?
+
+ตอนนี้ UI สวยงามแล้ว ต่อไปจะเพิ่ม **multiple pages** ให้ app ด้วย TanStack Router
+
+→ [Lesson 5: Routing](./05-routing) — เพิ่มหน้า Home, Products, Cart ด้วย type-safe routing
+
+:::tip Side Quest
+อยากรู้ว่า React เปลี่ยน UI ยังไงเมื่อ state เปลี่ยน? → [React Internals](./side-quest/01-react-internals)
+:::

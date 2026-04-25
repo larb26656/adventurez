@@ -9,6 +9,8 @@ export const collections = {
 			extend: z.object({
 				thumbnail: z.string().optional(),
 				tags: z.array(z.string()).optional(),
+				comingSoon: z.boolean().optional(),
+				color: z.string().optional(),
 			}),
 		}),
 	}),

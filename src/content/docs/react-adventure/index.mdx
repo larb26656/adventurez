@@ -1,15 +1,84 @@
 ---
 title: React Adventure
-description: เรียนรู้ React ตั้งแต่เริ่มต้นจนถึง advanced
+description: เรียนรู้ React ตั้งแต่เริ่มต้นจนถึง deploy ขึ้น Vercel
 thumbnail: /react-adventure/thumbnail.png
-tags: [React, Frontend, JavaScript]
+tags: [React, Frontend, JavaScript, Vite, TypeScript]
+color: "#e63946"
 sidebar:
   hidden: true
 ---
 
-## Lessons
+## 🎯 เป้าหมาย
 
-1. [Getting Started](./01-getting-started) - ติดตั้งและเริ่มใช้งาน React
-2. [Core Concepts](./02-core-concepts) - แนวคิดพื้นฐานของ React
-3. [Hooks](./03-hooks) - เรียนรู้ useState, useEffect และ hooks อื่นๆ
-4. [Performance](./04-performance) - เพิ่มประสิทธิภาพของ React app
+จบ tutorial นี้ = ได้เว็บ Portfolio ขึ้น Vercel จริงๆ
+
+## 📚 Curriculum
+
+| Lesson | หัวข้อ | Project |
+|--------|--------|---------|
+| [01. Setup](./01-setup) | Vite, JSX, Components, Props | Counter App |
+| [02. Hooks](./02-hooks) | useState, useEffect, useCallback, useRef, Custom Hooks | Enhanced Counter |
+| [03. Context & State](./03-context-state) | Props Drilling → Context → Zustand | Mock E-commerce |
+| [04. Styling & UI](./04-styling-ui) | Tailwind, Dark/Light mode, Framer Motion | Styled Cart |
+| [05. Routing](./05-routing) | TanStack Router, Layouts, Load Functions | Multi-page App |
+| [06. Forms](./06-forms) | React Hook Form + Zod validation | Checkout Form |
+| [07. Build Real App](./07-build-portfolio) | Project Structure, Data Fetching | Real API |
+| [08. Deployment](./08-deployment) | Deploy to Vercel | Live Portfolio! |
+| [09. TanStack Query](./09-tanstack-query) *(Bonus)* | Data fetching ขั้นสุด | Replace Custom Hook |
+
+### Side Quests (Optional)
+
+บทเรียนเสริมสำหรับคนอยากเข้าใจลึก:
+
+| Quest | หัวข้อ |
+|-------|--------|
+| [React Internals](./side-quest/01-react-internals) | Reconciliation, immutable state, infinite loops |
+| [React DevTools](./side-quest/02-devtools) | Debug component tree, Profiler |
+
+## 🛠 Tech Stack
+
+```
+React + Vite        → Development environment
+TypeScript          → Type safety
+TanStack Router     → Type-safe routing
+React Hook Form     → Form management
+Zod                 → Validation
+Tailwind CSS        → Styling
+Framer Motion       → Animations
+Zustand             → State management
+TanStack Query      → Data fetching (bonus)
+Vercel              → Deployment
+```
+
+## 📈 Project Evolution
+
+```
+Step 1: Counter          → เรียน useState, props
+Step 2: Mock E-commerce  → เห็น props drilling pain
+Step 3: Context/Zustand  → แก้ pain ด้วย state management
+Step 4: Styling          → Tailwind + animations
+Step 5: Routing          → หลายหน้า
+Step 6: Forms            → validation
+Step 7: Real API         → data fetching patterns
+Step 8: Deploy           → Vercel
+```
+
+## ✅ ผลลัพธ์ที่ได้
+
+Portfolio website ที่มี:
+
+- Hero section
+- Projects showcase
+- Contact form
+- Dark/Light mode toggle
+- Type-safe routing
+- Form validation
+- Deploy ขึ้น Vercel
+
+---
+
+:::tip เริ่มจากตรงไหน?
+ถ้ายังใหม่กับ React → เริ่มจาก [Lesson 1: Setup](./01-setup)
+
+ถ้ารู้จักพื้นฐานแล้ว → ข้ามไป lesson ที่สนใจได้เลย
+:::

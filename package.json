@@ -10,14 +10,23 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/react": "^5.0.4",
     "@astrojs/starlight": "^0.38.4",
     "@astrojs/starlight-tailwind": "^5.0.0",
     "@tailwindcss/vite": "^4.1.13",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "astro": "^6.1.9",
     "astro-mermaid": "^1.3.1",
+    "lucide-react": "^1.11.0",
+    "mermaid": "^11.14.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "sharp": "^0.34.2",
     "starlight-sidebar-topics": "^0.7.1",
-    "starlight-theme-rapide": "^0.5.2",
-    "tailwindcss": "^4.1.13"
+    "starlight-theme-nova": "^0.11.9",
+    "swiper": "^12.1.3",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^6.0.3"
   }
 }
