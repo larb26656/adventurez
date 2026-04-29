@@ -1,0 +1,125 @@
+---
+title: "TanStack Router"
+description: เชื่อมหน้าเว็บด้วย file-based routing
+---
+
+TanStack Router มี feature เด็ด ๆ คือ **file-based routing** — ชื่อไฟล์จะเป็น path ของหน้าเว็บเลย
+
+## โครงสร้างไฟล์
+
+```
+src/
+└── routes/
+    ├── __root.tsx        # Root layout
+    ├── index.tsx         # หน้าแรก (/)
+    ├── catalog.tsx      # /catalog
+    ├── cart.tsx         # /cart
+    └── login.tsx        # /login
+```
+
+## การตั้งค่า Route พื้นฐาน
+
+```tsx
+// src/routes/__root.tsx — Root layout ของทุกหน้า
+import { createRootRoute, Link, Outlet } from "@tanstack/react-router"
+
+export const Route = createRootRoute({
+  component: () => (
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex gap-6">
+          <Link to="/" className="font-bold text-xl text-blue-600">
+            Adventure Shop
+          </Link>
+          <Link to="/catalog" className="text-gray-700 hover:text-blue-600">
+            สินค้า
+          </Link>
+          <Link to="/cart" className="text-gray-700 hover:text-blue-600">
+            ตะกร้า
+          </Link>
+          <Link to="/login" className="text-gray-700 hover:text-blue-600">
+            เข้าสู่ระบบ
+          </Link>
+        </div>
+      </nav>
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <Outlet />
+      </main>
+    </div>
+  ),
+})
+```
+
+```tsx
+// src/routes/index.tsx — หน้าแรก
+import { createFileRoute } from "@tanstack/react-router"
+
+export const Route = createFileRoute("/")({
+  component: Index,
+})
+
+function Index() {
+  return (
+    <div className="text-center py-20">
+      <h1 className="text-4xl font-bold text-gray-800 mb-4">
+        ยินดีต้อนรับสู่ Adventure Shop
+      </h1>
+      <p className="text-xl text-gray-600 mb-8">
+        สินค้าสำหรับนักเดินทางทุกประเภท
+      </p>
+      <a
+        href="/catalog"
+        className="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+      >
+        ดูสินค้า
+      </a>
+    </div>
+  )
+}
+
+import { Quiz } from "@/components/quiz"
+
+<Quiz
+  quiz={{
+    id: "tanstack-router-basics",
+    title: "Quiz: TanStack Router พื้นฐาน",
+    questions: [
+      {
+        id: "q1",
+        type: "single",
+        question: "TanStack Router มี feature อะไรที่เด่น?",
+        options: ["Component-based routing", "File-based routing", "API-based routing", "Manual routing"],
+        correctAnswer: "File-based routing"
+      },
+      {
+        id: "q2",
+        type: "single",
+        question: "ถ้าต้องการสร้างหน้า /login ต้องสร้างไฟล์ชื่ออะไรในโฟลเดอร์ routes?",
+        options: ["login.jsx", "login.tsx", "login.component.tsx", "login.page.tsx"],
+        correctAnswer: "login.tsx"
+      },
+      {
+        id: "q3",
+        type: "single",
+        question: "TanStack Router ใช้ style การเขียนอย่างไร?",
+        options: ["Imperative style", "Declarative style", "Functional style", "Object-oriented style"],
+        correctAnswer: "Declarative style"
+      },
+      {
+        id: "q4",
+        type: "single",
+        question: "ไฟล์ __root.tsx ใช้ทำอะไร?",
+        options: ["สร้างหน้า 404", "Root layout ของทุกหน้า", "กำหนด config ของ router", "สร้าง redirect"],
+        correctAnswer: "Root layout ของทุกหน้า"
+      },
+      {
+        id: "q5",
+        type: "single",
+        question: "Component ใดใช้สำหรับสร้าง Link ใน TanStack Router?",
+        options: ["<Link>", "<a href>", "<RouterLink>", "<NavLink>"],
+        correctAnswer: "<Link>"
+      }
+    ]
+  }}
+/>
+```

@@ -1,0 +1,99 @@
+---
+title: "Tailwind CSS"
+description: Styling ง่าย ๆ ด้วย utility classes
+---
+
+## ติดตั้ง Tailwind CSS
+
+### Step 1: ติดตั้ง package
+
+```bash
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+
+### Step 2: ตั้งค่า tailwind.config.js
+
+```js
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
+
+### Step 3: เพิ่ม directives ใน main CSS
+
+```css
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+### Step 4: รัน dev server
+
+```bash
+npm run dev
+```
+
+---
+
+Tailwind เป็น CSS framework ที่ใช้ **utility classes** — แทนที่จะเขียน CSS แยกไฟล์ เราจะใช้ class ตรง ๆ บน element เลย
+
+## เปรียบเทียบ: ปกติ vs Tailwind
+
+```css
+/* ❌ แบบปกติ — ต้องเขียน CSS แยก */
+.button {
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+```
+
+```tsx
+{/* ✅ Tailwind — ใส่ class ตรง ๆ */}
+<button className="bg-blue-500 text-white px-4 py-2 rounded">
+  คลิกเลย
+</button>
+```
+
+## Class ที่ใช้บ่อย
+
+| ความหมาย | Class |
+|----------|-------|
+| สีพื้นหลัง | `bg-blue-500`, `bg-red-500`, `bg-gray-100` |
+| สีตัวอักษร | `text-white`, `text-gray-700`, `text-blue-600` |
+| ขนาด | `px-4` (padding x), `py-2` (padding y), `m-4` (margin) |
+| ขอบมน | `rounded`, `rounded-lg`, `rounded-full` |
+| ขนาดตัวอักษร | `text-sm`, `text-lg`, `text-xl` |
+| flexbox | `flex`, `justify-center`, `items-center`, `gap-4` |
+| grid | `grid`, `grid-cols-3`, `gap-4` |
+
+## ตัวอย่าง
+
+```tsx
+// ปุ่มสวย ๆ
+<button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+  ซื้อเลย
+</button>
+
+// การ์ดสินค้า
+<div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+  <img src="/product.jpg" className="w-full h-48 object-cover" />
+  <div className="p-4">
+    <h3 className="font-bold text-lg">ชื่อสินค้า</h3>
+    <p className="text-gray-600">ราคา ฿500</p>
+  </div>
+</div>
+```
+
+> **เคล็ดลับ:** ถ้างงว่า class ไหนทำอะไร ลองเข้า [Tailwind CSS Cheat Sheet](https://tailwindcss.com) ได้เลย

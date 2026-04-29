@@ -1,0 +1,124 @@
+---
+title: "React Hooks เบื้องต้น"
+description: useEffect, useRef, useMemo — เตรียมพร้อมสำหรับ Part ถัดไป
+---
+
+พอสร้าง static UI เสร็จแล้ว เราจะเริ่มเพิ่ม **state และ logic** ใน part ถัดไป แต่รู้จัก hooks พื้นฐานไว้ก่อน:
+
+## useEffect — โหลดข้อมูลตอน component mount
+
+```tsx
+import { useEffect, useState } from "react"
+
+function ProductList() {
+  const [products, setProducts] = useState([])
+
+  useEffect(() => {
+    // ทำงานเมื่อ component โหลด (mount)
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+  }, []) // [] = ทำครั้งเดียวตอน mount
+
+  return <div>{/* แสดง products */}</div>
+}
+```
+
+## useRef — Focus ไปที่ input
+
+```tsx
+import { useRef } from "react"
+
+function SearchInput() {
+  const inputRef = useRef(null)
+
+  const handleSearch = () => {
+    inputRef.current?.focus() // focus ไปที่ input
+  }
+
+  return (
+    <>
+      <input ref={inputRef} type="text" />
+      <button onClick={handleSearch}>ค้นหา</button>
+    </>
+  )
+}
+```
+
+## useMemo — คำนวณค่าแคชไว้
+
+```tsx
+import { useMemo, useState } from "react"
+
+function ProductFilter() {
+  const [search, setSearch] = useState("")
+  const products = [{ name: "A" }, { name: "B" }, { name: "AB" }]
+
+  // คำนวณใหม่เฉพาะตอน search หรือ products เปลี่ยน
+  const filtered = useMemo(
+    () => products.filter((p) => p.name.includes(search)),
+    [search, products]
+  )
+
+  return <div>{filtered.map(/* ... */)}</div>
+}
+```
+
+## สรุป Part 3
+
+ตอนนี้เราได้:
+- ✅ ติดตั้ง Tailwind CSS
+- ✅ ตั้งค่า TanStack Router
+- ✅ สร้าง Layout + Navbar
+- ✅ หน้า Catalog (static grid)
+- ✅ หน้า Cart (static items)
+- ✅ หน้า Login (static form)
+- ✅ รู้จัก useEffect, useRef, useMemo
+
+> **ต่อไป:** เราจะเปลี่ยน static data ให้เป็น **dynamic** ด้วย state และ hooks — ใน Part 4: Props & State
+
+import { Quiz } from "@/components/quiz"
+
+<Quiz client:load
+  quiz={{
+    id: "mockup-pages",
+    title: "Quiz: Mockup Pages",
+    questions: [
+      {
+        id: "q1",
+        type: "single",
+        question: "Tailwind CSS ใช้อะไรในการเขียน style?",
+        options: ["Utility classes", "CSS custom properties", "Inline styles", "CSS Modules"],
+        correctAnswer: "Utility classes"
+      },
+      {
+        id: "q2",
+        type: "single",
+        question: "TanStack Router ใช้อะไรในการกำหนด route?",
+        options: ["ชื่อ folder", "ชื่อ file", "ชื่อ function", "ชื่อ component"],
+        correctAnswer: "ชื่อ file"
+      },
+      {
+        id: "q3",
+        type: "single",
+        question: "ใน __root.tsx ใช้อะไรเพื่อแสดงหน้าย่อย?",
+        options: ["<Route />", "<Outlet />", "<Page />", "<Router />"],
+        correctAnswer: "<Outlet />"
+      },
+      {
+        id: "q4",
+        type: "single",
+        question: "useEffect ทำงานตอนไหน?",
+        options: ["ก่อน render", "ระหว่าง render", "หลัง render", "ตลอดเวลา"],
+        correctAnswer: "หลัง render"
+      },
+      {
+        id: "q5",
+        type: "single",
+        question: "useMemo ใช้ทำอะไร?",
+        options: ["เก็บค่า state", "คำนวณค่าแคชไว้", "สร้าง ref ใหม่", "จัดการ event"],
+        correctAnswer: "คำนวณค่าแคชไว้"
+      }
+    ]
+  }}
+/>

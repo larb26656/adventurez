@@ -1,0 +1,68 @@
+---
+title: "หน้า Cart"
+description: แสดงสินค้าในตะกร้าและคำนวณรวม
+---
+
+```tsx
+// src/routes/cart.tsx
+import { createFileRoute } from "@tanstack/react-router"
+
+export const Route = createFileRoute("/cart")({
+  component: Cart,
+})
+
+const cartItems = [
+  { id: 1, name: "กระเป๋าเดินทาง", price: 1200, quantity: 1 },
+  { id: 3, name: "หมวกกันแดด", price: 450, quantity: 2 },
+]
+
+function Cart() {
+  const total = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  )
+
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">ตะกร้าสินค้า</h1>
+      
+      {cartItems.length === 0 ? (
+        <p className="text-gray-500">ตะกร้าว่างเปล่า</p>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          {cartItems.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0"
+            >
+              <div>
+                <h3 className="font-semibold text-gray-800">{item.name}</h3>
+                <p className="text-gray-500">
+                  ฿{item.price} × {item.quantity}
+                </p>
+              </div>
+              <div className="text-blue-600 font-bold">
+                ฿{item.price * item.quantity}
+              </div>
+            </div>
+          ))}
+          <div className="bg-gray-50 p-4 flex justify-between items-center">
+            <span className="font-bold text-lg">รวมทั้งหมด</span>
+            <span className="font-bold text-2xl text-blue-600">฿{total}</span>
+          </div>
+        </div>
+      )}
+      
+      <button className="mt-6 w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors">
+        ชำระเงิน
+      </button>
+    </div>
+  )
+}
+```
+
+## จุดสำคัญ
+
+- **Conditional rendering** — เช็คว่าตะกร้าว่างหรือไม่
+- **reduce** — คำนวณรวมทั้งหมด
+- **Layout ของ list** — ใช้ flexbox จัดเรียง

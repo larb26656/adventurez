@@ -1,0 +1,51 @@
+---
+title: "หน้า Catalog"
+description: แสดงสินค้าในรูปแบบ grid
+---
+
+```tsx
+// src/routes/catalog.tsx
+import { createFileRoute } from "@tanstack/react-router"
+
+export const Route = createFileRoute("/catalog")({
+  component: Catalog,
+})
+
+const products = [
+  { id: 1, name: "กระเป๋าเดินทาง", price: 1200, image: "🎒" },
+  { id: 2, name: "รองเท้าวิ่ง", price: 2500, image: "👟" },
+  { id: 3, name: "หมวกกันแดด", price: 450, image: "🧢" },
+  { id: 4, name: "กล้องถ่ายรูป", price: 8000, image: "📷" },
+  { id: 5, name: "น้ำหนักถ่วง", price: 300, image: "🏋️" },
+  { id: 6, name: "เสื้อผ้ากันหนาว", price: 900, image: "🧥" },
+]
+
+function Catalog() {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">สินค้าทั้งหมด</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {products.map((product) => (
+          <div
+            key={product.id}
+            className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow"
+          >
+            <div className="text-6xl mb-4 text-center">{product.image}</div>
+            <h3 className="font-semibold text-lg text-gray-800">{product.name}</h3>
+            <p className="text-blue-600 font-bold mt-2">฿{product.price}</p>
+            <button className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">
+              เพิ่มลงตะกร้า
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+## จุดสำคัญ
+
+- **Grid layout** — ใช้ `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` ทำ responsive
+- **Static data** — ข้อมูลอยู่ใน array โดยตรง
+- **map + key** — ใช้ map แสดง list และใส่ key ที่ unique
