@@ -1,11 +1,66 @@
 ---
-title: "React Hooks เบื้องต้น"
-description: useEffect, useRef, useMemo — เตรียมพร้อมสำหรับ Part ถัดไป
+title: "React Hooks เบื้องต้น - เตรียมพร้อมสำหรับ Dynamic UI"
+description: เรียน useState, useEffect, useRef, useMemo — เตรียมพร้อมสำหรับ Part ถัดไป
+---
+import ChatMessage from "@/components/ChatMessage.astro"
+
+สร้าง static UI กันจนเป็นที่เรียบร้อยแล้ว ต่อไปเราจะเปลี่ยนให้เป็น **dynamic** ได้ แต่ก่อนอื่นต้องรู้จัก React Hooks พื้นฐานก่อน!
+
 ---
 
-พอสร้าง static UI เสร็จแล้ว เราจะเริ่มเพิ่ม **state และ logic** ใน part ถัดไป แต่รู้จัก hooks พื้นฐานไว้ก่อน:
+## useState — เก็บข้อมูลที่เปลี่ยนแปลง
 
-## useEffect — โหลดข้อมูลตอน component mount
+`useState` ใช้เก็บ **state** ของ component — ข้อมูลที่เปลี่ยนได้เมื่อมี interaction
+
+```tsx
+import { useState } from "react"
+
+function Counter() {
+  const [count, setCount] = useState(0)  // state เริ่มต้น = 0
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>
+        เพิ่ม
+      </button>
+    </div>
+  )
+}
+```
+
+### ตัวอย่าง: Cart ที่มีปุ่มลบสินค้า
+
+```tsx
+function Cart() {
+  const [items, setItems] = useState([
+    { id: 1, name: "กระเป๋า", price: 1200 }
+  ])
+
+  const removeItem = (id: number) => {
+    setItems(items.filter(item => item.id !== id))
+  }
+
+  return (
+    <div>
+      {items.map(item => (
+        <div key={item.id}>
+          <span>{item.name}</span>
+          <button onClick={() => removeItem(item.id)}>
+            ลบ
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+---
+
+## useEffect — ทำงานเมื่อ Component โหลด/อัปเดต
+
+`useEffect` ใช้ทำ **side effects** — งานที่ต้องทำนอกเหนือจาก render เช่น fetch data, subscribe, set timeout
 
 ```tsx
 import { useEffect, useState } from "react"
@@ -16,36 +71,90 @@ function ProductList() {
   useEffect(() => {
     // ทำงานเมื่อ component โหลด (mount)
     fetch("/api/products")
-      .then((res) => res.json())
-      .then((data) => setProducts(data))
-  }, []) // [] = ทำครั้งเดียวตอน mount
+      .then(res => res.json())
+      .then(data => setProducts(data))
+  }, []) // [] = dependency array
 
   return <div>{/* แสดง products */}</div>
 }
 ```
 
-## useRef — Focus ไปที่ input
+### ตัวอย่าง: Search ที่ debounce
+
+```tsx
+function Search() {
+  const [query, setQuery] = useState("")
+  const [results, setResults] = useState([])
+
+  useEffect(() => {
+    // debounce: รอให้พิมพ์เสร็จ 300ms ก่อนค้นหา
+    const timer = setTimeout(() => {
+      fetch(`/api/search?q=${query}`)
+        .then(res => res.json())
+        .then(data => setResults(data))
+    }, 300)
+
+    // cleanup: ลบ timer เมื่อ query เปลี่ยน
+    return () => clearTimeout(timer)
+  }, [query])
+
+  return (
+    <input 
+      value={query} 
+      onChange={e => setQuery(e.target.value)} 
+    />
+  )
+}
+```
+
+---
+
+## useRef — อ้างอิง Element ใน DOM
+
+`useRef` ใช้เก็บ **reference** ไปยัง element ใน DOM หรือค่าที่ไม่ต้องการให้ re-render
 
 ```tsx
 import { useRef } from "react"
 
 function SearchInput() {
-  const inputRef = useRef(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleSearch = () => {
+  const handleFocus = () => {
     inputRef.current?.focus() // focus ไปที่ input
   }
 
   return (
     <>
       <input ref={inputRef} type="text" />
-      <button onClick={handleSearch}>ค้นหา</button>
+      <button onClick={handleFocus}>ค้นหา</button>
     </>
   )
 }
 ```
 
-## useMemo — คำนวณค่าแคชไว้
+### ตัวอย่าง: นับจำนวนครั้งที่ render
+
+```tsx
+function Counter() {
+  const [count, setCount] = useState(0)
+  const renderCount = useRef(0)
+
+  renderCount.current++  // นับทุกครั้งที่ render
+
+  return (
+    <div>
+      <p>Render ครั้งที่: {renderCount.current}</p>
+      <button onClick={() => setCount(count + 1)}>เพิ่ม</button>
+    </div>
+  )
+}
+```
+
+---
+
+## useMemo — แคชค่าที่คำนวณแล้ว
+
+`useMemo` ใช้ **cache** ค่าที่คำนวณ เพื่อไม่ต้องคำนวณใหม่ทุกครั้งที่ render
 
 ```tsx
 import { useMemo, useState } from "react"
@@ -56,68 +165,75 @@ function ProductFilter() {
 
   // คำนวณใหม่เฉพาะตอน search หรือ products เปลี่ยน
   const filtered = useMemo(
-    () => products.filter((p) => p.name.includes(search)),
+    () => products.filter(p => p.name.includes(search)),
     [search, products]
   )
 
-  return <div>{filtered.map(/* ... */)}</div>
+  return (
+    <div>
+      {filtered.map(p => <div key={p.name}>{p.name}</div>)}
+    </div>
+  )
 }
 ```
 
-## สรุป Part 3
+---
 
-ตอนนี้เราได้:
-- ✅ ติดตั้ง Tailwind CSS
-- ✅ ตั้งค่า TanStack Router
-- ✅ สร้าง Layout + Navbar
-- ✅ หน้า Catalog (static grid)
-- ✅ หน้า Cart (static items)
-- ✅ หน้า Login (static form)
-- ✅ รู้จัก useEffect, useRef, useMemo
+## สรุป Part 3 — Mockup Pages
 
-> **ต่อไป:** เราจะเปลี่ยน static data ให้เป็น **dynamic** ด้วย state และ hooks — ใน Part 4: Props & State
+> **ต่อไป:** เราจะเปลี่ยน static UI ให้เป็น **dynamic** ด้วย state และ props — ใน Part 4: Props & State
 
 import { Quiz } from "@/components/quiz"
 
 <Quiz client:load
   quiz={{
     id: "mockup-pages",
-    title: "Quiz: Mockup Pages",
+    title: "Quiz: Mockup Pages & Hooks",
     questions: [
       {
         id: "q1",
         type: "single",
-        question: "Tailwind CSS ใช้อะไรในการเขียน style?",
-        options: ["Utility classes", "CSS custom properties", "Inline styles", "CSS Modules"],
-        correctAnswer: "Utility classes"
+        question: "ใช้อะไรเก็บข้อมูลที่เปลี่ยนแปลงได้ใน React?",
+        options: ["useState", "useEffect", "useRef", "useMemo"],
+        correctAnswer: "useState"
       },
       {
         id: "q2",
         type: "single",
-        question: "TanStack Router ใช้อะไรในการกำหนด route?",
-        options: ["ชื่อ folder", "ชื่อ file", "ชื่อ function", "ชื่อ component"],
-        correctAnswer: "ชื่อ file"
+        question: "useEffect มี dependency array ว่าง [] หมายความว่า?",
+        options: [
+          "ทำงานทุกครั้งที่ render",
+          "ทำงานครั้งเดียวตอน mount",
+          "ทำงานเมื่อ state เปลี่ยน",
+          "ไม่ทำงานเลย"
+        ],
+        correctAnswer: "ทำงานครั้งเดียวตอน mount"
       },
       {
         id: "q3",
         type: "single",
-        question: "ใน __root.tsx ใช้อะไรเพื่อแสดงหน้าย่อย?",
-        options: ["<Route />", "<Outlet />", "<Page />", "<Router />"],
-        correctAnswer: "<Outlet />"
+        question: "ใช้อะไรแคชค่าที่คำนวณแล้วเพื่อไม่ต้องคำนวณใหม่?",
+        options: ["useState", "useEffect", "useRef", "useMemo"],
+        correctAnswer: "useMemo"
       },
       {
         id: "q4",
         type: "single",
-        question: "useEffect ทำงานตอนไหน?",
-        options: ["ก่อน render", "ระหว่าง render", "หลัง render", "ตลอดเวลา"],
-        correctAnswer: "หลัง render"
+        question: "Map vs Reduce vs Filter ใช้ต่างกันอย่างไร?",
+        options: [
+          "map เปลี่ยนทุก item, filter กรอง, reduce รวมเป็นค่าเดียว",
+          "ทุกตัวทำเหมือนกัน",
+          "reduce ใช้กับ string, filter ใช้กับ number",
+          "ไม่ต่างกันเลย"
+        ],
+        correctAnswer: "map เปลี่ยนทุก item, filter กรอง, reduce รวมเป็นค่าเดียว"
       },
       {
         id: "q5",
         type: "single",
-        question: "useMemo ใช้ทำอะไร?",
-        options: ["เก็บค่า state", "คำนวณค่าแคชไว้", "สร้าง ref ใหม่", "จัดการ event"],
-        correctAnswer: "คำนวณค่าแคชไว้"
+        question: "ในการ render list ของ React สิ่งสำคัญที่ต้องมีคือ?",
+        options: ["key", "index", "id", "name"],
+        correctAnswer: "key"
       }
     ]
   }}

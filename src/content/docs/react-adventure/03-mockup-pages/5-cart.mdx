@@ -1,22 +1,133 @@
 ---
-title: "หน้า Cart"
-description: แสดงสินค้าในตะกร้าและคำนวณรวม
+title: "หน้า Cart - แสดงสินค้าในตะกร้า"
+description: สร้างหน้าตะกร้าสินค้าพร้อมคำนวณรวม
 ---
+import ChatMessage from "@/components/ChatMessage.astro"
+
+ต่อไปเราจะสร้าง **หน้า Cart** ที่แสดงสินค้าที่เลือกไว้ และคำนวณรวมทั้งหมด
+
+
+## ขั้นตอนที่ 1: สร้าง Cart Component
+
+สร้างไฟล์ `src/components/react-adventure/pages/Cart.tsx`:
 
 ```tsx
-// src/routes/cart.tsx
-import { createFileRoute } from "@tanstack/react-router"
+// src/components/react-adventure/pages/Cart.tsx
+export function Cart() {
+  return (
+    <div>
+      <h1>ตะกร้าสินค้า</h1>
+    </div>
+  )
+}
+```
 
-export const Route = createFileRoute("/cart")({
-  component: Cart,
-})
+## ขั้นตอนที่ 2: เพิ่มข้อมูลสินค้าในตะกร้า
+
+ตะกร้าจะมีข้อมูลต่างจาก catalog ตรงที่มี **quantity**:
+
+```tsx
+// src/components/react-adventure/pages/Cart.tsx
 
 const cartItems = [
   { id: 1, name: "กระเป๋าเดินทาง", price: 1200, quantity: 1 },
   { id: 3, name: "หมวกกันแดด", price: 450, quantity: 2 },
 ]
 
-function Cart() {
+export function Cart() {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">ตะกร้าสินค้า</h1>
+      {/* ตรงนี้จะเพิ่มรายการสินค้า */}
+    </div>
+  )
+}
+```
+
+## ขั้นตอนที่ 3: แสดงรายการสินค้าด้วย Flexbox
+
+ต่อไปเราจะแสดงรายการสินค้าโดยใช้ **flexbox** จัดเรียง:
+
+```tsx
+export function Cart() {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">ตะกร้าสินค้า</h1>
+      
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        {cartItems.map((item) => (
+          <div
+            key={item.id}
+            className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0"
+          >
+            <div>
+              <h3 className="font-semibold text-gray-800">{item.name}</h3>
+              <p className="text-gray-500">
+                ฿{item.price} × {item.quantity}
+              </p>
+            </div>
+            <div className="text-blue-600 font-bold">
+              ฿{item.price * item.quantity}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+## ขั้นตอนที่ 4: คำนวณรวมทั้งหมดด้วย reduce
+
+ต่อไปเราจะคำนวณรวมทั้งหมด ใช้ **reduce** ซึ่งเป็น array method ที่ใช้คำนวณค่าจากทุก item:
+
+```tsx
+export function Cart() {
+  // reduce ใช้รวมค่าทุก item
+  const total = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0  // ค่าเริ่มต้น
+  )
+
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">ตะกร้าสินค้า</h1>
+      
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        {cartItems.map((item) => (
+          <div
+            key={item.id}
+            className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0"
+          >
+            <div>
+              <h3 className="font-semibold text-gray-800">{item.name}</h3>
+              <p className="text-gray-500">
+                ฿{item.price} × {item.quantity}
+              </p>
+            </div>
+            <div className="text-blue-600 font-bold">
+              ฿{item.price * item.quantity}
+            </div>
+          </div>
+        ))}
+        
+        {/* แสดงผลรวม */}
+        <div className="bg-gray-50 p-4 flex justify-between items-center">
+          <span className="font-bold text-lg">รวมทั้งหมด</span>
+          <span className="font-bold text-2xl text-blue-600">฿{total}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+## ขั้นตอนที่ 5: เช็คตะกร้าว่าง
+
+ต้องเช็คกรณีที่ตะกร้าว่างเปล่า จะได้ไม่แสดง list ว่างๆ:
+
+```tsx
+export function Cart() {
   const total = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -26,6 +137,7 @@ function Cart() {
     <div>
       <h1 className="text-3xl font-bold text-gray-800 mb-8">ตะกร้าสินค้า</h1>
       
+      {/* เช็คว่าตะกร้าว่างหรือไม่ */}
       {cartItems.length === 0 ? (
         <p className="text-gray-500">ตะกร้าว่างเปล่า</p>
       ) : (
@@ -61,8 +173,19 @@ function Cart() {
 }
 ```
 
-## จุดสำคัญ
+## ขั้นตอนที่ 6: Register Route
 
-- **Conditional rendering** — เช็คว่าตะกร้าว่างหรือไม่
-- **reduce** — คำนวณรวมทั้งหมด
-- **Layout ของ list** — ใช้ flexbox จัดเรียง
+เพิ่ม cart route ใน `router.tsx`:
+
+```tsx
+// src/components/react-adventure/router.tsx
+import { Cart } from "./pages/Cart"
+
+// ...
+const cartRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/cart",
+  component: Cart,
+})
+// ...
+```

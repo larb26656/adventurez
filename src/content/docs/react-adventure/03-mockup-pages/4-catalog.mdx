@@ -1,26 +1,80 @@
 ---
-title: "หน้า Catalog"
-description: แสดงสินค้าในรูปแบบ grid
+title: "หน้า Catalog - สร้าง Product Grid"
+description: สร้างหน้าแสดงสินค้าแบบ Grid พร้อมตัวอย่างข้อมูล
 ---
+import ChatMessage from "@/components/ChatMessage.astro"
+
+ใน part นี้เราจะสร้าง **หน้า Catalog** ที่แสดงสินค้าเป็น grid โดยใช้ code-based routing ที่เราตั้งค่าไว้ก่อนหน้านี้
+
+## ขั้นตอนที่ 1: สร้าง Catalog Component
+
+ก่อนอื่น สร้างไฟล์ component ใหม่ที่ `src/components/react-adventure/pages/Catalog.tsx`:
 
 ```tsx
-// src/routes/catalog.tsx
-import { createFileRoute } from "@tanstack/react-router"
+// src/components/react-adventure/pages/Catalog.tsx
+export function Catalog() {
+  return (
+    <div>
+      <h1>Catalog Page</h1>
+    </div>
+  )
+}
+```
 
-export const Route = createFileRoute("/catalog")({
-  component: Catalog,
-})
+## ขั้นตอนที่ 2: เพิ่ม Data สำหรับแสดงสินค้า
 
+ตอนนี้เราจะเพิ่ม **static data** ของสินค้า ซึ่งในอนาคตเราจะเปลี่ยนเป็นข้อมูลจริงจาก API:
+
+```tsx
+// src/components/react-adventure/pages/Catalog.tsx
+
+// ข้อมูลสินค้าชั่วคราว (mock data)
 const products = [
-  { id: 1, name: "กระเป๋าเดินทาง", price: 1200, image: "🎒" },
-  { id: 2, name: "รองเท้าวิ่ง", price: 2500, image: "👟" },
-  { id: 3, name: "หมวกกันแดด", price: 450, image: "🧢" },
-  { id: 4, name: "กล้องถ่ายรูป", price: 8000, image: "📷" },
-  { id: 5, name: "น้ำหนักถ่วง", price: 300, image: "🏋️" },
-  { id: 6, name: "เสื้อผ้ากันหนาว", price: 900, image: "🧥" },
+  { id: 1, name: "ชาเขียวมัทฉะ", price: 1200, image: "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400" },
+  { id: 2, name: "ชานมไต้หวัน", price: 2500, image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400" },
+  { id: 3, name: "ชามะม่วง", price: 450, image: "https://images.unsplash.com/photo-1621268438070-4b907a8f9d7c?w=400" },
+  { id: 4, name: "ชาบ๊วย", price: 8000, image: "https://images.unsplash.com/photo-1558160074-4d7d8bdf4256?w=400" },
+  { id: 5, name: "ชานมสด", price: 300, image: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400" },
+  { id: 6, name: "ชาผลไม้", price: 900, image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400" },
 ]
 
-function Catalog() {
+export function Catalog() {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">สินค้าทั้งหมด</h1>
+      {/* ตรงนี้เราจะเพิ่ม grid ต่อไป */}
+    </div>
+  )
+}
+```
+
+## ขั้นตอนที่ 3: ใช้ map แสดงรายการสินค้า
+
+ต่อไปเราจะใช้ **map** เพื่อวน loop แสดงสินค้าทุกชิ้น:
+
+```tsx
+export function Catalog() {
+  return (
+    <div>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">สินค้าทั้งหมด</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {products.map((product) => (
+          <div key={product.id} className="bg-white rounded-xl shadow-sm p-4">
+            <div className="text-6xl mb-4 text-center">{product.image}</div>
+            <h3 className="font-semibold text-lg text-gray-800">{product.name}</h3>
+            <p className="text-blue-600 font-bold mt-2">฿{product.price}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+## ขั้นตอนที่ 4: เพิ่มปุ่ม "เพิ่มลงตะกร้า"
+
+```tsx
+export function Catalog() {
   return (
     <div>
       <h1 className="text-3xl font-bold text-gray-800 mb-8">สินค้าทั้งหมด</h1>
@@ -44,8 +98,27 @@ function Catalog() {
 }
 ```
 
-## จุดสำคัญ
+## ขั้นตอนที่ 5: Register Route ใน Router
 
-- **Grid layout** — ใช้ `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` ทำ responsive
-- **Static data** — ข้อมูลอยู่ใน array โดยตรง
-- **map + key** — ใช้ map แสดง list และใส่ key ที่ unique
+สุดท้าย ต้องเพิ่ม catalog route ใน `router.tsx`:
+
+```tsx
+// src/components/react-adventure/router.tsx
+import { Catalog } from "./pages/Catalog"
+
+// ... ต่อจาก code เดิม
+
+const catalogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/catalog",
+  component: Catalog,
+})
+
+// เพิ่ม catalogRoute เข้าไปใน routeTree
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  catalogRoute,  // ← เพิ่มบรรทัดนี้
+  cartRoute,
+  loginRoute,
+])
+```

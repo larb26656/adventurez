@@ -1,17 +1,138 @@
 ---
-title: "หน้า Login"
-description: ฟอร์มเข้าสู่ระบบแบบ static
+title: "หน้า Login - สร้าง Form"
+description: สร้างฟอร์มเข้าสู่ระบบพร้อม input fields
 ---
+import ChatMessage from "@/components/ChatMessage.astro"
+
+ต่อไปเราจะสร้าง **หน้า Login** ที่มีฟอร์มสำหรับกรอก email และ password
+
+## ขั้นตอนที่ 1: สร้าง Login Component
+
+สร้างไฟล์ `src/components/react-adventure/pages/Login.tsx`:
 
 ```tsx
-// src/routes/login.tsx
-import { createFileRoute } from "@tanstack/react-router"
+// src/components/react-adventure/pages/Login.tsx
+export function Login() {
+  return (
+    <div>
+      <h1>เข้าสู่ระบบ</h1>
+    </div>
+  )
+}
+```
 
-export const Route = createFileRoute("/login")({
-  component: Login,
-})
+## ขั้นตอนที่ 2: จัด Layout ของ Form
 
-function Login() {
+ใช้ **max-width + mx-auto** เพื่อให้ form อยู่กลางหน้าจอ:
+
+```tsx
+export function Login() {
+  return (
+    <div className="max-w-md mx-auto">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+        เข้าสู่ระบบ
+      </h1>
+      <form className="bg-white rounded-xl shadow-sm p-6">
+        {/* fields จะมาตรงนี้ */}
+      </form>
+    </div>
+  )
+}
+```
+
+## ขั้นตอนที่ 3: เพิ่ม Email Input
+
+เพิ่ม label และ input สำหรับ email:
+
+```tsx
+export function Login() {
+  return (
+    <div className="max-w-md mx-auto">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+        เข้าสู่ระบบ
+      </h1>
+      <form className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+        <div>
+          <label className="block text-gray-700 font-medium mb-2">
+            อีเมล
+          </label>
+          <input
+            type="email"
+            placeholder="your@email.com"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          />
+        </div>
+      </form>
+    </div>
+  )
+}
+```
+
+<ChatMessage avatarKey="blackCat" isFromMe={false} message="เห็นโครงสร้างไหม:\n- `space-y-4` ใน form → ให้ระยะห่าง vertical ระหว่างแต่ละ field 16px\n- `<label>` มี `block` → ทำให้อยู่บรรทัดเดียวกับ input\n- `<input>` มี `w-full` → กว้ายเต็ม parent\n\n**Input types ที่ใช้บ่อย:**\n- `text` — ข้อความทั่วไป\n- `email` — อีเมล (มี validate ใน browser)\n- `password` — ซ่อนตัวอักษร\n- `number` — ตัวเลข\n- `checkbox` / `radio` — ตัวเลือก" />
+
+## ขั้นตอนที่ 4: เพิ่ม Password Input
+
+เพิ่ม input สำหรับ password:
+
+```tsx
+export function Login() {
+  return (
+    <div className="max-w-md mx-auto">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+        เข้าสู่ระบบ
+      </h1>
+      <form className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+        <div>
+          <label className="block text-gray-700 font-medium mb-2">
+            อีเมล
+          </label>
+          <input
+            type="email"
+            placeholder="your@email.com"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          />
+        </div>
+        <div>
+          <label className="block text-gray-700 font-medium mb-2">
+            รหัสผ่าน
+          </label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          />
+        </div>
+      </form>
+    </div>
+  )
+}
+```
+
+## ขั้นตอนที่ 5: เพิ่ม Focus States
+
+ต่อไปเราจะเพิ่ม **focus states** ให้ input ดูดีขึ้นเมื่อคลิก:
+
+```tsx
+<input
+  type="email"
+  placeholder="your@email.com"
+  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+/>
+<input
+  type="password"
+  placeholder="••••••••"
+  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+/>
+```
+
+<ChatMessage avatarKey="blackCat" isFromMe={false} message="Focus states ที่เพิ่ม:\n- `focus:ring-2` — เพิ่ม ring สีฟ้ารอบๆ เมื่อ focus\n- `focus:border-blue-500` — เปลี่ยนสี border เมื่อ focus\n- `outline-none` — ลบ outline เริ่มต้นของ browser\n\nFocus states สำคัญมากสำหรับ accessibility — ผู้ใช้ที่ใช้ keyboard ต้องเห็นว่าตอนนี้ focus อยู่ที่ไหน" />
+
+## ขั้นตอนที่ 6: เพิ่มปุ่ม Submit
+
+เพิ่มปุ่มสำหรับ submit ฟอร์ม:
+
+```tsx
+export function Login() {
   return (
     <div className="max-w-md mx-auto">
       <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
@@ -45,6 +166,31 @@ function Login() {
           เข้าสู่ระบบ
         </button>
       </form>
+    </div>
+  )
+}
+```
+
+## ขั้นตอนที่ 7: เพิ่ม Link สำหรับสมัครสมาชิก
+
+เพิ่มข้อความด้านล่างสำหรับผู้ที่ยังไม่มี account:
+
+```tsx
+export function Login() {
+  return (
+    <div className="max-w-md mx-auto">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+        เข้าสู่ระบบ
+      </h1>
+      <form className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+        {/* ... fields ... */}
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+        >
+          เข้าสู่ระบบ
+        </button>
+      </form>
       <p className="text-center mt-4 text-gray-500">
         ยังไม่มีบัญชี?{" "}
         <a href="#" className="text-blue-600 hover:underline">
@@ -56,8 +202,19 @@ function Login() {
 }
 ```
 
-## จุดสำคัญ
+## ขั้นตอนที่ 8: Register Route
 
-- **Form layout** — ใช้ space-y-4 ให้ระยะห่างระหว่าง field
-- **Input states** — focus:ring-2 เมื่อคลิก
-- **Centered** — max-w-md + mx-auto ทำให้ form อยู่กลาง
+เพิ่ม login route ใน `router.tsx`:
+
+```tsx
+// src/components/react-adventure/router.tsx
+import { Login } from "./pages/Login"
+
+// ...
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/login",
+  component: Login,
+})
+// ...
+```

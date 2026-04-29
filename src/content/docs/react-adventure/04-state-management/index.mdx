@@ -1,0 +1,26 @@
+---
+title: "State Management"
+sidebar:
+  order: 4
+  collapsed: false
+---
+
+## Part 4: State Management — จัดการ State อย่างมีประสิทธิภาพ
+
+ใน part นี้เราจะเรียนรู้การจัดการ state ขั้นสูงขึ้น:
+
+- **Context** — สำหรับ theme toggle (light/dark mode)
+- **Zustand** — สำหรับ cart store ที่ scalable กว่า
+- **เชื่อม UI กับ State** — ให้ component ต่าง ๆ สื่อสารกันได้
+
+```mermaid
+flowchart TB
+    subgraph StateManagement
+        Context[Context API<br/>Theme Toggle]
+        Zustand[Zustand<br/>Cart Store]
+        Connect[Connect UI<br/>with State]
+    end
+    
+    classDef important fill:#a78bfa,stroke:#7c3aed,stroke-width:2px
+    class Context,Zustand,Connect important
+```

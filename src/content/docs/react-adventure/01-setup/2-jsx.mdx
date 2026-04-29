@@ -34,6 +34,7 @@ JSX คือ **syntax extension** ที่ให้คุณเขียน HT
 โดยเริ่มจากสร้าง component แรก ให้สร้างไฟล์ชื่อ `TSXBasic.tsx` ในโฟรเดร์ `src`
 
 ```tsx
+// src/TSXBasic.tsx
 // TSXBasic คือชื่อ component
 function TSXBasic() {
   return <div>hello world!</div>;
@@ -45,15 +46,13 @@ export default TSXBasic;
 เปลี่ยน Entry component ในไฟล์ `main.tsx` จาก component `<App/>` เป็น `<TSXBasic/>`
 
 ```tsx
+// src/App.tsx
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
---import './index.css'
---import App from './App.tsx'
 import TSXBasic from "./TSXBasic";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    --<App/>
     <TSXBasic />
   </StrictMode>,
 )
@@ -68,6 +67,7 @@ createRoot(document.getElementById('root')!).render(
 ให้ทำการสร้าง component ขึ้นมาใหม่
 
 ```tsx
+// src/HelloVariable.tsx
 function HelloVariable() {
   const name: string = "luckytime1996";
   const age: number = 25;
@@ -85,6 +85,7 @@ export default HelloVariable;
 เปลี่ยน Entry component ในไฟล์ `main.tsx` จาก component เป็น `<HelloVariable/>`
 
 ```tsx
+// src/App.tsx
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import HelloVariable from "./HelloVariable";
@@ -111,6 +112,7 @@ Hello luckytime1996 age: 25 verify: true
 โดย component สามารถรับค่าจากภายนอกได้โดยการประกาศ props ซึ่งเดี๋ยวเราจะลองสร้าง props ที่ component `<HelloVariable/>` เพื่อจะได้ส่งค่า `name` `age` `verify` มาจากภายนอกได้
 
 ```tsx
+// src/HelloVariable.tsx
 interface HelloVariableProps {
   name: string;
   age: number;
