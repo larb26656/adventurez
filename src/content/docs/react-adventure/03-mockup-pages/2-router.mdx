@@ -1,9 +1,86 @@
 ---
-title: "TanStack Router"
+title: "Router"
 description: File-based routing — ชื่อไฟล์คือ path ของหน้าเว็บ
 ---
 
-TanStack Router มี feature เด็ด ๆ คือ **file-based routing** — ชื่อไฟล์จะเป็น path ของหน้าเว็บเลย
+ความจริงคือถ้าเราเขียน React แบบเดิม ๆ เรามักจะกองทุกอย่างไว้ที่ App.tsx แล้วใช้ useState เพื่อสลับหน้าไปมา ซึ่งมัน Scale ยากมาก และเนื่องจาก React เป็น Library ไม่ใช่ Framework (อย่าง Next.js) 
+มันเลยไม่มีระบบจัดการเส้นทาง (Routing) มาให้ในตัว
+
+เพื่อให้เห็นภาพชัดเจนก่อนจะไปถึงเครื่องมือ เรามาแยกให้เห็นก่อนว่าระบบจัดการเส้นทางมันทำงานยังไง และทำไมเราถึง "ขาดมันไม่ได้" เมื่อโปรเจกต์เริ่มโต
+
+## Router
+ในสมัยก่อน เวลาเราเปลี่ยนหน้า เว็บจะทำการ "โหลดใหม่ทั้งหน้า" (Refresh) ซึ่งทำให้ช้าและเสียจังหวะ แต่พอเป็น Single Page Application (SPA) แบบ React:
+- ไม่มีการโหลดหน้าใหม่: เว็บจะโหลดแค่ครั้งเดียวตอนเข้าครั้งแรก
+- Router เข้ามาจัดการ: เมื่อคุณคลิกเมนู Router จะเปลี่ยน URL ให้ (เช่นจาก / เป็น /about) และสลับเอา Component About มาแปะแทนที่หน้าเดิมทันทีโดยไม่เกิดการกระพริบของหน้าจอ
+หน้าที่หลักของ Router
+	1.	Navigation: จัดการการนำทาง เช่น การกดปุ่มย้อนกลับ (Back) หรือไปข้างหน้า (Forward) ใน Browser ให้ทำงานได้ถูกต้อง
+	2.	State Management (URL): เก็บข้อมูลไว้ที่ URL เช่น /products?category=electronics เพื่อให้เราสามารถก๊อปปี้ลิงก์นี้ไปให้เพื่อน แล้วเพื่อนเปิดมาเจอหน้าเดียวกันเป๊ะๆ
+	3.	Data Fetching: ใน TanStack Router มันเก่งถึงขั้นที่ว่า พอมันรู้ว่าคุณกำลังจะไปหน้าไหน มันจะแอบไปโหลดข้อมูล (Pre-fetch) เตรียมไว้ให้ก่อนที่คุณจะคลิกเสร็จด้วยซ้ำ!
+	4.	Security: ตรวจสอบสิทธิ์ (Auth) เช่น ถ้ายังไม่ได้ Login แล้วพยายามจะเข้าหน้า /admin ตัว Router ก็จะเตะเรากลับไปหน้า /login ทันที
+🏗️ หน้าตาของ Router ในเชิงเปรียบเทียบ
+
+โดยใน tutorial นี้จะใช้ Tanstack router
+
+## TanStack Router 
+คือ Type-safe routing library สำหรับ React ที่สร้างโดยทีม TanStack
+
+**จุดเด่น:**
+- Type-safe - type inference อัตโนมัติ
+- File-based routing - รองรับ auto-routing จากโครงสร้างไฟล์
+- Lightweight - ไม่มี dependencies มาก
+
+ก่อนจะไปลองใช้งาน เรามาติดตั้ง react tanstack router กันก่อน
+
+## ติดตั้ง
+
+``` bash
+npm install @tanstack/react-router @tanstack/router-devtools
+npm install -D @tanstack/router-plugin @tanstack/router-cli vite-plugin-tanstack-router
+```
+
+เพื่อให้ระบบ File-based ทำงานได้ลื่นไหล เราต้องลงทะเบียน Plugin ใน Vite
+
+``` ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+
+export default defineConfig({
+  plugins: [
+    TanStackRouterVite(), // วางไว้ก่อน react()
+    react(),
+  ],
+})
+```
+
+เชื่อมต่อ Router ใน src/main.tsx
+นี่คือขั้นตอนสุดท้าย คือการสร้าง Router Instance และครอบ App ด้วย RouterProvider
+
+``` tsx
+// src/main.tsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { RouterProvider, createRouter } from '@tanstack/react-router'
+
+// นำเข้า routeTree ที่ถูกเจนมาอัตโนมัติ (จะเกิดขึ้นหลังรัน dev server)
+import { routeTree } from './routeTree.gen'
+
+const router = createRouter({ routeTree })
+
+// ลงทะเบียน type เพื่อให้ Link ต่างๆ เป็น Fully Type-safe
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router
+  }
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>,
+)
+```
 
 ## โครงสร้างไฟล์
 
