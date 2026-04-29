@@ -1,0 +1,61 @@
+---
+title: "Props"
+description: ส่งข้อมูลระหว่าง Component ด้วย Props
+sidebar:
+  order: 3
+  parent: 01-setup
+---
+
+## Props: ส่งข้อมูลระหว่าง Component
+
+### Props คืออะไร?
+
+Props ย่อมาจาก "properties" — คือ **arguments** ที่ส่งเข้า component
+
+### ส่ง Props
+
+```tsx
+// Parent component
+function App() {
+  return <Greeting name="Somchai" />
+}
+
+// Child component (รับ props เป็น parameter)
+function Greeting({ name }: { name: string }) {
+  return <h1>สวัสดีครับ {name}!</h1>
+}
+```
+
+### Multiple Props
+
+```tsx
+function UserCard({ name, age, city }: { name: string; age: number; city: string }) {
+  return (
+    <div className="card">
+      <h2>{name}</h2>
+      <p>อายุ: {age}</p>
+      <p>เมือง: {city}</p>
+    </div>
+  )
+}
+
+// ใช้งาน
+<UserCard name="Somchai" age={25} city="กรุงเทพ" />
+```
+
+### Default Props
+
+```tsx
+function Badge({ text = "New", color = "blue" }: { text?: string; color?: string }) {
+  return <span className={`badge badge-${color}`}>{text}</span>
+}
+
+// <Badge /> → <span class="badge badge-blue">New</span>
+// <Badge text="Sale" /> → <span class="badge badge-blue">Sale</span>
+```
+
+---
+
+## What's Next?
+
+→ [Lesson 5: Workshop](./5-workshop) — สร้าง Counter App

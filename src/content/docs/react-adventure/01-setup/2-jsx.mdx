@@ -1,0 +1,199 @@
+---
+title: "JSX"
+description: เรียนรู้ JSX — syntax ที่ React ใช้เขียน UI
+sidebar:
+  order: 1
+  parent: 01-setup
+---
+import ChatMessage from "@/components/ChatMessage.astro"
+
+## JSX คืออะไร?
+
+JSX คือ **syntax extension** ที่ให้คุณเขียน HTML-like code ใน JavaScript
+
+> แต่จริง ๆ แล้วมัน ไม่ใช่ HTML — มันจะถูก compile (เช่นโดย Babel หรือ TypeScript) ให้กลายเป็น JavaScript ปกติ (เช่น React.createElement)
+
+### JSX vs HTML
+
+| HTML | JSX |
+|------|-----|
+| `class="box"` | `className="box"` |
+| `onclick="fn()"` | `onClick={fn}` |
+| `<input type="text">` | `<input type="text" />` |
+| `background-color` | `backgroundColor` |
+
+
+ในโปรเจค TypeScript
+- ไฟล์จะใช้ .tsx (แทน .jsx)
+- เพื่อให้ TypeScript เข้าใจ JSX syntax + type checking ได้
+
+### ตัวอย่าง: TSX เบื้องต้น
+เดี๋ยวเรามาลองเล่นกับ tsx กันดีกว่า
+
+#### Hello world
+โดยเริ่มจากสร้าง component แรก ให้สร้างไฟล์ชื่อ `TSXBasic.tsx` ในโฟรเดร์ `src`
+
+```tsx
+// TSXBasic คือชื่อ component
+function TSXBasic() {
+  return <div>hello world!</div>;
+}
+
+export default TSXBasic;
+```
+
+เปลี่ยน Entry component ในไฟล์ `main.tsx` จาก component `<App/>` เป็น `<TSXBasic/>`
+
+```tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+--import './index.css'
+--import App from './App.tsx'
+import TSXBasic from "./TSXBasic";
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    --<App/>
+    <TSXBasic />
+  </StrictMode>,
+)
+```
+
+ลองเข้าเว็บดูออกทีจะเห็นว่าเว็บแสดงคำว่า hello world! ตามนี้เราสร้าง component แล้ว!
+
+<ChatMessage message="สามารถสร้าง component ด้วย คีย์ลัดด้วยการพิมพ์ rfce แล้วกด tab ได้ด้วยนะ" avatarKey="whiteCat" />
+
+#### Variable
+ต่อมาเรามาลองเล่นกับตัวแปรดู
+ให้ทำการสร้าง component ขึ้นมาใหม่
+
+```tsx
+function HelloVariable() {
+  const name: string = "luckytime1996";
+  const age: number = 25;
+  const verify: boolean = true;
+
+  // เอาตัวแปรมาแสดงใน tsx ด้วย {ชื่อตัวแปร}
+  return <div>Hello {name} age: {age} verify: {verify ? "true" : "false"}</div>;
+}
+
+export default HelloVariable;
+```
+
+<ChatMessage message="ลองแก้ไขเป็นชื่อตัวเองก็ได้นะ" avatarKey="whiteCat" />
+
+เปลี่ยน Entry component ในไฟล์ `main.tsx` จาก component เป็น `<HelloVariable/>`
+
+```tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import HelloVariable from "./HelloVariable";
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <HelloVariable />
+  </StrictMode>,
+)
+```
+
+โดย component จะทำการอ่านค่าจาก variable `name` `age` `verify` และ return เป็น tag div
+
+ลองทดสอบดูจะเห็นขอความปรากฏบนหน้าเว็บดังนี้
+
+```
+Hello luckytime1996 age: 25 verify: true
+```
+
+#### Props
+
+<ChatMessage message="เอ๋... ถ้าอยากให้ compoennt มันรับ Input จากภายนอกได้ด้วยหล่ะต้องทำยังไง?" avatarKey="whiteCat" />
+
+โดย component สามารถรับค่าจากภายนอกได้โดยการประกาศ props ซึ่งเดี๋ยวเราจะลองสร้าง props ที่ component `<HelloVariable/>` เพื่อจะได้ส่งค่า `name` `age` `verify` มาจากภายนอกได้
+
+```tsx
+interface HelloVariableProps {
+  name: string;
+  age: number;
+  // ใส่ ? หลังชื่อตัวแปรเพื่อบอกถึงว่าไม่ต้องมี props นี้ก็ได้
+  verify?: boolean;
+}
+
+// โดยเราสามารถใส่ default value ที่ หลังตัวแปรได้ดังตัวอย่าง verify = false หมายความว่าถ้าผู้ใช้เรียก component นี้โดยที่ไม่ใส่ verify มา verify จะเป้น false ทันที แต่ถ้าผู้ใช้ส่งมาก็จะเป็นค่าตามที่ผู้ใช้ส่งมา
+function HelloVariable({ name, age, verify = false }: HelloVariableProps) {
+  return <div>Hello {name} age: {age} verify: {verify ? "true" : "false"}</div>;
+}
+
+export default HelloVariable;
+```
+
+เพียงเท่านี้ component HelloVariable เราก็จะส่งค่าจากภายนอกได้แล้ว
+ขั้นตอนต่อมาเรามาปรับในส่วนที่เรียกใช้งาน ให้ส่ง props name เข้าไปดู
+
+```tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import HelloVariable from "./HelloVariable";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <HelloVariable name={"Shiro"} age={12}/>
+    <HelloVariable name={"Kuro"} age={11} verify={true} />
+    <HelloVariable name={"Zen"} age={42} verify={false} />
+  </StrictMode>,
+);
+```
+
+ลองทดสอบดูจะเห็นขอความปรากฏบนหน้าเว็บดังนี้
+
+```
+Hello Shiro age: 12 verify: false
+Hello Kuro age: 11 verify: true
+Hello Zen age: 42 verify: false
+```
+
+<ChatMessage message="ลองเปลี่ยน props ที่ส่งไปได้นะ" avatarKey="whiteCat" />
+
+#### Conditionals
+
+ใน TSX เราสามารถใช้เงื่อนไขในการแสดงผลได้หลายวิธี
+
+##### ใช้ Ternary Operator
+ใช้ได้ทั้งใน TSX และใน expression
+
+```tsx
+function ConditionalExample({ isLoggedIn }: { isLoggedIn: boolean }) {
+  return (
+    <div>
+      {isLoggedIn ? <p>ยินดีต้อนรับ!</p> : <p>กรุณาเข้าสู่ระบบ</p>}
+    </div>
+  );
+}
+```
+
+##### ใช้ Logical AND (&&)
+ใช้เมื่อต้องการแสดงเมื่อเงื่อนไขเป็นจริง และซ่อนเมื่อเงื่อนไขเป็นเท็จ
+
+```tsx
+function ShowBadge({ badge }: { badge?: string }) {
+  return (
+    <div>
+      {badge && <span className="badge">{badge}</span>}
+    </div>
+  );
+}
+```
+
+##### ใช้ early return
+ถ้าต้องการซ่อนทั้ง component เมื่อเงื่อนไขไม่ตรงตาม
+
+```tsx
+function PremiumFeature({ isPremium }: { isPremium: boolean }) {
+  if (!isPremium) {
+    return <div>กรุณาอัพเกรดเป็น Premium เพื่อใช้งาน</div>;
+  }
+
+  return <div>Premium Feature พร้อมใช้งาน!</div>;
+}
+```
+
+<ChatMessage message="ลองสร้าง component ที่ใช้ conditionals ดูนะ" avatarKey="whiteCat" />

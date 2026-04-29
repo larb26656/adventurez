@@ -1,0 +1,81 @@
+---
+title: "Setup & Fundamentals"
+description: ติดตั้ง React ด้วย Vite, เรียนรู้ JSX, Components และ Props
+sidebar:
+  order: 1
+---
+
+## 1. Setup: สร้าง Project ด้วย Vite
+
+### ติดตั้ง Node.js ก่อน
+
+ถ้ายังไม่มี Node.js, ดาวน์โหลดจาก [nodejs.org](https://nodejs.org) (แนะนำ LTS version)
+
+เช็คว่าติดตั้งได้หรือยัง:
+
+```bash
+node --version
+npm --version
+```
+
+### สร้าง React Project
+
+เปิด terminal แล้วรันคำสั่งนี้:
+
+```bash
+npm create vite@latest my-portfolio -- --template react-ts
+```
+
+**คำอธิบาย:**
+- `npm create vite` — ใช้ Vite สร้าง project
+- `my-portfolio` — ชื่อ folder ที่จะสร้าง
+- `--template react-ts` — template สำหรับ React + TypeScript
+
+### ติดตั้ง Dependencies
+
+```bash
+cd my-portfolio
+npm install
+```
+
+### รัน Development Server
+
+```bash
+npm run dev
+```
+
+เปิด browser ไปที่ `http://localhost:5173` จะเห็นหน้าว่างๆ พร้อมโลโก้ Vite
+
+---
+
+## 2. โครงสร้าง Project
+
+หลังจากสร้าง project เสร็จ, โครงสร้างจะเป็นแบบนี้:
+
+```
+my-portfolio/
+├── index.html
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── src/
+    ├── App.tsx
+    ├── App.css
+    ├── main.tsx
+    └── index.css
+```
+
+### ไฟล์สำคัญ
+
+| File | ทำหน้าที่ |
+|------|----------|
+| `index.html` | Entry point ของ web app |
+| `src/main.tsx` | ไฟล์ที่ React จะ render เป็นรูปแบบ web |
+| `src/App.tsx` | Component หลัก — เราจะเขียน code ตรงนี้เป็นส่วนใหญ่ |
+| `vite.config.ts` | Config ของ Vite |
+
+---
+
+## What's Next?
+
+→ [Lesson 1a: JSX](./2-jsx) — เรียนรู้ JSX

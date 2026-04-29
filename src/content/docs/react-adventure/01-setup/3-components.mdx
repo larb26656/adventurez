@@ -1,0 +1,50 @@
+---
+title: "Components"
+description: เรียนรู้ Component พื้นฐาน — function ที่ return UI
+sidebar:
+  order: 2
+  parent: 01-setup
+---
+
+## Component พื้นฐาน
+
+### Component คืออะไร?
+
+Component คือ **function** ที่ return JSX — คล้ายกับ building block ของ UI
+
+### สร้าง Component แรก
+
+เปิด `src/App.tsx` แล้วแก้ไข:
+
+```tsx
+function App() {
+  return (
+    <div>
+      <h1>สวัสดี React!</h1>
+      <p>นี่คือ component แรกของฉัน</p>
+    </div>
+  )
+}
+
+export default App
+```
+
+### กฎของ Component
+
+1. **ขึ้นต้นด้วยตัวใหญ่** — `<App />` ✅, `<app />` ❌
+2. **Return JSX** — ต้อง return อะไรสักอย่าง
+3. **มี single root element** — wrap ด้วย `<div>` หรือ `<>`
+
+### Component แบบ Arrow Function
+
+```tsx
+const Header = () => {
+  return <header><h1>My Site</h1></header>
+}
+```
+
+---
+
+## What's Next?
+
+→ [Lesson 4: Props](./4-props) — ส่งข้อมูลระหว่าง Component
