@@ -30,11 +30,17 @@ function FocusInput() {
 }
 ```
 
-```mermaid
+``` mermaid
 flowchart LR
-    subgraph "useRef"
-        ref[ref={useRef(null)}] -->|<input ref={...}>| DOM[DOM Element]
-        DOM -->|current| Access[current.focus()]
+    subgraph "useRef Hook"
+        %% ใช้ ID เป็นคำง่ายๆ เช่น R, D, A
+        R["ref = useRef(null)"] 
+        D["&lt;input ref={ref} /&gt;"] 
+        A["ref.current.focus()"]
+
+        %% เชื่อมต่อด้วย ID
+        R -->|Assign to| D
+        D -->|Access via| A
     end
 ```
 

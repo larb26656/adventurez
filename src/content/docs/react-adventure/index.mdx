@@ -5,80 +5,37 @@ thumbnail: /react-adventure/thumbnail.png
 tags: [React, Frontend, JavaScript, Vite, TypeScript]
 color: "#6b7280"
 sidebar:
-  hidden: true
+  order: 0
 ---
 
-## 🎯 เป้าหมาย
-
-จบ tutorial นี้ = ได้เว็บ Portfolio ขึ้น Vercel จริงๆ
-
-## 📚 Curriculum
-
-| Lesson | หัวข้อ | Project |
-|--------|--------|---------|
-| [01. Setup](./01-setup) | Vite, JSX, Components, Props | Counter App |
-| [02. Hooks](./02-hooks) | useState, useEffect, useCallback, useRef, Custom Hooks | Enhanced Counter |
-| [03. Context & State](./03-context-state) | Props Drilling → Context → Zustand | Mock E-commerce |
-| [04. Styling & UI](./04-styling-ui) | Tailwind, Dark/Light mode, Framer Motion | Styled Cart |
-| [05. Routing](./05-routing) | TanStack Router, Layouts, Load Functions | Multi-page App |
-| [06. Forms](./06-forms) | React Hook Form + Zod validation | Checkout Form |
-| [07. Build Real App](./07-build-portfolio) | Project Structure, Data Fetching | Real API |
-| [08. Deployment](./08-deployment) | Deploy to Vercel | Live Portfolio! |
-| [09. TanStack Query](./09-tanstack-query) *(Bonus)* | Data fetching ขั้นสุด | Replace Custom Hook |
-
-### Side Quests (Optional)
-
-บทเรียนเสริมสำหรับคนอยากเข้าใจลึก:
-
-| Quest | หัวข้อ |
-|-------|--------|
-| [React Internals](./side-quest/01-react-internals) | Reconciliation, immutable state, infinite loops |
-| [React DevTools](./side-quest/02-devtools) | Debug component tree, Profiler |
-
-## 🛠 Tech Stack
-
-```
-React + Vite        → Development environment
-TypeScript          → Type safety
-TanStack Router     → Type-safe routing
-React Hook Form     → Form management
-Zod                 → Validation
-Tailwind CSS        → Styling
-Framer Motion       → Animations
-Zustand             → State management
-TanStack Query      → Data fetching (bonus)
-Vercel              → Deployment
-```
-
-## 📈 Project Evolution
-
-```
-Step 1: Counter          → เรียน useState, props
-Step 2: Mock E-commerce  → เห็น props drilling pain
-Step 3: Context/Zustand  → แก้ pain ด้วย state management
-Step 4: Styling          → Tailwind + animations
-Step 5: Routing          → หลายหน้า
-Step 6: Forms            → validation
-Step 7: Real API         → data fetching patterns
-Step 8: Deploy           → Vercel
-```
-
-## ✅ ผลลัพธ์ที่ได้
-
-Portfolio website ที่มี:
-
-- Hero section
-- Projects showcase
-- Contact form
-- Dark/Light mode toggle
-- Type-safe routing
-- Form validation
-- Deploy ขึ้น Vercel
+# บทที่ 0: ปฐมบทแห่งโรงน้ำชา
+## 📜 ภารกิจจากคุณยาย
+สวัสดีเหล่านักเดินทาง.. พักให้หายเหนื่อยก่อนเถิด ข้าคือ **Zen** ผู้ท่องโลกมานักต่อนัก 
+ก่อนที่เจ้าจะก้าวเท้าออกจากโรงเตี้ยมแห่งนี้ มีอีกคนหนึ่งที่เจ้าควรพบ... 
+นั่นคือ **คุณยายมาริ** นางมีบางอย่างจะบอกเจ้า
 
 ---
 
-:::tip เริ่มจากตรงไหน?
-ถ้ายังใหม่กับ React → เริ่มจาก [Lesson 1: Setup](./01-setup)
+<img src="/react-adventure/tea.png" alt="tea" />
+**คุณยายมาริ** เจ้าของร้านน้ำชาเก่าแก่ กำลังต้องการความช่วยเหลือ! ท่านอยากให้คุณสร้าง "โรงน้ำชาออนไลน์" เพื่อส่งต่อใบชาไปทั่วอาณาจักร!
+แน่นอนว่าหนทางย่อมไม่ได้โรยด้วยกลีบดอกไม้ ข้าจึงได้เตรียม
+'คู่หู' ที่จะร่วมร่วมหัวจมท้ายไปกับพวกเจ้าไว้แล้ว..."
+<img src="/misc/introduce.png" alt="introduce" />
+- **Shiro (ชิโระ)**: จอมปราชญ์! คอยบอกเคล็ดลับที่จะทำให้การทำภารกิจของคุณง่ายขึ้
+- **Kuro (คุโระ)**: จอมดุ! คอยเตือนเวลาข้อห้าม หรือสิ่งอันตรายต่างๆ
 
-ถ้ารู้จักพื้นฐานแล้ว → ข้ามไป lesson ที่สนใจได้เลย
-:::
+ก่อนจะเริ่มลงมือทำ เรามาทำความเข้าใจก่อนว่าทำไมเราถึงเลือกใช้ React ในการสร้างโปรเจกต์นี้
+
+## ทำความรู้จักกับ React
+### จุดกำเนิดและ Pain Point
+ย้อนกลับไปช่วงปี 2011 Facebook ประสบปัญหาอย่างหนักในการจัดการ UI ที่มีความซับซ้อนสูง (เช่น ระบบ Chat และ Notifications ที่ต้องอัปเดตตลอดเวลา)
+ในสมัยนั้น การเขียนเว็บด้วย JavaScript ปกติ (Vanilla JS) มีปัญหาหลักคือ:
+
+- การจัดการ DOM ที่ยุ่งเหยิง: เมื่อข้อมูลเปลี่ยน เราต้องสั่งอัปเดตหน้าจอทีละจุดเอง (Imperative) เช่น "ไปหา ID นี้ แล้วเปลี่ยนข้อความเป็นแบบนี้" พอเว็บใหญ่ขึ้น โค้ดจะพันกันจนไล่เช็คยากมาก
+- State Management: การติดตามว่าตอนนี้หน้าจอแสดงผลอะไรอยู่ และข้อมูลล่าสุดคืออะไร ทำได้ยากและเกิดบั๊กได้ง่าย
+### การมาถึงของ React
+Facebook จึงสร้าง React ขึ้นมาในปี 2013 เพื่อเปลี่ยนวิธีคิดในการเขียน UI ใหม่ทั้งหมด:
+
+1. Component-Based: แทนที่จะเขียน HTML หน้าเดียวยาวๆ เราจะแบ่ง UI ออกเป็นส่วนย่อยๆ ที่ทำงานอิสระต่อกัน (เช่น ปุ่ม, การ์ดสินค้า, แถบเมนู) ทำให้เราสามารถนำกลับมาใช้ซ้ำได้ง่าย
+2. Declarative UI: เราแค่เขียนอธิบายว่า "หน้าตา UI ที่เราต้องการในสถานะต่างๆ เป็นอย่างไร" แล้ว React จะรับหน้าที่ไปคำนวณและอัปเดตหน้าจอให้เราเองโดยอัตโนมัติ
+3. Virtual DOM: React มีระบบ "โดมเสมือน" ที่ช่วยคำนวณว่าต้องอัปเดตหน้าจอเฉพาะจุดไหนที่จำเป็นจริงๆ ทำให้ประสิทธิภาพการทำงานรวดเร็วและลื่นไหล

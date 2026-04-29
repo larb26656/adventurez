@@ -200,6 +200,45 @@ function PremiumFeature({ isPremium }: { isPremium: boolean }) {
 
 <ChatMessage message="ลองสร้าง component ที่ใช้ conditionals ดูนะ" avatarKey="whiteCat" />
 
+#### Lists
+
+ใน TSX เราสามารถใช้ `.map()` เพื่อวน loop และ render component หลายตัวได้
+
+```tsx
+interface User {
+  id: number;
+  name: string;
+}
+
+function UserList({ users }: { users: User[] }) {
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+จากตัวอย่าง:
+- เราใช้ `.map()` เพื่อวน array `users`
+- สำหรับแต่ละ `user` จะ return JSX `<li>{user.name}</li>`
+- **สำคัญ**: ต้องใส่ `key` prop เป็นค่าที่ไม่ซ้ำกัน (เช่น `id`) เพื่อช่วย React จัดการกับการอัพเดต DOM ได้อย่างมีประสิทธิภาพ
+
+```tsx
+// ใช้งาน
+const users = [
+  { id: 1, name: "Shiro" },
+  { id: 2, name: "Kuro" },
+  { id: 3, name: "Zen" },
+];
+
+<UserList users={users} />
+```
+
+<ChatMessage message="key ต้องเป็นค่าที่ไม่ซ้ำกันนะ ห้ามใช้ index เป็น key เด็ดขาด!" avatarKey="whiteCat" />
+
 import { Quiz } from "@/components/quiz"
 
 <Quiz client:load
