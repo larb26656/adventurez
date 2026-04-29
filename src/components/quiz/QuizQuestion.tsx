@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import type { QuizQuestion } from './types';
+import { useState, useEffect, useMemo } from "react";
+import type { QuizQuestion } from "./types";
 
 interface QuizQuestionProps {
   question: QuizQuestion;
@@ -16,20 +16,30 @@ function normalizeAnswer(answer: string): string {
 function isCorrectAnswer(
   userAnswer: string | string[],
   correctAnswer: string | string[],
-  type: QuizQuestion['type']
+  type: QuizQuestion["type"],
 ): boolean {
-  if (type === 'single') {
-    return normalizeAnswer(userAnswer as string) === normalizeAnswer(correctAnswer as string);
-  }
-  if (type === 'multiple') {
-    const userArr = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
-    const correctArr = Array.isArray(correctAnswer) ? correctAnswer : [correctAnswer];
+  if (type === "single") {
     return (
-      userArr.length === correctArr.length &&
-      userArr.every((a) => correctArr.some((c) => normalizeAnswer(a) === normalizeAnswer(c)))
+      normalizeAnswer(userAnswer as string) ===
+      normalizeAnswer(correctAnswer as string)
     );
   }
-  return normalizeAnswer(userAnswer as string) === normalizeAnswer(correctAnswer as string);
+  if (type === "multiple") {
+    const userArr = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
+    const correctArr = Array.isArray(correctAnswer)
+      ? correctAnswer
+      : [correctAnswer];
+    return (
+      userArr.length === correctArr.length &&
+      userArr.every((a) =>
+        correctArr.some((c) => normalizeAnswer(a) === normalizeAnswer(c)),
+      )
+    );
+  }
+  return (
+    normalizeAnswer(userAnswer as string) ===
+    normalizeAnswer(correctAnswer as string)
+  );
 }
 
 export function QuizQuestion({
@@ -39,16 +49,18 @@ export function QuizQuestion({
   submittedAnswer,
   correctAnswer,
 }: QuizQuestionProps) {
-  const [textValue, setTextValue] = useState('');
-  const [singleValue, setSingleValue] = useState<string>('');
+  const [textValue, setTextValue] = useState("");
+  const [singleValue, setSingleValue] = useState<string>("");
   const [multipleValues, setMultipleValues] = useState<string[]>([]);
 
   const points = question.points ?? 1;
-  const isCorrect = isAnswered && isCorrectAnswer(submittedAnswer || '', correctAnswer, question.type);
+  const isCorrect =
+    isAnswered &&
+    isCorrectAnswer(submittedAnswer || "", correctAnswer, question.type);
 
   useEffect(() => {
-    setTextValue('');
-    setSingleValue('');
+    setTextValue("");
+    setSingleValue("");
     setMultipleValues([]);
   }, [question.id]);
 
@@ -61,7 +73,9 @@ export function QuizQuestion({
   const handleMultipleChange = (value: string) => {
     if (!isAnswered) {
       setMultipleValues((prev) =>
-        prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+        prev.includes(value)
+          ? prev.filter((v) => v !== value)
+          : [...prev, value],
       );
     }
   };
@@ -86,45 +100,45 @@ export function QuizQuestion({
 
   const getSubmitHandler = () => {
     switch (question.type) {
-      case 'single':
+      case "single":
         return handleSingleSubmit;
-      case 'multiple':
+      case "multiple":
         return handleMultipleSubmit;
-      case 'text':
+      case "text":
         return handleTextSubmit;
     }
   };
 
-  const canSubmit = () => {
+  const canSubmit = useMemo(() => {
     switch (question.type) {
-      case 'single':
+      case "single":
         return !!singleValue;
-      case 'multiple':
+      case "multiple":
         return multipleValues.length > 0;
-      case 'text':
+      case "text":
         return textValue.trim().length > 0;
     }
-  };
+  }, [question.type, singleValue, multipleValues, textValue]);
 
   const renderOptions = () => {
     const options = question.options || [];
 
-    if (question.type === 'single') {
+    if (question.type === "single") {
       return (
         <div className="space-y-2">
           {options.map((option, idx) => (
             <label
               key={idx}
-              className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
+              className={`flex items-center p-3 border rounded-lg gap-3 cursor-pointer transition-colors ${
                 isAnswered
                   ? option === correctAnswer
-                    ? 'border-green-500 bg-green-50'
+                    ? "border-green-500 bg-green-50"
                     : singleValue === option
-                    ? 'border-red-500 bg-red-50'
-                    : 'border-gray-200'
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-200"
                   : singleValue === option
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
               }`}
             >
               <input
@@ -143,22 +157,23 @@ export function QuizQuestion({
       );
     }
 
-    if (question.type === 'multiple') {
+    if (question.type === "multiple") {
       return (
         <div className="space-y-2">
           {options.map((option, idx) => (
             <label
               key={idx}
-              className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
+              className={`flex items-center p-3 border rounded-lg gap-3 cursor-pointer transition-colors ${
                 isAnswered
-                  ? Array.isArray(correctAnswer) && correctAnswer.includes(option)
-                    ? 'border-green-500 bg-green-50'
+                  ? Array.isArray(correctAnswer) &&
+                    correctAnswer.includes(option)
+                    ? "border-green-500 bg-green-50"
                     : multipleValues.includes(option)
-                    ? 'border-red-500 bg-red-50'
-                    : 'border-gray-200'
+                      ? "border-red-500 bg-red-50"
+                      : "border-gray-200"
                   : multipleValues.includes(option)
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
               }`}
             >
               <input
@@ -180,7 +195,7 @@ export function QuizQuestion({
   };
 
   const renderInput = () => {
-    if (question.type === 'text') {
+    if (question.type === "text") {
       return (
         <div className="space-y-2">
           <input
@@ -192,9 +207,9 @@ export function QuizQuestion({
             className={`w-full p-3 border rounded-lg ${
               isAnswered
                 ? isCorrect
-                  ? 'border-green-500 bg-green-50'
-                  : 'border-red-500 bg-red-50'
-                : 'border-gray-200 focus:border-blue-500'
+                  ? "border-green-500 bg-green-50"
+                  : "border-red-500 bg-red-50"
+                : "border-gray-200 focus:border-blue-500"
             }`}
           />
         </div>
@@ -208,21 +223,23 @@ export function QuizQuestion({
     if (!isAnswered) return null;
 
     const correctText = Array.isArray(correctAnswer)
-      ? correctAnswer.join(', ')
+      ? correctAnswer.join(", ")
       : correctAnswer;
 
     return (
       <div
         className={`mt-4 p-4 rounded-lg ${
-          isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+          isCorrect
+            ? "bg-green-50 border border-green-200"
+            : "bg-red-50 border border-red-200"
         }`}
       >
-        <p className={`font-medium ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
-          {isCorrect ? '✓ ถูกต้อง!' : '✗ ไม่ถูกต้อง'}
+        <p
+          className={`font-medium ${isCorrect ? "text-green-700" : "text-red-700"}`}
+        >
+          {isCorrect ? "✓ ถูกต้อง!" : "✗ ไม่ถูกต้อง"}
         </p>
-        <p className="mt-1 text-gray-600">
-          เฉลย: {correctText}
-        </p>
+        <p className="mt-1 text-gray-600">เฉลย: {correctText}</p>
         <p className="mt-1 text-sm text-gray-500">
           ได้คะแนน: {isCorrect ? points : 0} / {points}
         </p>
@@ -232,20 +249,20 @@ export function QuizQuestion({
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h2 className="text-xl font-semibold mb-4">{question.question}</h2>
-      
-      {question.type === 'multiple' && (
-        <p className="text-sm text-gray-500 mb-3">(เลือกได้หลายข้อ)</p>
+      <h3 className="text-base font-medium mb-3">{question.question}</h3>
+
+      {question.type === "multiple" && (
+        <p className="text-xs text-gray-500 mb-2">(เลือกได้หลายข้อ)</p>
       )}
-      
+
       {renderInput()}
       {renderFeedback()}
 
       {!isAnswered && (
         <button
           onClick={getSubmitHandler()}
-          disabled={!canSubmit()}
-          className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          disabled={canSubmit ? false : true}
+          className="mt-3 px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           ส่งคำตอบ
         </button>

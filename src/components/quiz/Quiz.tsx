@@ -113,7 +113,7 @@ export function Quiz({ quiz, onComplete }: QuizProps) {
 
   if (isComplete) {
     return (
-      <div className="p-6 bg-white rounded-lg shadow-sm">
+      <div className="p-4 bg-white rounded-lg border border-gray-200">
         <QuizResult
           questions={processedQuestions}
           answers={answers}
@@ -126,8 +126,8 @@ export function Quiz({ quiz, onComplete }: QuizProps) {
   const isCurrentAnswered = !!currentAnswer;
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-sm">
-      <h1 className="text-2xl font-bold mb-6">{quiz.title}</h1>
+    <div className="p-4 bg-white rounded-lg border border-gray-200">
+      <h2 className="text-lg font-semibold mb-4">{quiz.title}</h2>
 
       <QuizProgress current={currentIndex} total={processedQuestions.length} />
 
@@ -139,11 +139,11 @@ export function Quiz({ quiz, onComplete }: QuizProps) {
         correctAnswer={currentQuestion.correctAnswer}
       />
 
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between mt-4">
         <button
           onClick={handleBack}
-          disabled={currentIndex === 0}
-          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          disabled={currentIndex === 0 ? true : false}
+          className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           กลับ
         </button>
@@ -152,14 +152,14 @@ export function Quiz({ quiz, onComplete }: QuizProps) {
           (currentIndex < processedQuestions.length - 1 ? (
             <button
               onClick={handleNext}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
             >
               ข้อถัดไป
             </button>
           ) : (
             <button
               onClick={handleFinish}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              className="px-3 py-1.5 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
             >
               ดูผลลัพธ์
             </button>

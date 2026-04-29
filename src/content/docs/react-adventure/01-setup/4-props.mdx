@@ -6,6 +6,8 @@ sidebar:
   parent: 01-setup
 ---
 
+import ChatMessage from "@/components/ChatMessage.astro"
+
 ## Props: ส่งข้อมูลระหว่าง Component
 
 ### Props คืออะไร?
@@ -54,8 +56,93 @@ function Badge({ text = "New", color = "blue" }: { text?: string; color?: string
 // <Badge text="Sale" /> → <span class="badge badge-blue">Sale</span>
 ```
 
----
+### Callback Props
 
-## What's Next?
+เราสามารถส่ง function เป็น props เพื่อให้ child component สื่อสารกลับไปยัง parent ได้
 
-→ [Lesson 5: Workshop](./5-workshop) — สร้าง Counter App
+```tsx
+// Parent component
+function App() {
+  const handleDelete = (id: number) => {
+    console.log("ลบไอดี:", id)
+  }
+
+  return <DeleteButton onDelete={handleDelete} />
+}
+
+// Child component (รับ function เป็น props)
+function DeleteButton({ onDelete }: { onDelete: (id: number) => void }) {
+  return <button onClick={() => onDelete(1)}>ลบ</button>
+}
+```
+
+```tsx
+import { useState } from "react"
+
+// ตัวอย่าง: Form ที่ส่ง state กลับไปยัง parent
+function LoginForm({ onSubmit }: { onSubmit: (data: { email: string; password: string }) => void }) {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
+  const handleSubmit = () => {
+    onSubmit({ email, password })
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <button type="submit">Login</button>
+    </form>
+  )
+}
+```
+
+<ChatMessage message="ลองส่ง callback function ผ่าน props ดูนะ จะได้เห็นว่า child สื่อสารกลับกับ parent ได้ยังไง" avatarKey="whiteCat" />
+
+import { Quiz } from "@/components/quiz"
+
+<Quiz client:load
+  quiz={{
+    id: "props-basics",
+    title: "Quiz: Props พื้นฐาน",
+    questions: [
+      {
+        id: "q1",
+        type: "single",
+        question: "Props ย่อมาจากอะไร?",
+        options: ["Properties", "Protocols", "Primitives", "Private"],
+        correctAnswer: "Properties"
+      },
+      {
+        id: "q2",
+        type: "single",
+        question: "ถ้าต้องการกำหนดค่า default ให้ props ต้องทำอย่างไร?",
+        options: ["ใช้ defaultProps", "กำหนดใน destructuring เช่น { name = \"default\" }", "ใช้ useState", "ใช้ useEffect"],
+        correctAnswer: "กำหนดใน destructuring เช่น { name = \"default\" }"
+      },
+      {
+        id: "q3",
+        type: "single",
+        question: "Callback props คืออะไร?",
+        options: ["props ที่เป็น string", "props ที่เป็น function เพื่อให้ child สื่อสารกลับไป parent", "props ที่เป็น number", "props ที่เป็น array"],
+        correctAnswer: "props ที่เป็น function เพื่อให้ child สื่อสารกลับไป parent"
+      },
+      {
+        id: "q4",
+        type: "single",
+        question: "ข้อใดถูกต้องเกี่ยวกับการส่ง props จาก parent ไป child?",
+        options: ["props เป็น read-only", "props สามารถเปลี่ยนแปลงได้จาก child", "props ไม่สามารถส่ง function ได้", "props ต้องเป็น string เท่านั้น"],
+        correctAnswer: "props เป็น read-only"
+      },
+      {
+        id: "q5",
+        type: "single",
+        question: "ถ้าต้องการรับ props หลายตัว ควรเขียนอย่างไร?",
+        options: ["function Component(props) { return ... }", "function Component({ name, age, city }) { return ... }", "function Component(props.name) { return ... }", "function Component[props] { return ... }"],
+        correctAnswer: "function Component({ name, age, city }) { return ... }"
+      }
+    ]
+  }}
+/>
+

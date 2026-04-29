@@ -7,7 +7,7 @@ export function QuizProgress({ current, total }: QuizProgressProps) {
   const percentage = (current / total) * 100;
 
   return (
-    <div className="w-full mb-6">
+    <div className="w-full mb-4">
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm text-gray-600">
           ข้อ {current + 1} / {total}
