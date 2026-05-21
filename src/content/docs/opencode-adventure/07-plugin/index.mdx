@@ -1,0 +1,225 @@
+---
+title: Plugin
+description: ขยายความสามารถของ Opencode ด้วย Plugin และ Hooks
+order: 1
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+## Plugin คืออะไร
+
+Plugin คือส่วนขยายที่ช่วยให้คุณสามารถเพิ่มความสามารถให้กับ Opencode ได้ โดยการเชื่อมโยงกับเหตุการณ์ (events) ต่างๆ และปรับแต่งลักษณะการทำงานของมัน
+
+## วิธีการติดตั้ง Plugin
+
+มี 2 วิธีหลักในการโหลด Plugin:
+
+### จากไฟล์ในเครื่อง
+
+วางไฟล์ JavaScript หรือ TypeScript ในไดเร็กทอรี Plugin:
+
+- `.opencode/plugins/` - Plugin ระดับโครงการ
+- `~/.config/opencode/plugins/` - Plugin ระดับ Global
+
+### จาก npm
+
+ระบุแพ็คเกจ npm ในไฟล์ปรับแต่งของคุณ:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    "opencode-helicone-session",
+    "opencode-wakatime",
+    "@my-org/custom-plugin"
+  ]
+}
+```
+
+---
+
+## Hooks คืออะไร
+
+Hooks คือจุดเชื่อมต่อที่ช่วยให้ Plugin สามารถ "แทรก" ตัวเองเข้าไปในกระบวนการทำงานของ Opencode ได้ ทำให้สามารถ:
+
+- ตรวจสอบการทำงานก่อน/หลังที่เกิดขึ้น
+- แก้ไขข้อมูลระหว่างทาง
+- ส่งการแจ้งเตือนเมื่อมีเหตุการณ์บางอย่างเกิดขึ้น
+
+### ตัวอย่าง Hooks ที่ใช้บ่อย
+
+| Hook | คำอธิบาย |
+|------|---------|
+| `session.created` | เมื่อสร้าง session ใหม่ |
+| `session.idle` | เมื่อ session ว่างาน |
+| `tool.execute.before` | ก่อนเรียกใช้ tool |
+| `tool.execute.after` | หลังเรียกใช้ tool |
+| `shell.env` | ก่อนรัน shell command |
+| `file.edited` | เมื่อแก้ไขไฟล์ |
+
+---
+
+## ตัวอย่างการสร้าง Plugin
+
+### 1. ส่ง Notification เมื่อสร้าง Session สำเร็จ
+
+```javascript
+// .opencode/plugins/notification.js
+export const NotificationPlugin = async ({ project, client, $, directory, worktree }) => {
+  return {
+    event: async ({ event }) => {
+      if (event.type === "session.created") {
+        await $`osascript -e 'display notification "Session started!" with title "opencode"'`
+      }
+    },
+  }
+}
+```
+
+### 2. ป้องกันการอ่านไฟล์ .env
+
+```javascript
+// .opencode/plugins/env-protection.js
+export const EnvProtection = async ({ project, client, $, directory, worktree }) => {
+  return {
+    "tool.execute.before": async (input, output) => {
+      if (input.tool === "read" && output.args.filePath.includes(".env")) {
+        throw new Error("Do not read .env files")
+      }
+    },
+  }
+}
+```
+
+<ChatMessage message="การป้องกัน .env เป็นสิ่งสำคัญมาก! ป้องกันไม่ให้ AI อ่าน secrets ของคุณ" avatarKey="blackCat" />
+
+### 3. ฉีด Environment Variables
+
+```javascript
+// .opencode/plugins/inject-env.js
+export const InjectEnvPlugin = async () => {
+  return {
+    "shell.env": async (input, output) => {
+      output.env.MY_API_KEY = "secret"
+      output.env.PROJECT_ROOT = input.cwd
+    },
+  }
+}
+```
+
+---
+
+## โครงสร้างพื้นฐานของ Plugin
+
+Plugin คือ JavaScript/TypeScript module ที่ส่งออก function อย่างน้อยหนึ่งรายการ:
+
+```javascript
+// .opencode/plugins/example.js
+export const MyPlugin = async ({ project, client, $, directory, worktree }) => {
+  console.log("Plugin initialized!")
+
+  return {
+    // Hook implementations go here
+  }
+}
+```
+
+### พารามิเตอร์ที่ได้รับ
+
+- `project`: ข้อมูลโครงการปัจจุบัน
+- `directory`: ไดเร็กทอรีการทำงานปัจจุบัน
+- `worktree`: เส้นทางเวิร์กทรีคอมไพล์
+- `client`: ไคลเอนต์ Opencode SDK
+- `$`: shell API ของ Bun
+
+### รองรับ TypeScript
+
+```typescript
+import type { Plugin } from "@opencode-ai/plugin"
+
+export const MyPlugin: Plugin = async ({ project, client, $, directory, worktree }) => {
+  return {
+    // Type-safe hook implementations
+  }
+}
+```
+
+---
+
+## คำสั่ง (Commands)
+
+คำสั่งที่กำหนดเอง ช่วยให้คุณสามารถสร้างชุดพรอมต์ที่ใช้บ่อยๆ เพื่อให้สามารถเรียกใช้งานได้อย่างรวดเร็วใน TUI
+
+```
+/my-command
+```
+
+### การสร้างคำสั่ง
+
+สร้างไฟล์ Markdown ในไดเร็กทอรี `commands/`:
+
+```markdown
+---
+description: Run tests with coverage
+agent: build
+model: anthropic/claude-3-5-sonnet-20241022
+---
+
+Run the full test suite with coverage report and show any failures.
+Focus on the failing tests and suggest fixes.
+```
+
+ใช้คำสั่งโดยพิมพ์ `/` ตามด้วยชื่อไฟล์ (ไม่รวมนามสกุล):
+
+```
+"/test"
+```
+
+### ที่ตั้งไฟล์คำสั่ง
+
+- ระดับผู้ใช้ (Global): `~/.config/opencode/commands/`
+- ระดับโปรเจ็กต์: `.opencode/commands/`
+
+### การใช้ Arguments
+
+ใช้ `$ARGUMENTS` หรือ `$1`, `$2`, `$3` สำหรับอาร์กิวเมนต์ตำแหน่ง:
+
+```markdown
+---
+description: Create a new component
+---
+
+Create a new React component named $ARGUMENTS with TypeScript support.
+```
+
+รันคำสั่งพร้อมอาร์กิวเมนต์:
+
+```
+/component Button
+```
+
+### การแทรก Shell Output
+
+ใช้ `!`command`` เพื่อแทรก output ของคำสั่ง bash:
+
+```markdown
+---
+description: Analyze test coverage
+---
+
+Here are the current test results:
+!`npm test`
+Based on these results, suggest improvements to increase coverage.
+```
+
+---
+
+## สรุป
+
+Plugin และ Hooks เป็นเครื่องมือที่ทรงพลังมากสำหรับการปรับแต่ง Opencode ให้เหมาะกับ workflow ของคุณ:
+
+- **Plugin** ช่วยให้สามารถตรวจสอบ แก้ไข และขยายการทำงานของ Opencode
+- **Commands** ช่วยให้สามารถสร้างชุดพรอมต์ที่ใช้บ่อยๆ ได้อย่างรวดเร็ว
+- **Hooks** เป็นจุดเชื่อมต่อที่ทำให้ทั้งสองอย่างทำงานร่วมกันได้
+
+<ChatMessage message="เมื่อเข้าใจ Plugin แล้ว คุณจะสามารถปรับ Opencode ให้เป็นเครื่องมือที่เหมาะกับคุณได้เลย!" avatarKey="whiteCat" />

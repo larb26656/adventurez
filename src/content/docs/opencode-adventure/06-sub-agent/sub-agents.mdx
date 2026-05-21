@@ -1,0 +1,468 @@
+---
+title: Sub Agent
+description: ทำความรู้จัก Sub Agent และวิธีสร้าง Agent เฉพาะทาง
+order: 1
+---
+import ChatMessage from "@/components/ChatMessage.astro"
+
+## Sub Agent คืออะไร
+
+Sub Agent คือ AI Agent เฉพาะทางที่ถูกสร้างขึ้นเพื่อทำงานเฉพาะอย่าง แทนที่จะใช้ Agent หลักทำทุกอย่าง เราสามารถแบ่งงานให้ Agent ที่เชี่ยวชาญแต่ละด้านทำ
+
+### ประเภทของ Agent ใน OpenCode
+
+```
+┌─────────────────────────────────────────────────┐
+│            Primary Agents (ตัวหลัก)              │
+├─────────────────────────────────────────────────┤
+│  Build   - ทำงานได้ทุกอย่าง (default)           │
+│  Plan    - อ่านอย่างเดียว เหมาะวางแผน           │
+└─────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────┐
+│              Sub Agents (ตัวช่วย)                │
+├─────────────────────────────────────────────────┤
+│  @general  - ทำงานหลายอย่าง มีเครื่องมือครบ      │
+│  @explore  - หาข้อมูลใน codebase (read-only)    │
+│  @scout    - หาข้อมูลจากข้างนอก/dependency      │
+└─────────────────────────────────────────────────┘
+```
+
+<ChatMessage message="Sub Agent ก็เหมือนทีม specialist ที่พร้อมช่วยคุณในงานเฉพาะทาง!" avatarKey="blackCat" />
+
+---
+
+## วิธีเรียกใช้ Sub Agent
+
+### 1. @Mention (เรียกด้วยตัวเอง)
+
+พิมพ์ `@` ตามด้วยชื่อ agent เพื่อเรียกใช้โดยตรง:
+
+```
+@explore หาว่า function calculateTotal อยู่ที่ไหน
+@general ช่วย research เรื่อง React Server Components
+@scout ดูว่า library นี้ใช้งานยังไง
+```
+
+### 2. Automatic (ให้ Primary Agent ตัดสินใจ)
+
+ถ้าคำถามของคุณตรงกับ description ของ Sub Agent, Primary Agent จะเรียกใช้เองโดยอัตโนมัติ
+
+```
+"หาไฟล์ที่เกี่ยวกับ authentication ทั้งหมด"
+→ Agent อาจเรียก @explore ให้อัตโนมัติ
+
+"ช่วยตรวจ code นี้หน่อย"
+→ Agent อาจเรียก Sub Agent ที่เป็น code reviewer
+```
+
+---
+
+## วิธีสร้าง Sub Agent ใหม่
+
+### วิธีที่ 1: ใช้คำสั่ง (แนะนำ)
+
+```bash
+opencode agent create
+```
+
+ระบบจะถามทีละขั้น:
+1. **บันทึกที่ไหน** - global หรือ project-specific
+2. **อธิบายว่า agent ทำอะไร** - ระบบจะสร้าง description ให้
+3. **เลือก permissions** - อะไรที่อนุญาต/ไม่อนุญาต
+4. **สร้างไฟล์** - สร้างไฟล์ .md ให้อัตโนมัติ
+
+### วิธีที่ 2: สร้างไฟล์เอง
+
+**ตำแหน่งไฟล์:**
+```
+Global:     ~/.config/opencode/agents/review.md
+Project:    .opencode/agents/review.md
+```
+
+**โครงสร้างไฟล์ (frontmatter):**
+```markdown
+---
+description: ตรวจ code หาปัญหาและ bug
+mode: subagent
+permission:
+  edit: deny
+  bash: deny
+---
+
+คุณคือ Code Reviewer ที่เน้น:
+- ความปลอดภัย
+- Performance
+- Best practices
+```
+
+### วิธีที่ 3: ผ่าน JSON config
+
+```json
+{
+  "agent": {
+    "reviewer": {
+      "description": "ตรวจ code สำหรับ best practices",
+      "mode": "subagent",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    }
+  }
+}
+```
+
+---
+
+## Options สำหรับ Agent
+
+| Option | คำอธิบาย |
+|--------|----------|
+| `description` | บอกว่า agent ทำอะไร (จำเป็น) |
+| `mode` | `primary`, `subagent`, หรือ `all` |
+| `model` | เปลี่ยน model เฉพาะ agent นี้ |
+| `temperature` | 0.0-1.0 (ต่ำ = แม่นยำ, สูง = สร้างสรรค์) |
+| `steps` | จำกัดจำนวน iterations |
+| `hidden` | ซ่อนจาก @mention autocomplete |
+| `color` | สีใน UI เช่น `#FF5733` |
+
+---
+
+## ไอเดีย Sub Agent สำหรับ Software Dev
+
+### 1. Code Reviewer
+
+```markdown
+---
+description: ตรวจ code ก่อน merge, หาปัญหาด้านความปลอดภัยและ performance
+mode: subagent
+permission:
+  edit: deny
+  bash: deny
+---
+
+คุณคือ Senior Code Reviewer เน้นหา:
+- Security vulnerabilities (SQL injection, XSS, ฯลฯ)
+- Performance issues (N+1 query, memory leak)
+- Code quality และ best practices
+- Potential bugs และ edge cases
+
+ให้ feedback ที่ชัดเจนพร้อมตัวอย่างการแก้ไข
+```
+
+**ใช้เมื่อ:** ก่อน commit หรือ merge PR
+
+```
+@reviewer ตรวจโค้ดนี้หน่อย มี security issue ไหม?
+```
+
+---
+
+### 2. Test Generator
+
+```markdown
+---
+description: สร้าง unit test จาก code ที่มี
+mode: subagent
+---
+
+คุณคือ QA Engineer ที่เชี่ยวชาญด้านการเขียน test
+
+สร้าง test cases ที่:
+- ครอบคลุม happy path
+- ครอบคลุม edge cases
+- ใช้ pattern ที่ดี (AAA - Arrange, Act, Assert)
+- มี descriptive naming
+
+รองรับ: Jest, Vitest, React Testing Library
+```
+
+**ใช้เมื่อ:** อยากได้ test เพิ่ม
+
+```
+@test-generator สร้าง test สำหรับ calculateTotal function
+```
+
+---
+
+### 3. Docs Writer
+
+```markdown
+---
+description: เขียน documentation จาก code
+mode: subagent
+permission:
+  bash: deny
+---
+
+คุณคือ Technical Writer
+
+สร้าง documentation ที่:
+- JSDoc/TSDoc สำหรับ functions/components
+- README.md สำหรับ project
+- API docs ที่ชัดเจน
+- Usage examples ที่เข้าใจง่าย
+
+ใช้ภาษาที่กระชับแต่ครบถ้วน
+```
+
+**ใช้เมื่อ:** อยากได้ doc จาก function
+
+```
+@docs-writer สร้าง doc สำหรับ component นี้
+```
+
+---
+
+### 4. Dependency Checker
+
+```markdown
+---
+description: หา outdated dependencies และ vulnerabilities
+mode: subagent
+---
+
+คุณคือ DevOps Engineer ที่ดูแล dependencies
+
+ทำ:
+- ตรวจสอบ package.json/package-lock.json
+- หา version ล่าสุดของแต่ละ package
+- เช็คว่ามี breaking changes ไหม
+- หา known vulnerabilities (CVE)
+- แนะนำ update order ที่ปลอดภัย
+
+ใช้ npm outdated, ncu, atau อื่นๆ
+```
+
+**ใช้เมื่อ:** อยาก update dependencies
+
+```
+@dep-checker มี dependency ไหนต้อง update บ้าง
+```
+
+---
+
+### 5. Migration Helper
+
+```markdown
+---
+description: ช่วย migrate code จาก version เก่าไปใหม่
+mode: subagent
+---
+
+คุณคือ Migration Specialist
+
+ช่วย migrate ในสิ่งต่างๆ:
+- JavaScript → TypeScript
+- React → Next.js / Remix
+- Class components → Hooks
+- CSS → Tailwind / UnoCSS
+- REST → GraphQL
+
+ทำทีละขั้นตอน และอธิบายว่าทำไมต้องเปลี่ยน
+```
+
+**ใช้เมื่อ:** upgrade tech stack
+
+```
+@migration ช่วย convert จาก JavaScript เป็น TypeScript
+```
+
+---
+
+### 6. Performance Analyzer
+
+```markdown
+---
+description: วิเคราะห์ code และหาทาง optimize
+mode: subagent
+permission:
+  bash: deny
+---
+
+คุณคือ Performance Engineer
+
+หาและแก้ไข:
+- Bottlenecks ใน code
+- Unnecessary re-renders
+- Heavy computations ที่ตั้งได้
+- Memory leaks
+- Large bundle sizes
+
+ใช้ React Profiler, Lighthouse, Chrome DevTools
+```
+
+**ใช้เมื่อ:** เว็บช้า
+
+```
+@perf-analyzer วิเคราะห์โค้ดส่วนนี้หน่อย
+```
+
+---
+
+### 7. API Designer
+
+```markdown
+---
+description: ออกแบบ REST/GraphQL API
+mode: subagent
+---
+
+คุณคือ API Architect
+
+สร้าง:
+- REST endpoints ที่ follow best practices
+- GraphQL schema และ resolvers
+- Request/Response schemas (OpenAPI/Swagger)
+- Error handling patterns
+
+ใช้ naming conventions ที่ดี และ versioning
+```
+
+**ใช้เมื่อ:** อยากได้ API design
+
+```
+@api-designer ออกแบบ API สำหรับ todo list
+```
+
+---
+
+### 8. Database Schema Designer
+
+```markdown
+---
+description: ออกแบบ database schema และ queries
+mode: subagent
+---
+
+คุณคือ Database Architect
+
+สร้าง:
+- SQL schemas (PostgreSQL, MySQL, SQLite)
+- Prisma/Drizzle models
+- MongoDB schemas
+- Indexes ที่เหมาะสม
+- Migration files
+
+เน้น normalization, performance, และ data integrity
+```
+
+**ใช้เมื่อ:** ออกแบบ database ใหม่
+
+```
+@db-designer ออกแบบ schema สำหรับระบบ e-commerce
+```
+
+---
+
+### 9. Git Helper
+
+```markdown
+---
+description: ช่วยจัดการ git workflow
+mode: subagent
+permission:
+  bash:
+    "git *": "allow"
+---
+
+คุณคือ Git Expert
+
+ช่วย:
+- เขียน commit messages ที่ดี
+- Resolve merge conflicts
+- สร้าง PR description
+- จัดการ branches
+- ทำ rebase/cherry-pick
+
+Follow conventional commits format
+```
+
+**ใช้เมื่อ:** งงเรื่อง git
+
+```
+@git-helper ช่วย resolve conflict นี้หน่อย
+```
+
+---
+
+## การตั้งค่า Advanced
+
+### เปลี่ยน Model สำหรับ Sub Agent
+
+```markdown
+---
+description: ตรวจ code ด้วย model ราคาถูก
+mode: subagent
+model: anthropic/claude-haiku-4-20250514
+temperature: 0.1
+---
+
+สำหรับงานที่ไม่ต้องการ model แพง
+```
+
+### ซ่อน Sub Agent
+
+```markdown
+---
+description: Internal helper สำหรับ agent อื่นเรียกใช้
+mode: subagent
+hidden: true
+---
+
+ไม่แสดงใน @mention autocomplete
+แต่ Agent อื่นยังเรียกใช้ได้ผ่าน Task tool
+```
+
+### จำกัดสิทธิ์ Task (Sub Agent ที่ Primary เรียกได้)
+
+```json
+{
+  "agent": {
+    "build": {
+      "permission": {
+        "task": {
+          "*": "deny",
+          "reviewer": "ask",
+          "docs-*": "allow"
+        }
+      }
+    }
+  }
+}
+```
+
+**หมายความว่า:**
+- ห้ามเรียกทุกอย่าง (deny ก่อน)
+- ยกเว้น `reviewer` ต้องถามก่อน (ask)
+- `docs-*` อนุญาตหมด (allow)
+
+---
+
+## สรุป
+
+### วิธีเรียกใช้
+
+| วิธี | ตัวอย่าง |
+|------|----------|
+| @mention | `@reviewer ตรวจโค้ดนี้` |
+| automatic | Agent ตัดสินใจเรียกเอง |
+
+### วิธีสร้าง
+
+| วิธี | คำสั่ง/ตำแหน่ง |
+|------|---------------|
+| CLI | `opencode agent create` |
+| Markdown | `.opencode/agents/name.md` |
+| JSON | `opencode.json` > `agent` |
+
+### Built-in Sub Agents
+
+| Agent | ใช้เมื่อ |
+|-------|----------|
+| `@general` | งานทั่วไปที่ต้องทำหลายอย่าง |
+| `@explore` | หาข้อมูลใน codebase |
+| `@scout` | ดู dependency / docs ภายนอก |
+
+<ChatMessage message="ลองสร้าง Sub Agent สักตัวดูสิ! มันจะช่วยให้งานของคุณเร็วขึ้นมาก" avatarKey="whiteCat" />

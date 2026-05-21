@@ -49,6 +49,16 @@ export default defineConfig({
               },
             ],
           },
+          {
+            label: "Opencode adventure",
+            link: "/opencode-adventure/",
+            items: [
+              {
+                label: "Start Here",
+                autogenerate: { directory: "opencode-adventure" },
+              },
+            ],
+          },
         ]),
       ],
     }),
