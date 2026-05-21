@@ -54,7 +54,7 @@ const GameCartridge = ({ course, isActive }: GameCartridgeProps) => {
             </div>
           </div>
           {course.comingSoon && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center">
               <div className="bg-yellow-400 text-black text-[8px] md:text-[10px] font-black px-3 py-1 rotate-[-12deg] shadow-lg uppercase tracking-wider">
                 Coming Soon
               </div>
@@ -74,7 +74,9 @@ const GameCartridge = ({ course, isActive }: GameCartridgeProps) => {
         </div>
       </div>
 
-      <div className={`mt-6 text-center transition-opacity duration-500 ${isActive ? "opacity-100" : "opacity-0"}`}>
+      <div
+        className={`mt-6 text-center transition-opacity duration-500 ${isActive ? "opacity-100" : "opacity-0"}`}
+      >
         <div className="text-[var(--color-primary)] text-[10px] font-mono mb-1 tracking-tighter uppercase">
           {course.tags[0] || "ADVENTURE"}
         </div>
