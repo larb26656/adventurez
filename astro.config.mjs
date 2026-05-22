@@ -12,6 +12,10 @@ export default defineConfig({
   site: "https://docs.luckytime1996.dev",
   integrations: [
     react(),
+    mermaid({
+      theme: "forest",
+      autoTheme: true,
+    }),
     starlight({
       title: "Adventurez",
       logo: {
@@ -101,10 +105,6 @@ export default defineConfig({
           },
         ]),
       ],
-    }),
-    mermaid({
-      theme: "forest",
-      autoTheme: true,
     }),
   ],
 
