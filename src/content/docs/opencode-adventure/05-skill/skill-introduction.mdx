@@ -17,3 +17,71 @@ order: 1
 ซึ่ง Skill ในโลก agent ก็เหมือน concept จากหนังเรื่องนี้เลย อยากให้ AI agent ทำอะไรได้ก็ใส่ skill ให้มัน
 
 > เมื่อ AI มีทักษะครบแล้ว มันจะสามารถทำสิ่งต่างๆ ได้อย่างที่เราต้องการ!
+
+## ตัวอย่าง: Skill Ping-Pong
+
+เรามาดูตัวอย่างง่ายๆ กัน เราจะสร้าง skill ชื่อ `ping-pong` ที่เมื่อ user พูดว่า "ping" agent ก็จะตอบว่า "pong"
+
+### โครงสร้างไฟล์
+
+```
+.opencode/skills/ping-pong/SKILL.md
+```
+
+### เนื้อหาใน SKILL.md
+
+```yaml
+---
+name: ping-pong
+description: A simple ping-pong skill example. Triggered when user says "ping".
+---
+
+# Ping Pong Skill
+
+This skill is triggered when the user says "ping".
+
+## Example
+
+User: ping
+Agent: pong! 🏓
+```
+
+## Trigger คืออะไร
+
+**Trigger** คือ "ตัวจุดชนวน" ที่ทำให้ agent โหลด skill ขึ้นมาใช้งาน โดยมี 2 แบบ:
+
+### 1. Auto Trigger (Trigger อัตโนมัติ)
+
+เมื่อ user พูดหรือถามสิ่งที่เกี่ยวข้องกับ skill OpenCode จะ **สแกนหา skill ที่ตรงกับคำที่ user พูด** แล้วโหลดให้อัตโนมัติ
+
+ตัวอย่าง:
+- User: "ช่วยสร้าง UI ด้วย shadcn" → โหลด `shadcn` skill อัตโนมัติ
+- User: "ping" → โหลด `ping-pong` skill อัตโนมัติ
+
+### 2. Manual Trigger (Trigger แบบเรียกเอง)
+
+บางครั้งเราต้องการ **เรียกใช้ skill โดยตรง** ผ่าน tool `skill`
+
+```json
+skill({ name: "shadcn" })
+```
+
+ตัวอย่างเมื่อใช้:
+- เรียกใช้ skill ที่ไม่มี trigger keyword ชัดเจน
+- ต้องการใช้ skill ที่ซ่อนอยู่ (deny permission)
+- ต้องการควบคุมว่าเมื่อไหร่ควรโหลด skill
+
+### เมื่อไหร่ควรใช้แบบไหน
+
+| กรณี | แนะนำ |
+|------|--------|
+| มี keyword ชัดเจนในคำถาม | Auto Trigger |
+| ต้องการควบคุมเวลาโหลด | Manual Trigger |
+| Skill ซับซ้อน ต้องการ context | Manual Trigger |
+| ถามทั่วไปที่อาจ match หลาย skill | Manual Trigger |
+
+## การติดตั้ง Skill อื่นๆ
+
+นอกจากสร้างเองแล้ว เรายังสามารถดาวน์โหลด skill ที่คนอื่นสร้างไว้แล้วได้ที่
+
+**https://www.skills.sh/**

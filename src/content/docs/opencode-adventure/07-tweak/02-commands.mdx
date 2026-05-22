@@ -1,0 +1,168 @@
+---
+title: Commands
+description: สร้างคำสั่งที่กำหนดเองเพื่อเพิ่มประสิทธิภาพการทำงาน
+order: 2
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+## คำสั่ง (Commands) คืออะไร
+
+คำสั่งที่กำหนดเอง ช่วยให้คุณสามารถสร้างชุดพรอมต์ที่ใช้บ่อยๆ เพื่อให้สามารถเรียกใช้งานได้อย่างรวดเร็วใน TUI
+
+```
+/my-command
+```
+
+## การสร้างคำสั่ง
+
+สร้างไฟล์ Markdown ในไดเร็กทอรี `commands/`:
+
+```markdown
+---
+description: Run tests with coverage
+agent: build
+model: anthropic/claude-3-5-sonnet-20241022
+---
+
+Run the full test suite with coverage report and show any failures.
+Focus on the failing tests and suggest fixes.
+```
+
+ใช้คำสั่งโดยพิมพ์ `/` ตามด้วยชื่อไฟล์ (ไม่รวมนามสกุล):
+
+```
+"/test"
+```
+
+## ที่ตั้งไฟล์คำสั่ง
+
+- ระดับผู้ใช้ (Global): `~/.config/opencode/commands/`
+- ระดับโปรเจ็กต์: `.opencode/commands/`
+
+## การใช้ Arguments
+
+ใช้ `$ARGUMENTS` หรือ `$1`, `$2`, `$3` สำหรับอาร์กิวเมนต์ตำแหน่ง:
+
+```markdown
+---
+description: Create a new component
+---
+
+Create a new React component named $ARGUMENTS with TypeScript support.
+```
+
+รันคำสั่งพร้อมอาร์กิวเมนต์:
+
+```
+/component Button
+```
+
+## การแทรก Shell Output
+
+ใช้ `!`command`` เพื่อแทรก output ของคำสั่ง bash:
+
+```markdown
+---
+description: Analyze test coverage
+---
+
+Here are the current test results:
+!`npm test`
+Based on these results, suggest improvements to increase coverage.
+```
+
+---
+
+## ตัวอย่าง Use Cases
+
+### เอางานขึ้น git ด้วยคำสั่งเดียว
+
+```markdown
+// ~/.config/opencode/push.md
+---
+description: Stage all changes, create a commit with a meaningful message based on the diff, and push to the current branch.
+agent: build
+---
+
+Steps:
+
+1. Run `git add .`
+2. Analyze the diff and generate a concise commit message
+3. Run `git commit -m "<generated-message>"`
+4. Run `git push origin <current-branch>`
+```
+
+### คำสั่ง
+
+```
+/push
+```
+
+### Review code ที่กำลังจะ commit
+
+```markdown
+// ~/.config/opencode/review.md
+---
+description: Review current git changes (Staged or Unstaged)
+agent: build
+---
+
+1. Run `git status` to identify modified, added, or deleted files
+2. Run `git diff` (for unstaged changes) or `git diff --cached` (for staged changes) to see the actual code changes
+3. Analyze the changes for:
+   - Code quality and naming conventions
+   - Error handling and edge cases
+   - Security vulnerabilities
+   - Performance implications
+   - Potential bugs or issues
+4. Provide constructive feedback and suggestions
+```
+
+### คำสั่ง
+
+```
+/push
+```
+
+### Mood Tracker - บันทึกอารมณ์ประจำวัน
+
+
+```markdown
+// ~/.config/opencode/mood.md
+---
+description: Log daily mood and activities
+agent: reflect
+---
+
+Daily mood tracking:
+
+1. Ask "How are you feeling today?" with options:
+   - 😊 Great
+   - 🙂 Good
+   - 😐 Okay
+   - 😔 Low
+   - 😢 Bad
+
+2. Ask "What made you feel this way?" (optional)
+
+3. Ask "What did you do today?" - work, exercise, social, etc.
+
+4. Store the entry with timestamp in a local file:
+   - Format: `YYYY-MM-DD | mood | notes`
+   - Location: `~/.config/opencode/mood-log.md`
+
+5. Show a simple weekly summary
+```
+
+### คำสั่ง
+
+```
+/mood
+```
+
+## สรุป
+
+Commands เป็นเครื่องมือที่ช่วยให้คุณสามารถสร้างชุดพรอมต์ที่ใช้บ่อยๆ ได้อย่างรวดเร็ว ช่วยเพิ่มประสิทธิภาพและความสม่ำเสมอในการทำงาน
+
+<ChatMessage message="ลองสร้างคำสั่งของคุณเองดูสิ! มันจะช่วยให้ workflow ของคุณเร็วขึ้นมาก" avatarKey="whiteCat" />

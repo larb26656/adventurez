@@ -23,3 +23,157 @@ order: 1
 ### 2. MCP Server
 
 คือโปรแกรมขนาดเล็กที่ทำหน้าที่เชื่อมต่อกับแหล่งข้อมูลจริง เช่น Figma MCP ก็จะดึงข้อมูล canvas มาป้อนให้ AI ได้
+
+## วิธีเปิดใช้งาน MCP ใน OpenCode
+
+การตั้งค่า MCP อยู่ใน `opencode.jsonc` ภายใต้ key `mcp`:
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "ชื่อ-mcp-server": {
+      "type": "local" หรือ "remote",
+      "enabled": true
+    }
+  }
+}
+```
+
+### Local MCP
+
+สำหรับ MCP ที่ติดตั้งบนเครื่อง เช่น:
+
+```jsonc
+{
+  "mcp": {
+    "my-local-mcp": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-everything"],
+      "enabled": true
+    }
+  }
+}
+```
+
+### Remote MCP
+
+สำหรับ MCP ที่รันบน server เช่น:
+
+```jsonc
+{
+  "mcp": {
+    "my-remote-mcp": {
+      "type": "remote",
+      "url": "https://my-mcp-server.com",
+      "headers": {
+        "Authorization": "Bearer MY_API_KEY"
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+## Notion MCP
+
+Notion มี official MCP server ที่ช่วยให้ AI สามารถอ่าน/เขียน Notion pages และ databases ได้
+
+### เตรียมตัวก่อนเริ่ม
+
+1. มี Notion account
+2. สร้าง Notion Integration (API Key)
+
+### วิธีสร้าง Integration
+
+1. ไปที่ https://www.notion.so/profile/integrations
+2. กด "New integration"
+3. ตั้งชื่อและเลือก workspace
+4. Copy Integration Token (เริ่มด้วย `ntn_`)
+
+### แชร์ Content ให้ Integration
+
+ไปที่หน้า page ที่ต้องการ → กด `...` → "Add connections" → เลือก integration ที่สร้างไว้
+
+### ตั้งค่าใน opencode.jsonc
+
+```jsonc
+{
+  "mcp": {
+    "notion": {
+      "type": "local",
+      "command": ["npx", "-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "NOTION_TOKEN": "ntn_xxxx"
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+> ⚠️ แนะนำใช้ `{env:NOTION_TOKEN}` แทนการใส่ token ตรงๆ เพื่อความปลอดภัย
+
+```jsonc
+{
+  "mcp": {
+    "notion": {
+      "type": "local",
+      "command": ["npx", "-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "NOTION_TOKEN": "{env:NOTION_TOKEN}"
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+### Tools ที่มีให้ใช้
+
+Notion MCP มี tools ให้ใช้มากมาย เช่น:
+
+- `search` - ค้นหา pages/databases
+- `get-page` - ดึงข้อมูล page
+- `get-block-children` - ดึง content ใน page
+- `patch-block-children` - เพิ่ม/แก้ไข content
+- `create-page` - สร้าง page ใหม่
+- `update-page` - แก้ไข page properties
+
+### ตัวอย่างการใช้งาน
+
+หลังจากตั้งค่าเสร็จ ลองถาม AI ว่า:
+
+```
+Show me the content of my "Projects" page using notion
+```
+
+หรือ
+
+```
+Create a new page titled "Meeting Notes" under the "Work" page using notion
+```
+
+## ปิด/เปิด MCP
+
+ถ้าต้องการปิดใช้งาน MCP ชั่วคราว:
+
+```jsonc
+{
+  "mcp": {
+    "notion": {
+      "type": "local",
+      "command": ["npx", "-y", "@notionhq/notion-mcp-server"],
+      "enabled": false
+    }
+  }
+}
+```
+
+## ตรวจสอบสถานะ MCP
+
+```bash
+opencode mcp list
+```
+
+ช่วยดูว่า MCP ไหนเปิดอยู่บ้าง

@@ -1,0 +1,140 @@
+---
+title: Config Scopes
+description: ทำความรู้จัก Config Scopes ระดับต่างๆ ของ Opencode
+order: 0
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+## Config Scope คืออะไร
+
+Config Scope คือขอบเขตที่ตั้งค่า configuration ของ Opencode สามารถแบ่งได้หลายระดับตามลำดับความสำคัญ
+
+---
+
+## ลำดับความสำคัญ (Precedence Order)
+
+Config files ถูก **merge รวมกัน** ไม่ใช่แทนที่กัน ค่าที่มาทีหลังจะ override ค่าก่อนหน้าเฉพาะ key ที่ขัดแย้งกัน
+
+| ลำดับ | ระดับ | ตำแหน่ง |
+|------|-------|----------|
+| 1 | Remote | `.well-known/opencode` - ค่าเริ่มต้นขององค์กร |
+| 2 | Global | `~/.config/opencode/opencode.json` - ค่าต้องการของผู้ใช้ |
+| 3 | Custom | `OPENCODE_CONFIG` env var - override กำหนดเอง |
+| 4 | Project | `opencode.json` ในโปรเจกต์ - ค่าเฉพาะโปรเจกต์ |
+| 5 | `.opencode` dirs | agents, commands, plugins |
+| 6 | Inline | `OPENCODE_CONFIG_CONTENT` env var |
+| 7 | Managed | `/Library/Application Support/opencode/` (macOS) |
+| 8 | MDM | `.mobileconfig` via MDM - สูงสุด, ผู้ใช้แก้ไขไม่ได้ |
+
+---
+
+## รายละเอียดแต่ละระดับ
+
+### Global (ระดับผู้ใช้)
+
+ตำแหน่ง: `~/.config/opencode/opencode.json`
+
+ใช้สำหรับค่าต้องการของผู้ใช้ เช่น:
+- Provider และ model ที่ต้องการ
+- Permissions
+- ค่าที่ใช้ในทุกโปรเจกต์
+
+### Project (ระดับโปรเจกต์)
+
+ตำแหน่ง: `opencode.json` ใน root ของโปรเจกต์
+
+ใช้สำหรับค่าเฉพาะโปรเจกต์ เช่น:
+- MCP servers ของโปรเจกต์
+- Instructions ที่เกี่ยวกับโปรเจกต์
+- Formatter config
+
+**เหมาะกับ commit เข้า Git** เพราะทีมจะได้ config เดียวกัน
+
+### Remote (ระดับองค์กร)
+
+องค์กรสามารถกำหนด default config ผ่าน `.well-known/opencode` endpoint
+
+```json
+{
+  "mcp": {
+    "jira": {
+      "type": "remote",
+      "url": "https://jira.example.com/mcp",
+      "enabled": false
+    }
+  }
+}
+```
+
+### Managed (ระดับองค์กรบังคับ)
+
+องค์กรสามารถบังคับ config ที่ผู้ใช้ไม่สามารถแก้ไขได้
+
+| Platform | Path |
+|----------|------|
+| macOS | `/Library/Application Support/opencode/` |
+| Linux | `/etc/opencode/` |
+| Windows | `%ProgramData%\opencode` |
+
+---
+
+## ตัวอย่างการใช้งาน
+
+### Global Config
+
+```json
+// ~/.config/opencode/opencode.json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-sonnet-4-5",
+  "autoupdate": true
+}
+```
+
+### Project Config
+
+```json
+// project/opencode.json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "notionApi": {
+      "type": "local",
+      "command": ["npx", "-y", "@notionhq/notion-mcp-server"]
+    }
+  },
+  "instructions": ["CONTRIBUTING.md"]
+}
+```
+
+### Custom Directory
+
+```bash
+export OPENCODE_CONFIG_DIR=/path/to/my/config-directory
+```
+
+Directory นี้จะถูกค้นหาสำหรับ agents, commands, modes, plugins เหมือนกับ `.opencode`
+
+---
+
+## สรุป
+
+```
+Global ──── ~/.config/opencode/opencode.json
+   │           ค่าส่วนตัวของผู้ใช้
+   │
+Project ─── opencode.json (ในโปรเจกต์)
+   │           ค่าเฉพาะโปรเจกต์ (commit ได้)
+   │
+Remote ──── .well-known/opencode
+               ค่าเริ่มต้นขององค์กร
+```
+
+**การเลือกใช้:**
+- ค่าส่วนตัว → Global
+- ค่าทีม → Project (commit)
+- ค่าองค์กรเริ่มต้น → Remote
+- ค่าบังคับ → Managed/MDM
+
+<ChatMessage message="เลือกระดับ config ให้เหมาะสมกับขอบเขตที่ต้องการใช้งานนะ!" avatarKey="whiteCat" />

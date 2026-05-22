@@ -45,14 +45,14 @@ const GameCartridge = ({ course, isActive }: GameCartridgeProps) => {
                 "https://via.placeholder.com/400x300?text=GAME";
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex flex-col justify-end p-2 md:p-3">
+          {/* <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex flex-col justify-end p-2 md:p-3">
             <div className="text-white text-[10px] md:text-sm font-bold uppercase truncate shadow-black">
               {course.title}
             </div>
             <div className="text-gray-400 text-[7px] md:text-[8px] font-bold tracking-widest uppercase">
               {course.id}
             </div>
-          </div>
+          </div> */}
           {course.comingSoon && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="bg-yellow-400 text-black text-[8px] md:text-[10px] font-black px-3 py-1 rotate-[-12deg] shadow-lg uppercase tracking-wider">
