@@ -59,6 +59,46 @@ export default defineConfig({
               },
             ],
           },
+          {
+            label: "Docker adventure",
+            link: "/docker-adventure/",
+            items: [
+              {
+                label: "Start Here",
+                autogenerate: { directory: "docker-adventure" },
+              },
+            ],
+          },
+          {
+            label: "GH Action Adventure",
+            link: "/gh-action-adventure/",
+            items: [
+              {
+                label: "Start Here",
+                autogenerate: { directory: "gh-action-adventure" },
+              },
+            ],
+          },
+          {
+            label: "Jenkins Adventure",
+            link: "/jenkins-adventure/",
+            items: [
+              {
+                label: "Start Here",
+                autogenerate: { directory: "jenkins-adventure" },
+              },
+            ],
+          },
+          {
+            label: "K8s Adventure",
+            link: "/k8s-adventure/",
+            items: [
+              {
+                label: "Start Here",
+                autogenerate: { directory: "k8s-adventure" },
+              },
+            ],
+          },
         ]),
       ],
     }),
