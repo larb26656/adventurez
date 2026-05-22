@@ -1,0 +1,72 @@
+---
+title: Setup
+description: วิธีติดตั้งและเริ่มต้นใช้งาน Opencode
+order: 3
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+## การติดตั้ง
+
+ติดตั้งผ่าน npm:
+
+```bash
+npm install -g opencode
+```
+
+หรือใช้ผ่าน npx โดยไม่ต้องติดตั้ง:
+
+```bash
+npx opencode
+```
+
+**ความต้องการของระบบ:**
+- Node.js 18+
+- API key สำหรับ LLM ที่ต้องการใช้ (เช่น OpenAI, Anthropic, Google)
+
+## เชื่อมต่อ Model
+
+Opencode รองรับ LLM หลายตัว คุณสามารถเลือก model ที่เหมาะกับงานได้
+
+**วิธีตั้งค่า API Key:**
+
+```bash
+# สำหรับ OpenAI
+export OPENAI_API_KEY=sk-...
+
+# สำหรับ Anthropic (Claude)
+export ANTHROPIC_API_KEY=sk-ant-...
+
+# สำหรับ Google (Gemini)
+export GOOGLE_API_KEY=...
+```
+
+**เลือก Model:**
+
+```bash
+opencode --model claude    # ใช้ Claude
+opencode --model gpt       # ใช้ GPT-4
+opencode --model gemini    # ใช้ Gemini
+```
+
+> แนะนำให้เริ่มต้นด้วย Claude เพราะมี context window ใหญ่และเหมาะกับงาน coding
+
+## Hello world
+
+มาเริ่มต้นใช้งาน Opencode กันเถอะ!
+
+**1. เริ่ม session ใหม่:**
+
+```bash
+opencode
+```
+
+**2. ถามอะไรสักอย่าง:**
+
+```
+สวัสดีครับ ช่วยบอกวิธีสร้าง React component ง่ายๆ ให้หน่อย
+```
+
+**3. รอให้ AI ตอบ** - Opencode จะวิเคราะห์คำถามและตอบกลับมา
+
+<ChatMessage message="เริ่มต้นง่ายๆ ก่อน ลองถามอะไรสักอย่างดูสิ!" avatarKey="whiteCat" />

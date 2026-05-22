@@ -1,0 +1,68 @@
+---
+title: Chrome DevTools MCP
+description: ใช้ AI ควบคุม Chrome browser โดยตรง
+order: 3
+---
+
+Chrome DevTools MCP คือ MCP server ที่พัฒนาโดย Google ที่จะนำความสามารถของ Chrome DevTools มาสู่ AI agent
+
+## ทำไมต้องใช้ Chrome DevTools MCP
+
+เอเจนต์ AI เผชิญปัญหาพื้นฐานคือไม่สามารถดูสิ่งที่โค้ดทำได้จริงเมื่อรันในเบราว์เซอร์ Chrome DevTools MCP ช่วยให้ AI สามารถ:
+
+- ยืนยันการเปลี่ยนแปลงโค้ดแบบเรียลไทม์
+- วินิจฉัยข้อผิดพลาดเกี่ยวกับเครือข่ายและคอนโซล
+- จำลองพฤติกรรมของผู้ใช้ (คลิก กรอกฟอร์ม)
+- แก้ไขข้อบกพร่องเกี่ยวกับ CSS และ layout
+- ตรวจสอบประสิทธิภาพ (LCP, INP, CLS)
+
+## ติดตั้ง Chrome DevTools MCP
+
+เพิ่ม config ต่อไปนี้ใน `opencode.jsonc`:
+
+```jsonc
+{
+  "mcp": {
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["npx", "-y", "chrome-devtools-mcp@latest"],
+      "enabled": true
+    }
+  }
+}
+```
+
+## Tools ที่มีให้ใช้
+
+| Tool | คำอธิบาย |
+|------|----------|
+| `navigate_page` | ไปยัง URL หรือ back/forward/reload |
+| `take_snapshot` | ดึง DOM tree ของหน้าปัจจุบัน |
+| `take_screenshot` | ถ่ายภาพหน้าจอ |
+| `click` | คลิกบน element |
+| `fill` | พิมพ์ข้อความใน input |
+| `evaluate_script` | รัน JavaScript |
+| `performance_start_trace` | เริ่มบันทึก performance trace |
+| `performance_stop_trace` | หยุดบันทึก |
+| `list_network_requests` | ดู network requests |
+| `get_console_messages` | ดู console logs |
+| `lighthouse_audit` | รัน Lighthouse audit |
+
+## ตัวอย่างการใช้งาน
+
+```
+Check the LCP of localhost:8080
+```
+
+```
+Why does submitting the form fail after entering an email address?
+```
+
+```
+The page looks strange. Check what's happening there.
+```
+
+## ข้อกำหนดเบื้องต้น
+
+- Chrome browser ต้องติดตั้งบนเครื่อง
+- Chrome ต้องเปิดอยู่ (MCP จะเชื่อมต่อผ่าน Chrome DevTools Protocol)

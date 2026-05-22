@@ -1,0 +1,44 @@
+---
+title: Channel
+description: ช่องทางการใช้งาน Opencode
+order: 4
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+## Channel
+
+Opencode มีช่องทางการใช้งานหลายรูปแบบ:
+
+### TUI
+
+**Text-based User Interface** คือการใช้งานผ่าน terminal/command line
+
+**ข้อดี:**
+- เร็วและเบา
+- ไม่ต้องเปิด browser
+- เหมาะกับ developer ที่ชอบใช้ terminal
+
+**วิธีใช้:**
+```bash
+opencode
+# พิมพ์คำถามหรือคำสั่งที่นี่
+```
+
+### Web
+
+**Web Interface** คือการใช้งานผ่านเว็บไซต์
+
+**ข้อดี:**
+- สวยงาม ใช้งานง่าย
+- มี UI สำหรับจัดการ conversation
+- เหมาะกับผู้ที่ไม่ถนัด terminal
+
+**วิธีใช้:**
+```bash
+opencode --web
+# หรือ
+opencode web
+```
+
+<ChatMessage message="เลือกช่องทางที่ถนัดได้เลย ไม่ว่าจะเป็น TUI หรือ Web!" avatarKey="blackCat" />

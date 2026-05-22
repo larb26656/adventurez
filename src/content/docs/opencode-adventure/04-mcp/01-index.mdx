@@ -1,0 +1,91 @@
+---
+title: MCP (Model Context Protocol)
+description: ทำความรู้จัก MCP ภาษากลางสำหรับเชื่อมต่อ AI กับเครื่องมือภายนอก
+order: 1
+---
+
+## MCP คืออะไร
+
+MCP (Model Context Protocol) คือมาตรฐานโอเพนซอร์สสำหรับเชื่อมต่อ AI กับเครื่องมือและแหล่งข้อมูลภายนอก
+
+> 💡 ถ้าอยากให้ AI ใช้ Notion ได้ → เชื่อม Notion MCP
+> 
+> 💡 MCP คือ API ในโลกของ AI Agent
+
+## โครงสร้าง MCP
+
+MCP ประกอบด้วย 2 ฝั่ง:
+
+### MCP Host
+
+ตัว Application ที่รัน AI เช่น opencode, claudecode, cursor
+
+### MCP Server
+
+โปรแกรมขนาดเล็กที่เชื่อมต่อกับแหล่งข้อมูลจริง เช่น:
+- Figma MCP → ดึงข้อมูล canvas
+- Notion MCP → อ่าน/เขียน pages
+- Chrome DevTools MCP → ควบคุมเบราว์เซอร์
+
+## วิธีเปิดใช้งาน MCP ใน OpenCode
+
+การตั้งค่า MCP อยู่ใน `opencode.jsonc` ภายใต้ key `mcp`:
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "ชื่อ-mcp-server": {
+      "type": "local" หรือ "remote",
+      "enabled": true
+    }
+  }
+}
+```
+
+### Local MCP
+
+สำหรับ MCP ที่รันบนเครื่อง:
+
+```jsonc
+{
+  "mcp": {
+    "my-local-mcp": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-everything"],
+      "enabled": true
+    }
+  }
+}
+```
+
+### Remote MCP
+
+สำหรับ MCP ที่รันบน server:
+
+```jsonc
+{
+  "mcp": {
+    "my-remote-mcp": {
+      "type": "remote",
+      "url": "https://my-mcp-server.com",
+      "headers": {
+        "Authorization": "Bearer MY_API_KEY"
+      },
+      "enabled": true
+    }
+  }
+}
+```
+
+## ตรวจสอบสถานะ MCP
+
+```bash
+opencode mcp list
+```
+
+ดูว่า MCP ไหนเปิดอยู่บ้าง
+
+## ปิด/เปิด MCP
+
+ปิดใช้งานชั่วคราวโดยเปลี่ยน `enabled` เป็น `false`
