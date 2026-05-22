@@ -1,0 +1,52 @@
+---
+title: Context Window และ System Role
+description: ทำความรู้จัก Context Window และ System Role ของ LLM
+order: 5
+---
+
+## Context Window
+
+LLMs เป็น **Stateless** (ไม่มี memory ภายใน) แต่ดูเหมือนว่ามันจำได้ นั่นเพราะว่า message ก่อนหน้าจะถูกส่งไปให้ LLM ทุกครั้ง
+
+**วิธีการทำงาน - แต่ละ Turn:**
+- **Turn 1:** User ส่งข้อความแรก, LLM ตอบ
+- **Turn 2:** System รวม Q&A ก่อนหน้าเป็น context + คำถามใหม่
+- **Turn 3:** Context ยาวขึ้น, ถูกรวมเป็น chain
+
+**สิ่งสำคัญ:** ทุกครั้งที่กด "Send" ประวัติการสนทนาทั้งหมดจะถูก copy และส่งไปให้ AI อ่านซ้ำ นั่นคือเหตุผลว่าทำไม context ถึงยาวขึ้นเรื่อยๆ ตามเวลา
+
+**Max context window** (เช่น 240,000 tokens) = max memory ต่อ session
+
+### วิธีจัดการ context
+
+**1. Compact (บีบอัด old chat)**
+- ก่อน: ประวัติการสนทนาแบบเต็ม
+- หลัง: context ถูกสรุปเป็น system prompt
+
+**2. Drop Context (ทิ้ง old messages)**
+- ก่อน: ประวัติทั้งหมดตั้งแต่ต้น
+- หลัง: เก็บแค่ 2 messages สุดท้าย, ของเก่ากว่านั้นถูกทิ้ง
+
+---
+
+## System Role
+
+กฎที่กำหนด personality ของ AI, รูปแบบการตอบ และเงื่อนไขการตอบ
+
+**โครงสร้างตัวอย่าง:**
+```json
+[
+  { "role": "system", "content": "You are Zen, a senior coding teacher..." },
+  { "role": "user", "content": "Hello, I'm shiro..." },
+  { "role": "assistant", "content": "Nice to meet you shiro!" }
+]
+```
+
+**อธิบาย 3 Roles:**
+- **System:** ตั้งกฎ/personality (อ่านก่อน, user ไม่เห็น)
+- **User:** ข้อความจาก user
+- **Assistant:** คำตอบจาก AI
+
+**สำคัญ:** `{ "role": "system" }` จะถูกล็อคไว้ที่ด้านบนเสมอและไม่ถูกลบ แม้ในขณะที่ Compact หรือ Drop Context
+
+**หมายเหตุ:** ควรทำให้ system prompt กระชับเพื่อรักษาพื้นที่ memory ไว้สำหรับเนื้อหาอื่น

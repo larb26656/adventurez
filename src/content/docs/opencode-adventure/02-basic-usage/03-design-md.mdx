@@ -1,0 +1,174 @@
+---
+title: DESIGN.md
+description: ไฟล์ design system spec สำหรับ AI coding agents
+order: 3
+---
+
+## DESIGN.md คืออะไร
+
+ไฟล์ `DESIGN.md` เป็น design system specification ที่ AI coding agents อ่านแล้วสร้าง UI ตาม visual identity ที่กำหนด ถูกพัฒนาโดย Google Labs
+
+**สองชั้นของข้อมูล:**
+- **YAML Front Matter** — Machine-readable design tokens
+- **Markdown Body** — Human-readable design rationale
+
+| ไฟล์ | วัตถุประสงค์ |
+|------|-------------|
+| README.md | สำหรับ **มนุษย์** |
+| AGENT.md | สำหรับ AI เข้าใจโปรเจกต์ |
+| DESIGN.md | สำหรับ AI สร้าง UI ตาม design system |
+
+## โครงสร้างไฟล์
+
+```yaml
+---
+name: Heritage
+colors:
+  primary: "#1A1C1E"
+  secondary: "#6C7278"
+  tertiary: "#B8422E"
+  neutral: "#F7F5F2"
+typography:
+  h1:
+    fontFamily: Public Sans
+    fontSize: 3rem
+  body-md:
+    fontFamily: Public Sans
+    fontSize: 1rem
+  label-caps:
+    fontFamily: Space Grotesk
+    fontSize: 0.75rem
+rounded:
+  sm: 4px
+  md: 8px
+spacing:
+  sm: 8px
+  md: 16px
+---
+
+## Overview
+## Colors
+## Typography
+## Layout
+## Elevation & Depth
+## Shapes
+## Components
+## Do's and Don'ts
+```
+
+## Token Schema
+
+```yaml
+version: "<string>"          # optional, current: "alpha"
+name: <string>
+description: <string>        # optional
+colors:
+  <token-name>: <Color>      # รูปแบบ "# + hex"
+typography:
+  <token-name>: <Typography>
+rounded:
+  <scale-level>: <Dimension>
+spacing:
+  <scale-level>: <Dimension | number>
+components:
+  <component-name>:
+    <token-name>: <string | token reference>
+```
+
+**Typography token** ประกอบด้วย: `fontFamily`, `fontSize`, `fontWeight`, `lineHeight`, `letterSpacing`, `fontFeature`, `fontVariation`
+
+**Token Reference** — อ้างอิง token อื่น: `{colors.primary}`
+
+## Section Order (ลำดับบังคับ)
+
+| # | Section | Aliases |
+|---|---------|---------|
+| 1 | Overview | Brand & Style |
+| 2 | Colors | |
+| 3 | Typography | |
+| 4 | Layout | Layout & Spacing |
+| 5 | Elevation & Depth | Elevation |
+| 6 | Shapes | |
+| 7 | Components | |
+| 8 | Do's and Don'ts | |
+
+## Component Tokens
+
+```yaml
+components:
+  button-primary:
+    backgroundColor: "{colors.tertiary}"
+    textColor: "{colors.on-tertiary}"
+    rounded: "{rounded.sm}"
+    padding: 12px
+  button-primary-hover:
+    backgroundColor: "{colors.tertiary-container}"
+```
+
+**Valid properties:** `backgroundColor`, `textColor`, `typography`, `rounded`, `padding`, `size`, `height`, `width`
+
+## CLI Commands
+
+### ติดตั้ง
+```bash
+npm install @google/design.md
+```
+
+### lint — ตรวจสอบความถูกต้อง
+```bash
+npx @google/design.md lint DESIGN.md
+```
+
+```json
+{
+  "findings": [
+    {
+      "severity": "warning",
+      "path": "components.button-primary",
+      "message": "textColor (#ffffff) on backgroundColor (#1A1C1E) has contrast ratio 15.42:1 — passes WCAG AA."
+    }
+  ],
+  "summary": { "errors": 0, "warnings": 1, "info": 1 }
+}
+```
+
+### diff — เปรียบเทียบสองเวอร์ชัน
+```bash
+npx @google/design.md diff DESIGN.md DESIGN-v2.md
+```
+
+### export — แปลงเป็น format อื่น
+```bash
+# Tailwind v3 config
+npx @google/design.md export --format json-tailwind DESIGN.md > tailwind.theme.json
+
+# Tailwind v4 CSS @theme
+npx @google/design.md export --format css-tailwind DESIGN.md > theme.css
+
+# W3C Design Tokens Format
+npx @google/design.md export --format dtcg DESIGN.md > tokens.json
+```
+
+### spec — ดู spec ฉบับเต็ม
+```bash
+npx @google/design.md spec
+npx @google/design.md spec --rules
+```
+
+## Linting Rules
+
+| Rule | Severity | ตรวจสอบ |
+|------|----------|---------|
+| broken-ref | error | Token references ที่ไม่มีอยู่จริง |
+| missing-primary | warning | ไม่มี primary color |
+| contrast-ratio | warning | ความเปรียบต่ำกว่า WCAG AA (4.5:1) |
+| orphaned-tokens | warning | Color tokens ที่ไม่ถูกใช้ |
+| missing-typography | warning | ไม่มี typography tokens |
+| section-order | warning | ลำดับ section ไม่ถูกต้อง |
+
+## ประโยชน์
+
+- **AI สร้าง UI ตรง design** — มี tokens กำหนดค่าตรงๆ
+- **สื่อสาร design intent** — prose อธิบาย "ทำไม" ไม่ใช่แค่ "อะไร"
+- **Consistency** — หลาย AI agents ผลลัพธ์เหมือนกัน
+- **Design → Code ได้เลย** — export เป็น Tailwind v3/v4, DTCG
