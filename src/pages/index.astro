@@ -1,6 +1,10 @@
 ---
 import Layout from "../components/Layout.astro";
 import Stats from "../components/Stats.astro";
+import CourseCard from "../components/CourseCard.astro";
+import { getCourses } from "../data/courses";
+
+const courses = await getCourses();
 ---
 
 <Layout title="adventurez — Explore Courses" active="Home">
@@ -60,89 +64,17 @@ import Stats from "../components/Stats.astro";
     </div>
 
     <div class="course-grid">
-      <a class="course-card" href="#">
-        <div class="course-thumb">
-          <div class="pixel-art">
-  ██░░██
-  ██░░██
-  ░████░
-  ░░██░░
-  ░░██░░
-          </div>
-        </div>
-        <div class="course-body">
-          <div class="course-tag">Web Dev</div>
-          <div class="course-title">Build a Map Explorer with React + Leaflet</div>
-          <div class="course-meta"><span>Beginner</span><span>3 hrs</span><span>★ 4.8</span></div>
-          <div class="course-footer">
-            <div class="course-free">Free</div>
-            <button class="course-btn">Start</button>
-          </div>
-        </div>
-      </a>
-
-      <a class="course-card" href="#">
-        <div class="course-thumb">
-          <div class="pixel-art">
-  ░░██░░
-  ░████░
-  ██████
-  ░████░
-  ░░██░░
-          </div>
-        </div>
-        <div class="course-body">
-          <div class="course-tag">Game Dev</div>
-          <div class="course-title">Create a 2D Platformer with Godot</div>
-          <div class="course-meta"><span>Beginner</span><span>2.5 hrs</span><span>★ 4.7</span></div>
-          <div class="course-footer">
-            <div class="course-free">Free</div>
-            <button class="course-btn">Start</button>
-          </div>
-        </div>
-      </a>
-
-      <a class="course-card" href="#">
-        <div class="course-thumb">
-          <div class="pixel-art">
-  ░░████
-  ████░░
-  ░░████
-  ████░░
-  ░░░░░░
-          </div>
-        </div>
-        <div class="course-body">
-          <div class="course-tag">Backend</div>
-          <div class="course-title">Serverless API with AWS Lambda + Node</div>
-          <div class="course-meta"><span>Intermediate</span><span>4 hrs</span><span>★ 4.9</span></div>
-          <div class="course-footer">
-            <div class="course-free">Free</div>
-            <button class="course-btn">Start</button>
-          </div>
-        </div>
-      </a>
-
-      <a class="course-card" href="#">
-        <div class="course-thumb">
-          <div class="pixel-art">
-  ░░░░░░
-  ░████░
-  ██░░██
-  ░████░
-  ░░░░░░
-          </div>
-        </div>
-        <div class="course-body">
-          <div class="course-tag">Web Dev</div>
-          <div class="course-title">CSS Grid + Flexbox Layout Masterclass</div>
-          <div class="course-meta"><span>Beginner</span><span>1 hr</span><span>★ 4.9</span></div>
-          <div class="course-footer">
-            <div class="course-free">Free</div>
-            <button class="course-btn">Start</button>
-          </div>
-        </div>
-      </a>
+      {courses.slice(0, 4).map((course) => (
+        <CourseCard 
+          title={course.title}
+          tag={course.tags[0] || "Adventure"}
+          thumbnail={course.thumbnail}
+          href={course.comingSoon ? "#" : `/${course.id}`}
+          level={course.comingSoon ? "Coming Soon" : "Available"}
+          duration={course.tags.slice(0, 2).join(" · ")}
+          price={course.comingSoon ? "Soon" : "Free"}
+        />
+      ))}
     </div>
   </div>
 

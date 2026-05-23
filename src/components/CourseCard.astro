@@ -2,7 +2,7 @@
 interface Props {
   title: string;
   tag?: string;
-  pixelArt?: string;
+  thumbnail?: string;
   href: string;
   level?: string;
   duration?: string;
@@ -13,7 +13,7 @@ interface Props {
 const { 
   title, 
   tag = "Adventure", 
-  pixelArt = "░░██░░\n░░██░░\n░████░\n░░██░░\n░░██░░",
+  thumbnail,
   href, 
   level = "Beginner", 
   duration = "3 hrs", 
@@ -24,7 +24,11 @@ const {
 
 <a class="course-card" href={href}>
   <div class="course-thumb">
-    <div class="pixel-art">{pixelArt}</div>
+    {thumbnail ? (
+      <img src={thumbnail} alt={title} class="course-thumbnail-img" />
+    ) : (
+      <div class="pixel-art">░░██░░\n░░██░░\n░████░\n░░██░░\n░░██░░</div>
+    )}
   </div>
   <div class="course-body">
     <div class="course-tag">{tag}</div>
@@ -32,7 +36,6 @@ const {
     <div class="course-meta">
       <span>{level}</span>
       <span>{duration}</span>
-      <span>{rating}</span>
     </div>
     <div class="course-footer">
       <div class="course-free">{price}</div>

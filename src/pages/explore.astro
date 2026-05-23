@@ -1,5 +1,36 @@
 ---
 import Layout from "../components/Layout.astro";
+import CourseCard from "../components/CourseCard.astro";
+import { getCourses } from "../data/courses";
+
+const courses = await getCourses();
+
+const TAG_TO_CATEGORY: Record<string, string> = {
+  React: "webdev",
+  Frontend: "webdev",
+  JavaScript: "webdev",
+  Docker: "backend",
+  Kubernetes: "backend",
+  "CI/CD": "backend",
+  Jenkins: "backend",
+  Github: "backend",
+  Action: "backend",
+  n8n: "ai",
+  Automation: "ai",
+  NoCode: "ai",
+  Opencode: "ai",
+  "AI-agent": "ai",
+  LLM: "ai",
+  script: "backend",
+  Container: "backend",
+};
+
+function getCategory(tags: string[]): string {
+  for (const tag of tags) {
+    if (TAG_TO_CATEGORY[tag]) return TAG_TO_CATEGORY[tag];
+  }
+  return "webdev";
+}
 ---
 
 <Layout title="adventurez — Explore Courses" active="Courses">
@@ -35,103 +66,38 @@ import Layout from "../components/Layout.astro";
           >
             <div class="filter-checkbox"></div>
             <span>All</span>
-            <span class="filter-count">12</span>
+            <span class="filter-count">{courses.length}</span>
           </div>
           <div class="filter-option" data-filter="category" data-value="webdev">
             <div class="filter-checkbox"></div>
             <span>Web Dev</span>
-            <span class="filter-count">3</span>
-          </div>
-          <div
-            class="filter-option"
-            data-filter="category"
-            data-value="backend"
-          >
-            <div class="filter-checkbox"></div>
-            <span>Backend</span>
-            <span class="filter-count">2</span>
-          </div>
-          <div
-            class="filter-option"
-            data-filter="category"
-            data-value="gamedev"
-          >
-            <div class="filter-checkbox"></div>
-            <span>Game Dev</span>
-            <span class="filter-count">2</span>
+            <span class="filter-count">{courses.filter(c => getCategory(c.tags) === 'webdev').length}</span>
           </div>
           <div class="filter-option" data-filter="category" data-value="ai">
             <div class="filter-checkbox"></div>
-            <span>AI / ML</span>
-            <span class="filter-count">2</span>
+            <span>AI / Automation</span>
+            <span class="filter-count">{courses.filter(c => getCategory(c.tags) === 'ai').length}</span>
           </div>
-          <div class="filter-option" data-filter="category" data-value="data">
+          <div class="filter-option" data-filter="category" data-value="backend">
             <div class="filter-checkbox"></div>
-            <span>Data</span>
-            <span class="filter-count">2</span>
-          </div>
-          <div class="filter-option" data-filter="category" data-value="web3">
-            <div class="filter-checkbox"></div>
-            <span>Web3</span>
-            <span class="filter-count">1</span>
+            <span>Backend / DevOps</span>
+            <span class="filter-count">{courses.filter(c => getCategory(c.tags) === 'backend').length}</span>
           </div>
         </div>
 
         <div class="filter-group">
-          <div class="filter-group-label">Level</div>
-          <div
-            class="filter-option active"
-            data-filter="level"
-            data-value="all"
-          >
+          <div class="filter-group-label">Status</div>
+          <div class="filter-option active" data-filter="status" data-value="all">
             <div class="filter-checkbox"></div>
-            <span>All levels</span>
+            <span>All</span>
           </div>
-          <div class="filter-option" data-filter="level" data-value="beginner">
+          <div class="filter-option" data-filter="status" data-value="available">
             <div class="filter-checkbox"></div>
-            <span>Beginner</span>
-            <span class="filter-count">4</span>
+            <span>Available</span>
           </div>
-          <div
-            class="filter-option"
-            data-filter="level"
-            data-value="intermediate"
-          >
+          <div class="filter-option" data-filter="status" data-value="coming-soon">
             <div class="filter-checkbox"></div>
-            <span>Intermediate</span>
-            <span class="filter-count">5</span>
-          </div>
-          <div class="filter-option" data-filter="level" data-value="advanced">
-            <div class="filter-checkbox"></div>
-            <span>Advanced</span>
-            <span class="filter-count">3</span>
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <div class="filter-group-label">Duration</div>
-          <div
-            class="filter-option active"
-            data-filter="duration"
-            data-value="all"
-          >
-            <div class="filter-checkbox"></div>
-            <span>Any length</span>
-          </div>
-          <div class="filter-option" data-filter="duration" data-value="short">
-            <div class="filter-checkbox"></div>
-            <span>Under 2 hrs</span>
-            <span class="filter-count">3</span>
-          </div>
-          <div class="filter-option" data-filter="duration" data-value="medium">
-            <div class="filter-checkbox"></div>
-            <span>2–4 hrs</span>
-            <span class="filter-count">6</span>
-          </div>
-          <div class="filter-option" data-filter="duration" data-value="long">
-            <div class="filter-checkbox"></div>
-            <span>4+ hrs</span>
-            <span class="filter-count">3</span>
+            <span>Coming Soon</span>
           </div>
         </div>
       </aside>
@@ -139,304 +105,27 @@ import Layout from "../components/Layout.astro";
       <div>
         <div class="active-filters" id="activeFilters"></div>
         <div class="results-count" id="resultsCount">
-          Showing <strong>12</strong> courses
+          Showing <strong>{courses.length}</strong> courses
         </div>
         <div class="course-grid" id="courseGrid">
-          <a
-            class="course-card"
-            href="#"
-            data-category="webdev"
-            data-level="beginner"
-            data-duration="medium"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">██░░██ ██░░██ ░████░ ░░██░░ ░░██░░</div>
+          {courses.map((course, index) => (
+            <div
+              class="course-card-wrapper"
+              data-category={getCategory(course.tags)}
+              data-status={course.comingSoon ? "coming-soon" : "available"}
+              data-title={course.title.toLowerCase()}
+            >
+              <CourseCard 
+                title={course.title}
+                tag={course.tags[0] || "Adventure"}
+                thumbnail={course.thumbnail}
+                href={course.comingSoon ? "#" : course.href}
+                level={course.comingSoon ? "Coming Soon" : "Available"}
+                duration={course.tags.slice(0, 2).join(" · ")}
+                price={course.comingSoon ? "Soon" : "Free"}
+              />
             </div>
-            <div class="course-body">
-              <div class="course-tag">Web Dev</div>
-              <div class="course-title">
-                Build a Map Explorer with React + Leaflet
-              </div>
-              <div class="course-meta">
-                <span>Beginner</span><span>3 hrs</span><span>★ 4.8</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="backend"
-            data-level="intermediate"
-            data-duration="medium"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">░░████ ████░░ ░░████ ████░░ ░░░░░░</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">Backend</div>
-              <div class="course-title">
-                Serverless API with AWS Lambda + Node
-              </div>
-              <div class="course-meta">
-                <span>Intermediate</span><span>4 hrs</span><span>★ 4.9</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="gamedev"
-            data-level="beginner"
-            data-duration="short"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">░░██░░ ░████░ ██████ ░████░ ░░██░░</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">Game Dev</div>
-              <div class="course-title">Create a 2D Platformer with Godot</div>
-              <div class="course-meta">
-                <span>Beginner</span><span>2.5 hrs</span><span>★ 4.7</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="ai"
-            data-level="advanced"
-            data-duration="long"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">██░░██ ░████░ ░░██░░ ░████░ ██░░██</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">AI / ML</div>
-              <div class="course-title">
-                Fine-tune a Local LLM for Code Summarization
-              </div>
-              <div class="course-meta">
-                <span>Advanced</span><span>6 hrs</span><span>★ 5.0</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="data"
-            data-level="intermediate"
-            data-duration="medium"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">░░░░░░ ██████ ░░░░░░ ██████ ░░░░░░</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">Data</div>
-              <div class="course-title">
-                Build a Real-time Dashboard with D3.js
-              </div>
-              <div class="course-meta">
-                <span>Intermediate</span><span>5 hrs</span><span>★ 4.8</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="web3"
-            data-level="intermediate"
-            data-duration="medium"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">░████░ ██░░██ ██░░██ ░████░ ░░░░░░</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">Web3</div>
-              <div class="course-title">
-                Deploy a Smart Contract on Ethereum Sepolia
-              </div>
-              <div class="course-meta">
-                <span>Intermediate</span><span>4 hrs</span><span>★ 4.6</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="webdev"
-            data-level="intermediate"
-            data-duration="medium"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">░██░░░ ████░░ ░██░░░ ░██░░░ ██████</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">Web Dev</div>
-              <div class="course-title">
-                Build a CLI Tool with Node.js + TypeScript
-              </div>
-              <div class="course-meta">
-                <span>Intermediate</span><span>3 hrs</span><span>★ 4.5</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="gamedev"
-            data-level="advanced"
-            data-duration="long"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">░░░░░░ ██░░██ ░████░ ██░░██ ░░░░░░</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">Game Dev</div>
-              <div class="course-title">
-                Multiplayer Game Server with Socket.io
-              </div>
-              <div class="course-meta">
-                <span>Advanced</span><span>5 hrs</span><span>★ 4.9</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="ai"
-            data-level="intermediate"
-            data-duration="short"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">░░██░░ ░███░░ ██████ ░███░░ ░░██░░</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">AI / ML</div>
-              <div class="course-title">
-                Build a Chatbot with LangChain + Python
-              </div>
-              <div class="course-meta">
-                <span>Intermediate</span><span>2 hrs</span><span>★ 4.7</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="backend"
-            data-level="beginner"
-            data-duration="short"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">██████ ░░░░░░ ██████ ░░░░░░ ██████</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">Backend</div>
-              <div class="course-title">REST API from Scratch with Express</div>
-              <div class="course-meta">
-                <span>Beginner</span><span>1.5 hrs</span><span>★ 4.6</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="data"
-            data-level="advanced"
-            data-duration="long"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">██░░██ ░███░░ ░░█░░░ ░███░░ ██░░██</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">Data</div>
-              <div class="course-title">
-                Data Pipeline with Apache Kafka + Go
-              </div>
-              <div class="course-meta">
-                <span>Advanced</span><span>7 hrs</span><span>★ 4.8</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
-
-          <a
-            class="course-card"
-            href="#"
-            data-category="webdev"
-            data-level="beginner"
-            data-duration="short"
-          >
-            <div class="course-thumb">
-              <div class="pixel-art">░░░░░░ ░████░ ██░░██ ░████░ ░░░░░░</div>
-            </div>
-            <div class="course-body">
-              <div class="course-tag">Web Dev</div>
-              <div class="course-title">
-                CSS Grid + Flexbox Layout Masterclass
-              </div>
-              <div class="course-meta">
-                <span>Beginner</span><span>1 hr</span><span>★ 4.9</span>
-              </div>
-              <div class="course-footer">
-                <div class="course-free">Free</div>
-                <button class="course-btn">Start</button>
-              </div>
-            </div>
-          </a>
+          ))}
         </div>
       </div>
     </div>
@@ -446,29 +135,24 @@ import Layout from "../components/Layout.astro";
     (function () {
       var filters: Record<string, string> = {
         category: "all",
-        level: "all",
-        duration: "all",
+        status: "all",
       };
       var searchQuery = "";
 
       function applyFilters() {
-        var cards = document.querySelectorAll<HTMLElement>(".course-card");
+        var cards = document.querySelectorAll<HTMLElement>(".course-card-wrapper");
         var visible = 0;
 
         cards.forEach(function (card) {
           var cat = card.getAttribute("data-category");
-          var lvl = card.getAttribute("data-level");
-          var dur = card.getAttribute("data-duration");
-          var title = card
-            .querySelector(".course-title")!
-            .textContent!.toLowerCase();
+          var status = card.getAttribute("data-status");
+          var title = card.getAttribute("data-title") || "";
 
           var matchCat = filters.category === "all" || cat === filters.category;
-          var matchLvl = filters.level === "all" || lvl === filters.level;
-          var matchDur = filters.duration === "all" || dur === filters.duration;
+          var matchStatus = filters.status === "all" || status === filters.status;
           var matchSearch = !searchQuery || title.indexOf(searchQuery) > -1;
 
-          if (matchCat && matchLvl && matchDur && matchSearch) {
+          if (matchCat && matchStatus && matchSearch) {
             card.classList.remove("hidden");
             visible++;
           } else {
@@ -503,26 +187,17 @@ import Layout from "../components/Layout.astro";
         var labels: Record<string, Record<string, string>> = {
           category: {
             webdev: "Web Dev",
-            backend: "Backend",
-            gamedev: "Game Dev",
-            ai: "AI / ML",
-            data: "Data",
-            web3: "Web3",
+            ai: "AI / Automation",
+            backend: "Backend / DevOps",
           },
-          level: {
-            beginner: "Beginner",
-            intermediate: "Intermediate",
-            advanced: "Advanced",
+          status: {
+            available: "Available",
+            "coming-soon": "Coming Soon",
           },
-          duration: { short: "Under 2 hrs", medium: "2–4 hrs", long: "4+ hrs" },
         };
 
         Object.keys(filters).forEach(function (key) {
-          if (
-            filters[key] !== "all" &&
-            labels[key] &&
-            labels[key][filters[key]]
-          ) {
+          if (filters[key] !== "all" && labels[key] && labels[key][filters[key]]) {
             var pill = document.createElement("button");
             pill.className = "filter-pill";
             pill.innerHTML =
@@ -570,7 +245,7 @@ import Layout from "../components/Layout.astro";
       document
         .getElementById("filterReset")!
         .addEventListener("click", function () {
-          filters = { category: "all", level: "all", duration: "all" };
+          filters = { category: "all", status: "all" };
           searchQuery = "";
           (document.getElementById("filterSearch") as HTMLInputElement).value =
             "";
