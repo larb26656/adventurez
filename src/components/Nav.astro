@@ -1,0 +1,22 @@
+---
+interface Props {
+  active?: string;
+  showCta?: boolean;
+}
+const { active = "Home" } = Astro.props;
+---
+
+<nav>
+  <a class="logo" href="/">adventure<span>z</span></a>
+  <ul>
+    <li><a href="/" class={active === "Home" ? "active" : ""}>Home</a></li>
+    <li>
+      <a href="/explore" class={active === "Courses" ? "active" : ""}>Courses</a
+      >
+    </li>
+    <li>
+      <a href="/path" class={active === "Paths" ? "active" : ""}>Paths</a>
+    </li>
+    <li><a href="#">Community</a></li>
+  </ul>
+</nav>

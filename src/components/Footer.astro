@@ -1,0 +1,19 @@
+---
+const footerLinks = [
+  { label: "Contribute", href: "#" },
+  { label: "Course requests", href: "#" },
+  { label: "Bug reports", href: "#" },
+];
+---
+
+<footer>
+  <p>© 2026 adventurez — <span>open source</span> on GitHub</p>
+  <p style="font-size:12px;">
+    {footerLinks.map((link, i) => (
+      <>
+        <a href={link.href}>{link.label}</a>
+        {i < footerLinks.length - 1 && " · "}
+      </>
+    ))}
+  </p>
+</footer>

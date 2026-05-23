@@ -1,500 +1,587 @@
 ---
-import "../styles/adventurez.css";
+import Layout from "../components/Layout.astro";
 ---
 
-<!doctype html>
-<html lang="th">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>adventurez — Explore Courses</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=VT323&display=swap" rel="stylesheet" />
-  </head>
-  <body>
+<Layout title="adventurez — Explore Courses" active="Courses">
+  <div class="page-header">
+    <h1>Explore all courses</h1>
+    <p>
+      Text-based, free, open-source. Filter by category, level, or duration to
+      find your next adventure.
+    </p>
+  </div>
 
-    <nav>
-      <a class="logo" href="/">adventure<span>z</span></a>
-      <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/explore" class="active">Courses</a></li>
-        <li><a href="/path">Paths</a></li>
-        <li><a href="#">Community</a></li>
-      </ul>
-      <a class="btn-cta" href="#">Start learning</a>
-    </nav>
+  <div class="explore">
+    <div class="explore-layout">
+      <aside class="filter-panel">
+        <div class="filter-title">
+          Filters
+          <button class="filter-reset" id="filterReset">Reset</button>
+        </div>
 
-    <div class="page-header">
-      <h1>Explore all courses</h1>
-      <p>Text-based, free, open-source. Filter by category, level, or duration to find your next adventure.</p>
-    </div>
+        <input
+          type="text"
+          class="filter-search"
+          id="filterSearch"
+          placeholder="Search courses..."
+        />
 
-    <div class="explore">
-      <div class="explore-layout">
-        <!-- Filter Sidebar -->
-        <aside class="filter-panel">
-          <div class="filter-title">
-            Filters
-            <button class="filter-reset" id="filterReset">Reset</button>
+        <div class="filter-group">
+          <div class="filter-group-label">Category</div>
+          <div
+            class="filter-option active"
+            data-filter="category"
+            data-value="all"
+          >
+            <div class="filter-checkbox"></div>
+            <span>All</span>
+            <span class="filter-count">12</span>
           </div>
-
-          <input type="text" class="filter-search" id="filterSearch" placeholder="Search courses..." />
-
-          <div class="filter-group">
-            <div class="filter-group-label">Category</div>
-            <div class="filter-option active" data-filter="category" data-value="all">
-              <div class="filter-checkbox"></div>
-              <span>All</span>
-              <span class="filter-count">12</span>
-            </div>
-            <div class="filter-option" data-filter="category" data-value="webdev">
-              <div class="filter-checkbox"></div>
-              <span>Web Dev</span>
-              <span class="filter-count">3</span>
-            </div>
-            <div class="filter-option" data-filter="category" data-value="backend">
-              <div class="filter-checkbox"></div>
-              <span>Backend</span>
-              <span class="filter-count">2</span>
-            </div>
-            <div class="filter-option" data-filter="category" data-value="gamedev">
-              <div class="filter-checkbox"></div>
-              <span>Game Dev</span>
-              <span class="filter-count">2</span>
-            </div>
-            <div class="filter-option" data-filter="category" data-value="ai">
-              <div class="filter-checkbox"></div>
-              <span>AI / ML</span>
-              <span class="filter-count">2</span>
-            </div>
-            <div class="filter-option" data-filter="category" data-value="data">
-              <div class="filter-checkbox"></div>
-              <span>Data</span>
-              <span class="filter-count">2</span>
-            </div>
-            <div class="filter-option" data-filter="category" data-value="web3">
-              <div class="filter-checkbox"></div>
-              <span>Web3</span>
-              <span class="filter-count">1</span>
-            </div>
+          <div class="filter-option" data-filter="category" data-value="webdev">
+            <div class="filter-checkbox"></div>
+            <span>Web Dev</span>
+            <span class="filter-count">3</span>
           </div>
-
-          <div class="filter-group">
-            <div class="filter-group-label">Level</div>
-            <div class="filter-option active" data-filter="level" data-value="all">
-              <div class="filter-checkbox"></div>
-              <span>All levels</span>
-            </div>
-            <div class="filter-option" data-filter="level" data-value="beginner">
-              <div class="filter-checkbox"></div>
-              <span>Beginner</span>
-              <span class="filter-count">4</span>
-            </div>
-            <div class="filter-option" data-filter="level" data-value="intermediate">
-              <div class="filter-checkbox"></div>
-              <span>Intermediate</span>
-              <span class="filter-count">5</span>
-            </div>
-            <div class="filter-option" data-filter="level" data-value="advanced">
-              <div class="filter-checkbox"></div>
-              <span>Advanced</span>
-              <span class="filter-count">3</span>
-            </div>
+          <div
+            class="filter-option"
+            data-filter="category"
+            data-value="backend"
+          >
+            <div class="filter-checkbox"></div>
+            <span>Backend</span>
+            <span class="filter-count">2</span>
           </div>
-
-          <div class="filter-group">
-            <div class="filter-group-label">Duration</div>
-            <div class="filter-option active" data-filter="duration" data-value="all">
-              <div class="filter-checkbox"></div>
-              <span>Any length</span>
-            </div>
-            <div class="filter-option" data-filter="duration" data-value="short">
-              <div class="filter-checkbox"></div>
-              <span>Under 2 hrs</span>
-              <span class="filter-count">3</span>
-            </div>
-            <div class="filter-option" data-filter="duration" data-value="medium">
-              <div class="filter-checkbox"></div>
-              <span>2–4 hrs</span>
-              <span class="filter-count">6</span>
-            </div>
-            <div class="filter-option" data-filter="duration" data-value="long">
-              <div class="filter-checkbox"></div>
-              <span>4+ hrs</span>
-              <span class="filter-count">3</span>
-            </div>
+          <div
+            class="filter-option"
+            data-filter="category"
+            data-value="gamedev"
+          >
+            <div class="filter-checkbox"></div>
+            <span>Game Dev</span>
+            <span class="filter-count">2</span>
           </div>
-        </aside>
-
-        <!-- Course Grid -->
-        <div>
-          <div class="active-filters" id="activeFilters"></div>
-          <div class="results-count" id="resultsCount">Showing <strong>12</strong> courses</div>
-          <div class="course-grid" id="courseGrid">
-
-            <a class="course-card" href="#" data-category="webdev" data-level="beginner" data-duration="medium">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ██░░██
-  ██░░██
-  ░████░
-  ░░██░░
-  ░░██░░
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">Web Dev</div>
-                <div class="course-title">Build a Map Explorer with React + Leaflet</div>
-                <div class="course-meta"><span>Beginner</span><span>3 hrs</span><span>★ 4.8</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="backend" data-level="intermediate" data-duration="medium">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ░░████
-  ████░░
-  ░░████
-  ████░░
-  ░░░░░░
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">Backend</div>
-                <div class="course-title">Serverless API with AWS Lambda + Node</div>
-                <div class="course-meta"><span>Intermediate</span><span>4 hrs</span><span>★ 4.9</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="gamedev" data-level="beginner" data-duration="short">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ░░██░░
-  ░████░
-  ██████
-  ░████░
-  ░░██░░
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">Game Dev</div>
-                <div class="course-title">Create a 2D Platformer with Godot</div>
-                <div class="course-meta"><span>Beginner</span><span>2.5 hrs</span><span>★ 4.7</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="ai" data-level="advanced" data-duration="long">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ██░░██
-  ░████░
-  ░░██░░
-  ░████░
-  ██░░██
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">AI / ML</div>
-                <div class="course-title">Fine-tune a Local LLM for Code Summarization</div>
-                <div class="course-meta"><span>Advanced</span><span>6 hrs</span><span>★ 5.0</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="data" data-level="intermediate" data-duration="medium">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ░░░░░░
-  ██████
-  ░░░░░░
-  ██████
-  ░░░░░░
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">Data</div>
-                <div class="course-title">Build a Real-time Dashboard with D3.js</div>
-                <div class="course-meta"><span>Intermediate</span><span>5 hrs</span><span>★ 4.8</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="web3" data-level="intermediate" data-duration="medium">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ░████░
-  ██░░██
-  ██░░██
-  ░████░
-  ░░░░░░
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">Web3</div>
-                <div class="course-title">Deploy a Smart Contract on Ethereum Sepolia</div>
-                <div class="course-meta"><span>Intermediate</span><span>4 hrs</span><span>★ 4.6</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="webdev" data-level="intermediate" data-duration="medium">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ░██░░░
-  ████░░
-  ░██░░░
-  ░██░░░
-  ██████
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">Web Dev</div>
-                <div class="course-title">Build a CLI Tool with Node.js + TypeScript</div>
-                <div class="course-meta"><span>Intermediate</span><span>3 hrs</span><span>★ 4.5</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="gamedev" data-level="advanced" data-duration="long">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ░░░░░░
-  ██░░██
-  ░████░
-  ██░░██
-  ░░░░░░
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">Game Dev</div>
-                <div class="course-title">Multiplayer Game Server with Socket.io</div>
-                <div class="course-meta"><span>Advanced</span><span>5 hrs</span><span>★ 4.9</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="ai" data-level="intermediate" data-duration="short">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ░░██░░
-  ░███░░
-  ██████
-  ░███░░
-  ░░██░░
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">AI / ML</div>
-                <div class="course-title">Build a Chatbot with LangChain + Python</div>
-                <div class="course-meta"><span>Intermediate</span><span>2 hrs</span><span>★ 4.7</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="backend" data-level="beginner" data-duration="short">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ██████
-  ░░░░░░
-  ██████
-  ░░░░░░
-  ██████
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">Backend</div>
-                <div class="course-title">REST API from Scratch with Express</div>
-                <div class="course-meta"><span>Beginner</span><span>1.5 hrs</span><span>★ 4.6</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="data" data-level="advanced" data-duration="long">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ██░░██
-  ░███░░
-  ░░█░░░
-  ░███░░
-  ██░░██
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">Data</div>
-                <div class="course-title">Data Pipeline with Apache Kafka + Go</div>
-                <div class="course-meta"><span>Advanced</span><span>7 hrs</span><span>★ 4.8</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
-            <a class="course-card" href="#" data-category="webdev" data-level="beginner" data-duration="short">
-              <div class="course-thumb">
-                <div class="pixel-art">
-  ░░░░░░
-  ░████░
-  ██░░██
-  ░████░
-  ░░░░░░
-                </div>
-              </div>
-              <div class="course-body">
-                <div class="course-tag">Web Dev</div>
-                <div class="course-title">CSS Grid + Flexbox Layout Masterclass</div>
-                <div class="course-meta"><span>Beginner</span><span>1 hr</span><span>★ 4.9</span></div>
-                <div class="course-footer">
-                  <div class="course-free">Free</div>
-                  <button class="course-btn">Start</button>
-                </div>
-              </div>
-            </a>
-
+          <div class="filter-option" data-filter="category" data-value="ai">
+            <div class="filter-checkbox"></div>
+            <span>AI / ML</span>
+            <span class="filter-count">2</span>
           </div>
+          <div class="filter-option" data-filter="category" data-value="data">
+            <div class="filter-checkbox"></div>
+            <span>Data</span>
+            <span class="filter-count">2</span>
+          </div>
+          <div class="filter-option" data-filter="category" data-value="web3">
+            <div class="filter-checkbox"></div>
+            <span>Web3</span>
+            <span class="filter-count">1</span>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group-label">Level</div>
+          <div
+            class="filter-option active"
+            data-filter="level"
+            data-value="all"
+          >
+            <div class="filter-checkbox"></div>
+            <span>All levels</span>
+          </div>
+          <div class="filter-option" data-filter="level" data-value="beginner">
+            <div class="filter-checkbox"></div>
+            <span>Beginner</span>
+            <span class="filter-count">4</span>
+          </div>
+          <div
+            class="filter-option"
+            data-filter="level"
+            data-value="intermediate"
+          >
+            <div class="filter-checkbox"></div>
+            <span>Intermediate</span>
+            <span class="filter-count">5</span>
+          </div>
+          <div class="filter-option" data-filter="level" data-value="advanced">
+            <div class="filter-checkbox"></div>
+            <span>Advanced</span>
+            <span class="filter-count">3</span>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group-label">Duration</div>
+          <div
+            class="filter-option active"
+            data-filter="duration"
+            data-value="all"
+          >
+            <div class="filter-checkbox"></div>
+            <span>Any length</span>
+          </div>
+          <div class="filter-option" data-filter="duration" data-value="short">
+            <div class="filter-checkbox"></div>
+            <span>Under 2 hrs</span>
+            <span class="filter-count">3</span>
+          </div>
+          <div class="filter-option" data-filter="duration" data-value="medium">
+            <div class="filter-checkbox"></div>
+            <span>2–4 hrs</span>
+            <span class="filter-count">6</span>
+          </div>
+          <div class="filter-option" data-filter="duration" data-value="long">
+            <div class="filter-checkbox"></div>
+            <span>4+ hrs</span>
+            <span class="filter-count">3</span>
+          </div>
+        </div>
+      </aside>
+
+      <div>
+        <div class="active-filters" id="activeFilters"></div>
+        <div class="results-count" id="resultsCount">
+          Showing <strong>12</strong> courses
+        </div>
+        <div class="course-grid" id="courseGrid">
+          <a
+            class="course-card"
+            href="#"
+            data-category="webdev"
+            data-level="beginner"
+            data-duration="medium"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">██░░██ ██░░██ ░████░ ░░██░░ ░░██░░</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">Web Dev</div>
+              <div class="course-title">
+                Build a Map Explorer with React + Leaflet
+              </div>
+              <div class="course-meta">
+                <span>Beginner</span><span>3 hrs</span><span>★ 4.8</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="backend"
+            data-level="intermediate"
+            data-duration="medium"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">░░████ ████░░ ░░████ ████░░ ░░░░░░</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">Backend</div>
+              <div class="course-title">
+                Serverless API with AWS Lambda + Node
+              </div>
+              <div class="course-meta">
+                <span>Intermediate</span><span>4 hrs</span><span>★ 4.9</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="gamedev"
+            data-level="beginner"
+            data-duration="short"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">░░██░░ ░████░ ██████ ░████░ ░░██░░</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">Game Dev</div>
+              <div class="course-title">Create a 2D Platformer with Godot</div>
+              <div class="course-meta">
+                <span>Beginner</span><span>2.5 hrs</span><span>★ 4.7</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="ai"
+            data-level="advanced"
+            data-duration="long"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">██░░██ ░████░ ░░██░░ ░████░ ██░░██</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">AI / ML</div>
+              <div class="course-title">
+                Fine-tune a Local LLM for Code Summarization
+              </div>
+              <div class="course-meta">
+                <span>Advanced</span><span>6 hrs</span><span>★ 5.0</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="data"
+            data-level="intermediate"
+            data-duration="medium"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">░░░░░░ ██████ ░░░░░░ ██████ ░░░░░░</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">Data</div>
+              <div class="course-title">
+                Build a Real-time Dashboard with D3.js
+              </div>
+              <div class="course-meta">
+                <span>Intermediate</span><span>5 hrs</span><span>★ 4.8</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="web3"
+            data-level="intermediate"
+            data-duration="medium"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">░████░ ██░░██ ██░░██ ░████░ ░░░░░░</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">Web3</div>
+              <div class="course-title">
+                Deploy a Smart Contract on Ethereum Sepolia
+              </div>
+              <div class="course-meta">
+                <span>Intermediate</span><span>4 hrs</span><span>★ 4.6</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="webdev"
+            data-level="intermediate"
+            data-duration="medium"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">░██░░░ ████░░ ░██░░░ ░██░░░ ██████</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">Web Dev</div>
+              <div class="course-title">
+                Build a CLI Tool with Node.js + TypeScript
+              </div>
+              <div class="course-meta">
+                <span>Intermediate</span><span>3 hrs</span><span>★ 4.5</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="gamedev"
+            data-level="advanced"
+            data-duration="long"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">░░░░░░ ██░░██ ░████░ ██░░██ ░░░░░░</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">Game Dev</div>
+              <div class="course-title">
+                Multiplayer Game Server with Socket.io
+              </div>
+              <div class="course-meta">
+                <span>Advanced</span><span>5 hrs</span><span>★ 4.9</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="ai"
+            data-level="intermediate"
+            data-duration="short"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">░░██░░ ░███░░ ██████ ░███░░ ░░██░░</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">AI / ML</div>
+              <div class="course-title">
+                Build a Chatbot with LangChain + Python
+              </div>
+              <div class="course-meta">
+                <span>Intermediate</span><span>2 hrs</span><span>★ 4.7</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="backend"
+            data-level="beginner"
+            data-duration="short"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">██████ ░░░░░░ ██████ ░░░░░░ ██████</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">Backend</div>
+              <div class="course-title">REST API from Scratch with Express</div>
+              <div class="course-meta">
+                <span>Beginner</span><span>1.5 hrs</span><span>★ 4.6</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="data"
+            data-level="advanced"
+            data-duration="long"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">██░░██ ░███░░ ░░█░░░ ░███░░ ██░░██</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">Data</div>
+              <div class="course-title">
+                Data Pipeline with Apache Kafka + Go
+              </div>
+              <div class="course-meta">
+                <span>Advanced</span><span>7 hrs</span><span>★ 4.8</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
+
+          <a
+            class="course-card"
+            href="#"
+            data-category="webdev"
+            data-level="beginner"
+            data-duration="short"
+          >
+            <div class="course-thumb">
+              <div class="pixel-art">░░░░░░ ░████░ ██░░██ ░████░ ░░░░░░</div>
+            </div>
+            <div class="course-body">
+              <div class="course-tag">Web Dev</div>
+              <div class="course-title">
+                CSS Grid + Flexbox Layout Masterclass
+              </div>
+              <div class="course-meta">
+                <span>Beginner</span><span>1 hr</span><span>★ 4.9</span>
+              </div>
+              <div class="course-footer">
+                <div class="course-free">Free</div>
+                <button class="course-btn">Start</button>
+              </div>
+            </div>
+          </a>
         </div>
       </div>
     </div>
+  </div>
 
-    <footer>
-      <p>© 2026 adventurez — <span>open source</span> on GitHub</p>
-      <p style="font-size:12px;">Contribute · Course requests · Bug reports</p>
-    </footer>
+  <script>
+    (function () {
+      var filters: Record<string, string> = {
+        category: "all",
+        level: "all",
+        duration: "all",
+      };
+      var searchQuery = "";
 
-    <script>
-      (function() {
-        var filters: Record<string, string> = { category: 'all', level: 'all', duration: 'all' };
-        var searchQuery = '';
+      function applyFilters() {
+        var cards = document.querySelectorAll<HTMLElement>(".course-card");
+        var visible = 0;
 
-        function applyFilters() {
-          var cards = document.querySelectorAll<HTMLElement>('.course-card');
-          var visible = 0;
+        cards.forEach(function (card) {
+          var cat = card.getAttribute("data-category");
+          var lvl = card.getAttribute("data-level");
+          var dur = card.getAttribute("data-duration");
+          var title = card
+            .querySelector(".course-title")!
+            .textContent!.toLowerCase();
 
-          cards.forEach(function(card) {
-            var cat = card.getAttribute('data-category');
-            var lvl = card.getAttribute('data-level');
-            var dur = card.getAttribute('data-duration');
-            var title = card.querySelector('.course-title')!.textContent!.toLowerCase();
+          var matchCat = filters.category === "all" || cat === filters.category;
+          var matchLvl = filters.level === "all" || lvl === filters.level;
+          var matchDur = filters.duration === "all" || dur === filters.duration;
+          var matchSearch = !searchQuery || title.indexOf(searchQuery) > -1;
 
-            var matchCat = filters.category === 'all' || cat === filters.category;
-            var matchLvl = filters.level === 'all' || lvl === filters.level;
-            var matchDur = filters.duration === 'all' || dur === filters.duration;
-            var matchSearch = !searchQuery || title.indexOf(searchQuery) > -1;
-
-            if (matchCat && matchLvl && matchDur && matchSearch) {
-              card.classList.remove('hidden');
-              visible++;
-            } else {
-              card.classList.add('hidden');
-            }
-          });
-
-          document.getElementById('resultsCount')!.innerHTML = 'Showing <strong>' + visible + '</strong> course' + (visible !== 1 ? 's' : '');
-
-          var noResults = document.querySelector('.no-results');
-          if (visible === 0 && !noResults) {
-            var div = document.createElement('div');
-            div.className = 'no-results';
-            div.innerHTML = '<strong>No courses found</strong>Try adjusting your filters';
-            document.getElementById('courseGrid')!.appendChild(div);
-          } else if (visible > 0 && noResults) {
-            noResults.remove();
+          if (matchCat && matchLvl && matchDur && matchSearch) {
+            card.classList.remove("hidden");
+            visible++;
+          } else {
+            card.classList.add("hidden");
           }
+        });
 
-          updateActivePills();
+        document.getElementById("resultsCount")!.innerHTML =
+          "Showing <strong>" +
+          visible +
+          "</strong> course" +
+          (visible !== 1 ? "s" : "");
+
+        var noResults = document.querySelector(".no-results");
+        if (visible === 0 && !noResults) {
+          var div = document.createElement("div");
+          div.className = "no-results";
+          div.innerHTML =
+            "<strong>No courses found</strong>Try adjusting your filters";
+          document.getElementById("courseGrid")!.appendChild(div);
+        } else if (visible > 0 && noResults) {
+          noResults.remove();
         }
 
-        function updateActivePills() {
-          var container = document.getElementById('activeFilters')!;
-          container.innerHTML = '';
+        updateActivePills();
+      }
 
-          var labels: Record<string, Record<string, string>> = {
-            category: { webdev: 'Web Dev', backend: 'Backend', gamedev: 'Game Dev', ai: 'AI / ML', data: 'Data', web3: 'Web3' },
-            level: { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' },
-            duration: { short: 'Under 2 hrs', medium: '2–4 hrs', long: '4+ hrs' }
-          };
+      function updateActivePills() {
+        var container = document.getElementById("activeFilters")!;
+        container.innerHTML = "";
 
-          Object.keys(filters).forEach(function(key) {
-            if (filters[key] !== 'all' && labels[key] && labels[key][filters[key]]) {
-              var pill = document.createElement('button');
-              pill.className = 'filter-pill';
-              pill.innerHTML = labels[key][filters[key]] + ' <span class="pill-x">×</span>';
-              pill.addEventListener('click', function() {
-                filters[key] = 'all';
-                document.querySelectorAll('.filter-option[data-filter="' + key + '"]').forEach(function(opt) {
-                  opt.classList.toggle('active', opt.getAttribute('data-value') === 'all');
+        var labels: Record<string, Record<string, string>> = {
+          category: {
+            webdev: "Web Dev",
+            backend: "Backend",
+            gamedev: "Game Dev",
+            ai: "AI / ML",
+            data: "Data",
+            web3: "Web3",
+          },
+          level: {
+            beginner: "Beginner",
+            intermediate: "Intermediate",
+            advanced: "Advanced",
+          },
+          duration: { short: "Under 2 hrs", medium: "2–4 hrs", long: "4+ hrs" },
+        };
+
+        Object.keys(filters).forEach(function (key) {
+          if (
+            filters[key] !== "all" &&
+            labels[key] &&
+            labels[key][filters[key]]
+          ) {
+            var pill = document.createElement("button");
+            pill.className = "filter-pill";
+            pill.innerHTML =
+              labels[key][filters[key]] + ' <span class="pill-x">×</span>';
+            pill.addEventListener("click", function () {
+              filters[key] = "all";
+              document
+                .querySelectorAll('.filter-option[data-filter="' + key + '"]')
+                .forEach(function (opt) {
+                  opt.classList.toggle(
+                    "active",
+                    opt.getAttribute("data-value") === "all",
+                  );
                 });
-                applyFilters();
-              });
-              container.appendChild(pill);
-            }
-          });
-        }
-
-        document.querySelectorAll('.filter-option').forEach(function(opt) {
-          opt.addEventListener('click', function(this: HTMLElement) {
-            var group = this.getAttribute('data-filter')!;
-            var value = this.getAttribute('data-value')!;
-
-            document.querySelectorAll('.filter-option[data-filter="' + group + '"]').forEach(function(sibling) {
-              sibling.classList.remove('active');
+              applyFilters();
             });
-            this.classList.add('active');
-            filters[group] = value;
-            applyFilters();
-          });
+            container.appendChild(pill);
+          }
         });
+      }
 
-        (document.getElementById('filterSearch') as HTMLInputElement).addEventListener('input', function(this: HTMLInputElement) {
-          searchQuery = this.value.toLowerCase().trim();
+      document.querySelectorAll(".filter-option").forEach(function (opt) {
+        opt.addEventListener("click", function (this: HTMLElement) {
+          var group = this.getAttribute("data-filter")!;
+          var value = this.getAttribute("data-value")!;
+
+          document
+            .querySelectorAll('.filter-option[data-filter="' + group + '"]')
+            .forEach(function (sibling) {
+              sibling.classList.remove("active");
+            });
+          this.classList.add("active");
+          filters[group] = value;
           applyFilters();
         });
+      });
 
-        document.getElementById('filterReset')!.addEventListener('click', function() {
-          filters = { category: 'all', level: 'all', duration: 'all' };
-          searchQuery = '';
-          (document.getElementById('filterSearch') as HTMLInputElement).value = '';
-          document.querySelectorAll('.filter-option').forEach(function(opt) {
-            opt.classList.toggle('active', opt.getAttribute('data-value') === 'all');
+      (
+        document.getElementById("filterSearch") as HTMLInputElement
+      ).addEventListener("input", function (this: HTMLInputElement) {
+        searchQuery = this.value.toLowerCase().trim();
+        applyFilters();
+      });
+
+      document
+        .getElementById("filterReset")!
+        .addEventListener("click", function () {
+          filters = { category: "all", level: "all", duration: "all" };
+          searchQuery = "";
+          (document.getElementById("filterSearch") as HTMLInputElement).value =
+            "";
+          document.querySelectorAll(".filter-option").forEach(function (opt) {
+            opt.classList.toggle(
+              "active",
+              opt.getAttribute("data-value") === "all",
+            );
           });
           applyFilters();
         });
-      })();
-    </script>
-
-  </body>
-</html>
+    })();
+  </script>
+</Layout>

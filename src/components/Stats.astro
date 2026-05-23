@@ -1,0 +1,17 @@
+---
+const stats = [
+  { num: "No video", label: "required" },
+  { num: "Read & build", label: "approach" },
+  { num: "Free", label: "forever" },
+  { num: "Open", label: "to contribute" },
+];
+---
+
+<div class="stats">
+  {stats.map(stat => (
+    <div class="stat">
+      <div class="stat-num">{stat.num}</div>
+      <div class="stat-label">{stat.label}</div>
+    </div>
+  ))}
+</div>
