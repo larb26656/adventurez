@@ -1,7 +1,7 @@
 ---
 import Layout from "../components/Layout.astro";
 import Stats from "../components/Stats.astro";
-import CourseCard from "../components/CourseCard.astro";
+import CourseCard from "../components/CourseCard";
 import { getCourses } from "../data/courses";
 
 const courses = await getCourses();
@@ -13,8 +13,15 @@ const courses = await getCourses();
       <div class="hero-badge">
         <span>🗺️</span> Free forever · Text-based courses
       </div>
-      <h1><span class="italic-accent">The new way to learn</span> <span>something</span></h1>
-      <p>คอร์สแบบ text-based ล้วนๆ ที่ทุกคนเข้าถึงได้ — ไม่ต้องดูวิดีโอ ไม่ต้องมีพื้นฐาน อ่านแล้วลงมือทำได้เลย พร้อม community ที่ช่วยกันเขียนเนื้อหา</p>
+      <h1>
+        <span class="italic-accent">The new way to learn</span>
+        <span>something</span>
+      </h1>
+      <p>
+        คอร์สแบบ text-based ล้วนๆ ที่ทุกคนเข้าถึงได้ — ไม่ต้องดูวิดีโอ
+        ไม่ต้องมีพื้นฐาน อ่านแล้วลงมือทำได้เลย พร้อม community
+        ที่ช่วยกันเขียนเนื้อหา
+      </p>
       <div class="hero-actions">
         <a href="#explore" class="btn-primary">Explore courses →</a>
         <button class="btn-secondary">How it works</button>
@@ -64,17 +71,22 @@ const courses = await getCourses();
     </div>
 
     <div class="course-grid">
-      {courses.slice(0, 4).map((course) => (
-        <CourseCard 
-          title={course.title}
-          tag={course.tags[0] || "Adventure"}
-          thumbnail={course.thumbnail}
-          href={course.comingSoon ? "#" : `/${course.id}`}
-          level={course.comingSoon ? "Coming Soon" : "Available"}
-          duration={course.tags.slice(0, 2).join(" · ")}
-          price={course.comingSoon ? "Soon" : "Free"}
-        />
-      ))}
+      {
+        courses
+          .slice(0, 4)
+          .map((course) => (
+            <CourseCard
+              client:load
+              title={course.title}
+              tag={course.tags[0] || "Adventure"}
+              thumbnail={course.thumbnail}
+              href={course.comingSoon ? "#" : `/${course.id}`}
+              level={course.comingSoon ? "Coming Soon" : "Available"}
+              duration={course.tags.slice(0, 2).join(" · ")}
+              price={course.comingSoon ? "Soon" : "Free"}
+            />
+          ))
+      }
     </div>
   </div>
 
@@ -125,34 +137,72 @@ const courses = await getCourses();
       <div>
         <div class="learning-path-label">Feature</div>
         <h2>Design your own learning path</h2>
-        <p>เลือกคอร์สเรียงลำดับเอง ตั้งเป้าหมาย แล้วค่อยๆ ทำทีละขั้น — ข้อมูลเก็บในเครื่อง ไม่ต้องสมัคร ไม่ต้องมีบัญชี</p>
+        <p>
+          เลือกคอร์สเรียงลำดับเอง ตั้งเป้าหมาย แล้วค่อยๆ ทำทีละขั้น —
+          ข้อมูลเก็บในเครื่อง ไม่ต้องสมัคร ไม่ต้องมีบัญชี
+        </p>
         <ul class="path-steps">
           <li class="path-step">
             <div class="path-step-icon">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="3" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="21"></line><line x1="3" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="21" y2="12"></line><polygon points="12,7 13,11 12,12 11,11"></polygon></svg>
+              <svg viewBox="0 0 24 24"
+                ><circle cx="12" cy="12" r="9"></circle><line
+                  x1="12"
+                  y1="3"
+                  x2="12"
+                  y2="6"></line><line x1="12" y1="18" x2="12" y2="21"
+                ></line><line x1="3" y1="12" x2="6" y2="12"></line><line
+                  x1="18"
+                  y1="12"
+                  x2="21"
+                  y2="12"></line><polygon points="12,7 13,11 12,12 11,11"
+                ></polygon></svg
+              >
             </div>
-            <div class="path-step-text"><strong>สร้าง path</strong> — ตั้งชื่อแล้วอธิบายเป้าหมาย</div>
+            <div class="path-step-text">
+              <strong>สร้าง path</strong> — ตั้งชื่อแล้วอธิบายเป้าหมาย
+            </div>
           </li>
           <li class="path-step">
             <div class="path-step-icon">
-              <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+              <svg viewBox="0 0 24 24"
+                ><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path
+                  d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"
+                ></path></svg
+              >
             </div>
-            <div class="path-step-text"><strong>เลือกคอร์ส</strong> — เพิ่มจาก library เรียงตามลำดับที่ต้องการ</div>
+            <div class="path-step-text">
+              <strong>เลือกคอร์ส</strong> — เพิ่มจาก library เรียงตามลำดับที่ต้องการ
+            </div>
           </li>
           <li class="path-step">
             <div class="path-step-icon">
-              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <svg viewBox="0 0 24 24"
+                ><polyline points="20 6 9 17 4 12"></polyline></svg
+              >
             </div>
-            <div class="path-step-text"><strong>check off</strong> — ทำเสร็จแล้วกด mark progress เก็บ offline</div>
+            <div class="path-step-text">
+              <strong>check off</strong> — ทำเสร็จแล้วกด mark progress เก็บ offline
+            </div>
           </li>
           <li class="path-step">
             <div class="path-step-icon">
-              <svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+              <svg viewBox="0 0 24 24"
+                ><path
+                  d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
+                ></path><line x1="4" y1="22" x2="4" y2="15"></line></svg
+              >
             </div>
-            <div class="path-step-text"><strong>รับ badge</strong> — ครบทุกคอร์ส = achievement unlocked</div>
+            <div class="path-step-text">
+              <strong>รับ badge</strong> — ครบทุกคอร์ส = achievement unlocked
+            </div>
           </li>
         </ul>
-        <a href="/path" class="btn-primary" style="display:inline-block;text-decoration:none;">Build your path →</a>
+        <a
+          href="/path"
+          class="btn-primary"
+          style="display:inline-block;text-decoration:none;"
+          >Build your path →</a
+        >
       </div>
     </div>
   </div>
@@ -162,22 +212,36 @@ const courses = await getCourses();
       <div>
         <div class="contribute-label">Community</div>
         <h2>Help write the next adventure</h2>
-        <p>adventurez เป็น open-source project ที่ทุกคนช่วยกันสร้างเนื้อหาได้ — ตั้งแต่เขียนคอร์สใหม่, แก้ไขเนื้อหา, ไปจนถึงเพิ่มตัวอย่างโค้ด</p>
+        <p>
+          adventurez เป็น open-source project ที่ทุกคนช่วยกันสร้างเนื้อหาได้ —
+          ตั้งแต่เขียนคอร์สใหม่, แก้ไขเนื้อหา, ไปจนถึงเพิ่มตัวอย่างโค้ด
+        </p>
         <ul class="contribute-steps">
           <li class="contribute-step">
             <div class="step-num">1</div>
-            <div class="step-text"><strong>Fork the repo</strong> — clone แล้วเลือก course ที่อยากเขียน</div>
+            <div class="step-text">
+              <strong>Fork the repo</strong> — clone แล้วเลือก course ที่อยากเขียน
+            </div>
           </li>
           <li class="contribute-step">
             <div class="step-num">2</div>
-            <div class="step-text"><strong>เขียนเนื้อหา</strong> — text-based, markdown ล้วน ไม่มีวิดีโอ</div>
+            <div class="step-text">
+              <strong>เขียนเนื้อหา</strong> — text-based, markdown ล้วน ไม่มีวิดีโอ
+            </div>
           </li>
           <li class="contribute-step">
             <div class="step-num">3</div>
-            <div class="step-text"><strong>เปิด PR</strong> — community review แล้ว merge เข้า main</div>
+            <div class="step-text">
+              <strong>เปิด PR</strong> — community review แล้ว merge เข้า main
+            </div>
           </li>
         </ul>
-        <a href="#" class="btn-primary" style="display:inline-block;text-decoration:none;margin-top:24px;">Contribute on GitHub →</a>
+        <a
+          href="#"
+          class="btn-primary"
+          style="display:inline-block;text-decoration:none;margin-top:24px;"
+          >Contribute on GitHub →</a
+        >
       </div>
       <div class="contribute-visual">
         <div class="contribute-scene">
