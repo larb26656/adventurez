@@ -1,5 +1,8 @@
 ---
 import Layout from "../components/Layout.astro";
+import { getCourses } from "../data/courses";
+
+const courses = await getCourses();
 ---
 
 <Layout title="adventurez — Learning Paths" active="Paths">
@@ -485,6 +488,16 @@ import Layout from "../components/Layout.astro";
   </style>
 
   <script>
+    window.__COURSES__ = [
+      { id: "react-adventure", title: "React Adventure", tag: "Web Dev", duration: "3 hrs" },
+      { id: "opencode-adventure", title: "Opencode Adventure", tag: "AI", duration: "2 hrs" },
+      { id: "docker-adventure", title: "Docker Adventure", tag: "DevOps", duration: "4 hrs" },
+      { id: "k8s-adventure", title: "K8S Adventure", tag: "DevOps", duration: "5 hrs" },
+      { id: "jenkins-adventure", title: "Jenkins Adventure", tag: "DevOps", duration: "3 hrs" },
+      { id: "gh-action-adventure", title: "Github Action Adventure", tag: "DevOps", duration: "2 hrs" },
+      { id: "n8n-adventure", title: "n8n Adventure", tag: "Automation", duration: "2 hrs" },
+    ];
+
     interface Path {
       id: string;
       name: string;
@@ -494,82 +507,9 @@ import Layout from "../components/Layout.astro";
       created: string;
     }
 
-    const COURSES = [
-      {
-        id: "react-leaflet",
-        title: "Build a Map Explorer with React + Leaflet",
-        tag: "Web Dev",
-        duration: "3 hrs",
-      },
-      {
-        id: "godot-platformer",
-        title: "Create a 2D Platformer with Godot",
-        tag: "Game Dev",
-        duration: "2.5 hrs",
-      },
-      {
-        id: "serverless-api",
-        title: "Serverless API with AWS Lambda + Node",
-        tag: "Backend",
-        duration: "4 hrs",
-      },
-      {
-        id: "css-grid",
-        title: "CSS Grid + Flexbox Layout Masterclass",
-        tag: "Web Dev",
-        duration: "1 hr",
-      },
-      {
-        id: "js-fundamentals",
-        title: "JavaScript Fundamentals for Beginners",
-        tag: "Web Dev",
-        duration: "2 hrs",
-      },
-      {
-        id: "python-basics",
-        title: "Python Basics — Write Your First Script",
-        tag: "Backend",
-        duration: "1.5 hrs",
-      },
-      {
-        id: "git-workflow",
-        title: "Git + GitHub Workflow for Teams",
-        tag: "Dev Tools",
-        duration: "1 hr",
-      },
-      {
-        id: "react-basics",
-        title: "React from Zero — Components + State",
-        tag: "Web Dev",
-        duration: "3 hrs",
-      },
-      {
-        id: "node-express",
-        title: "Build a REST API with Node + Express",
-        tag: "Backend",
-        duration: "3.5 hrs",
-      },
-      {
-        id: "tailwind-css",
-        title: "Style Fast with Tailwind CSS",
-        tag: "Web Dev",
-        duration: "1.5 hrs",
-      },
-      {
-        id: "threejs-intro",
-        title: "3D on the Web — Three.js Introduction",
-        tag: "Creative",
-        duration: "2.5 hrs",
-      },
-      {
-        id: "sql-basics",
-        title: "SQL Basics — Query Your First Database",
-        tag: "Data",
-        duration: "2 hrs",
-      },
-    ];
-
     const STORAGE_KEY = "adventurez:paths";
+
+    const COURSES = (window as any).__COURSES__ || [];
 
     function loadPaths(): Path[] {
       try {
