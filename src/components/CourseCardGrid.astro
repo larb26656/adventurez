@@ -11,12 +11,18 @@ const PIXEL_ARTS = [
   "░░░░░░\n░████░\n██░░██\n░████░\n░░░░░░",
   "██████\n░░░░░░\n██████\n░░░░░░\n██████",
   "░████░\n██░░██\n██░░██\n░████░\n░░░░░░",
+  "░░██░░\n░░██░░\n░████░\n░░██░░\n░░██░░",
+  "░░██░░\n██████\n██████\n██████\n░░██░░",
+  "░░████\n████░░\n████░░\n░░████\n░░░░░░",
+  "████░░\n░░██░░\n░░██░░\n░░██░░\n████░░",
+  "░░░░░░\n██████\n░░██░░\n██████\n░░░░░░",
+  "██░░██\n░████░\n░░██░░\n░████░\n██░░██",
 ];
 ---
 
-<div class="course-grid">
+<div class="course-grid" id="courseGrid">
   {
-    courses.slice(0, 4).map((course, index) => (
+    courses.map((course, index) => (
       <CourseCard 
         title={course.title}
         tag={course.tags[0] || "Adventure"}

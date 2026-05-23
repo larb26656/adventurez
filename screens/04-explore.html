@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="th"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>adventurez — Explore Courses</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@400;500;600;700&amp;family=VT323&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: oklch(96% 0.02 85);
+      --surface: oklch(98.5% 0.008 85);
+      --surface-alt: oklch(93% 0.018 78);
+      --fg: oklch(25% 0.04 45);
+      --muted: oklch(52% 0.03 65);
+      --border: oklch(88% 0.02 75);
+      --accent: oklch(35% 0.08 45);
+      --accent-dim: oklch(35% 0.08 45 / 0.1);
+      --accent-hover: oklch(30% 0.10 45);
+
+      --font-display: Georgia, 'Times New Roman', serif;
+      --font-heading: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-pixel: 'VT323', 'Courier New', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.6 var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* --- Nav --- */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      border-bottom: 1px dashed var(--border);
+    }
+    .logo {
+      font: 800 22px/1 var(--font-display);
+      letter-spacing: -0.01em;
+      color: var(--fg);
+      text-decoration: none;
+    }
+    .logo span { color: var(--accent); }
+    nav ul { list-style: none; display: flex; gap: 32px; }
+    nav ul a {
+      text-decoration: none;
+      color: var(--muted);
+      font: 500 14px/1 var(--font-body);
+      transition: color 0.15s;
+    }
+    nav ul a:hover, nav ul a.active { color: var(--fg); }
+    .btn-cta {
+      background: var(--accent);
+      color: oklch(98% 0.008 85);
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font: 600 14px/1 var(--font-body);
+      cursor: pointer;
+      transition: background 0.15s;
+      text-decoration: none;
+    }
+    .btn-cta:hover { background: var(--accent-hover); }
+
+    /* --- Page Header --- */
+    .page-header {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 48px 0;
+    }
+    .page-header h1 {
+      font: 700 clamp(28px, 3.5vw, 40px)/1.15 var(--font-display);
+      letter-spacing: -0.02em;
+      color: var(--fg);
+      margin-bottom: 8px;
+    }
+    .page-header p {
+      font: 16px/1.6 var(--font-body);
+      color: var(--muted);
+      max-width: 480px;
+    }
+
+    /* --- Explore Layout --- */
+    .explore {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 48px 64px;
+    }
+    .explore-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* --- Filter Sidebar --- */
+    .filter-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      position: sticky;
+      top: 24px;
+    }
+    .filter-title {
+      font: 700 14px/1 var(--font-display);
+      color: var(--fg);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .filter-reset {
+      font: 12px/1 var(--font-body);
+      color: var(--accent);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .filter-reset:hover { text-decoration: underline; }
+    .filter-group { margin-bottom: 24px; }
+    .filter-group:last-child { margin-bottom: 0; }
+    .filter-group-label {
+      font: 11px/1 var(--font-body);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      cursor: pointer;
+      font: 14px/1.3 var(--font-body);
+      color: var(--fg);
+      transition: color 0.12s;
+    }
+    .filter-option:hover { color: var(--accent); }
+    .filter-checkbox {
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .filter-option.active .filter-checkbox {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+    .filter-option.active .filter-checkbox::after {
+      content: '';
+      width: 8px;
+      height: 5px;
+      border-left: 2px solid oklch(98% 0.008 85);
+      border-bottom: 2px solid oklch(98% 0.008 85);
+      transform: rotate(-45deg) translateY(-1px);
+    }
+    .filter-count {
+      margin-left: auto;
+      font: 12px/1 var(--font-body);
+      color: var(--muted);
+    }
+
+    /* Search input */
+    .filter-search {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      font: 14px/1 var(--font-body);
+      color: var(--fg);
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 20px;
+    }
+    .filter-search::placeholder { color: var(--muted); }
+    .filter-search:focus { border-color: var(--accent); }
+
+    /* Active filter pills */
+    .active-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      font: 12px/1 var(--font-body);
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+    }
+    .filter-pill:hover { background: oklch(55% 0.18 50 / 0.18); }
+    .filter-pill .pill-x { font-size: 14px; line-height: 1; }
+
+    .results-count {
+      font: 13px/1 var(--font-body);
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .results-count strong { color: var(--fg); font-weight: 600; }
+
+    /* --- Course Grid --- */
+    .course-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .course-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .course-card:hover {
+      border-color: oklch(55% 0.18 50 / 0.4);
+      box-shadow: 0 8px 32px oklch(25% 0.04 45 / 0.08);
+      transform: translateY(-2px);
+    }
+    .course-card.hidden { display: none; }
+    .course-thumb {
+      aspect-ratio: 16/9;
+      background: var(--surface-alt);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      image-rendering: pixelated;
+    }
+    .pixel-art {
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      line-height: 1;
+      letter-spacing: 2px;
+      color: var(--accent);
+      white-space: pre;
+      text-align: center;
+      padding: 8px;
+    }
+    .course-body { padding: 18px 20px; }
+    .course-tag {
+      font: 10px/1 var(--font-body);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .course-title {
+      font: 600 15px/1.35 var(--font-display);
+      color: var(--fg);
+      margin-bottom: 8px;
+    }
+    .course-meta {
+      display: flex;
+      gap: 12px;
+      font: 13px/1 var(--font-body);
+      color: var(--muted);
+    }
+    .course-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border);
+    }
+    .course-free {
+      font: 700 14px/1 var(--font-body);
+      color: var(--accent);
+    }
+    .course-btn {
+      background: var(--accent);
+      color: oklch(98% 0.008 85);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font: 600 13px/1 var(--font-body);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .course-btn:hover { background: var(--accent-hover); }
+
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--muted);
+    }
+    .no-results strong { color: var(--fg); font-size: 18px; display: block; margin-bottom: 8px; }
+
+    /* --- Footer --- */
+    footer {
+      border-top: 1px dashed var(--border);
+      padding: 32px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    footer p { font: 13px/1 var(--font-body); color: var(--muted); }
+    footer p span { color: var(--accent); font-weight: 600; }
+
+    /* --- Responsive --- */
+    @media (max-width: 900px) {
+      .explore { padding: 32px 24px 64px; }
+      .explore-layout { grid-template-columns: 1fr; }
+      .filter-panel { position: static; }
+      .page-header { padding: 32px 24px 0; }
+      nav { padding: 16px 24px; }
+      nav ul { display: none; }
+      footer { flex-direction: column; gap: 8px; padding: 24px; text-align: center; }
+    }
+    @media (max-width: 600px) {
+      .course-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="01-landing.html">adventure<span>z</span></a>
+  <ul>
+    <li><a href="01-landing.html">Home</a></li>
+    <li><a href="#" class="active">Courses</a></li>
+    <li><a href="#">Paths</a></li>
+    <li><a href="#">Community</a></li>
+  </ul>
+  <a class="btn-cta" href="03-enroll.html">Start learning</a>
+</nav>
+
+<div class="page-header">
+  <h1>Explore all courses</h1>
+  <p>Text-based, free, open-source. Filter by category, level, or duration to find your next adventure.</p>
+</div>
+
+<div class="explore">
+  <div class="explore-layout">
+    <!-- Filter Sidebar -->
+    <aside class="filter-panel">
+      <div class="filter-title">
+        Filters
+        <button class="filter-reset" id="filterReset">Reset</button>
+      </div>
+
+      <input type="text" class="filter-search" id="filterSearch" placeholder="Search courses...">
+
+      <div class="filter-group">
+        <div class="filter-group-label">Category</div>
+        <div class="filter-option active" data-filter="category" data-value="all">
+          <div class="filter-checkbox"></div>
+          <span>All</span>
+          <span class="filter-count">12</span>
+        </div>
+        <div class="filter-option" data-filter="category" data-value="webdev">
+          <div class="filter-checkbox"></div>
+          <span>Web Dev</span>
+          <span class="filter-count">3</span>
+        </div>
+        <div class="filter-option" data-filter="category" data-value="backend">
+          <div class="filter-checkbox"></div>
+          <span>Backend</span>
+          <span class="filter-count">2</span>
+        </div>
+        <div class="filter-option" data-filter="category" data-value="gamedev">
+          <div class="filter-checkbox"></div>
+          <span>Game Dev</span>
+          <span class="filter-count">2</span>
+        </div>
+        <div class="filter-option" data-filter="category" data-value="ai">
+          <div class="filter-checkbox"></div>
+          <span>AI / ML</span>
+          <span class="filter-count">2</span>
+        </div>
+        <div class="filter-option" data-filter="category" data-value="data">
+          <div class="filter-checkbox"></div>
+          <span>Data</span>
+          <span class="filter-count">2</span>
+        </div>
+        <div class="filter-option" data-filter="category" data-value="web3">
+          <div class="filter-checkbox"></div>
+          <span>Web3</span>
+          <span class="filter-count">1</span>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-group-label">Level</div>
+        <div class="filter-option active" data-filter="level" data-value="all">
+          <div class="filter-checkbox"></div>
+          <span>All levels</span>
+        </div>
+        <div class="filter-option" data-filter="level" data-value="beginner">
+          <div class="filter-checkbox"></div>
+          <span>Beginner</span>
+          <span class="filter-count">4</span>
+        </div>
+        <div class="filter-option" data-filter="level" data-value="intermediate">
+          <div class="filter-checkbox"></div>
+          <span>Intermediate</span>
+          <span class="filter-count">5</span>
+        </div>
+        <div class="filter-option" data-filter="level" data-value="advanced">
+          <div class="filter-checkbox"></div>
+          <span>Advanced</span>
+          <span class="filter-count">3</span>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-group-label">Duration</div>
+        <div class="filter-option active" data-filter="duration" data-value="all">
+          <div class="filter-checkbox"></div>
+          <span>Any length</span>
+        </div>
+        <div class="filter-option" data-filter="duration" data-value="short">
+          <div class="filter-checkbox"></div>
+          <span>Under 2 hrs</span>
+          <span class="filter-count">3</span>
+        </div>
+        <div class="filter-option" data-filter="duration" data-value="medium">
+          <div class="filter-checkbox"></div>
+          <span>2–4 hrs</span>
+          <span class="filter-count">6</span>
+        </div>
+        <div class="filter-option" data-filter="duration" data-value="long">
+          <div class="filter-checkbox"></div>
+          <span>4+ hrs</span>
+          <span class="filter-count">3</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Course Grid -->
+    <div>
+      <div class="active-filters" id="activeFilters"></div>
+      <div class="results-count" id="resultsCount">Showing <strong>12</strong> courses</div>
+      <div class="course-grid" id="courseGrid">
+
+        <a class="course-card" href="02-course.html" data-category="webdev" data-level="beginner" data-duration="medium">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ██░░██
+  ██░░██
+  ░████░
+  ░░██░░
+  ░░██░░
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">Web Dev</div>
+            <div class="course-title">Build a Map Explorer with React + Leaflet</div>
+            <div class="course-meta"><span>Beginner</span><span>3 hrs</span><span>★ 4.8</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="backend" data-level="intermediate" data-duration="medium">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ░░████
+  ████░░
+  ░░████
+  ████░░
+  ░░░░░░
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">Backend</div>
+            <div class="course-title">Serverless API with AWS Lambda + Node</div>
+            <div class="course-meta"><span>Intermediate</span><span>4 hrs</span><span>★ 4.9</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="gamedev" data-level="beginner" data-duration="short">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ░░██░░
+  ░████░
+  ██████
+  ░████░
+  ░░██░░
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">Game Dev</div>
+            <div class="course-title">Create a 2D Platformer with Godot</div>
+            <div class="course-meta"><span>Beginner</span><span>2.5 hrs</span><span>★ 4.7</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="ai" data-level="advanced" data-duration="long">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ██░░██
+  ░████░
+  ░░██░░
+  ░████░
+  ██░░██
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">AI / ML</div>
+            <div class="course-title">Fine-tune a Local LLM for Code Summarization</div>
+            <div class="course-meta"><span>Advanced</span><span>6 hrs</span><span>★ 5.0</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="data" data-level="intermediate" data-duration="medium">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ░░░░░░
+  ██████
+  ░░░░░░
+  ██████
+  ░░░░░░
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">Data</div>
+            <div class="course-title">Build a Real-time Dashboard with D3.js</div>
+            <div class="course-meta"><span>Intermediate</span><span>5 hrs</span><span>★ 4.8</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="web3" data-level="intermediate" data-duration="medium">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ░████░
+  ██░░██
+  ██░░██
+  ░████░
+  ░░░░░░
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">Web3</div>
+            <div class="course-title">Deploy a Smart Contract on Ethereum Sepolia</div>
+            <div class="course-meta"><span>Intermediate</span><span>4 hrs</span><span>★ 4.6</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="webdev" data-level="intermediate" data-duration="medium">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ░██░░░
+  ████░░
+  ░██░░░
+  ░██░░░
+  ██████
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">Web Dev</div>
+            <div class="course-title">Build a CLI Tool with Node.js + TypeScript</div>
+            <div class="course-meta"><span>Intermediate</span><span>3 hrs</span><span>★ 4.5</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="gamedev" data-level="advanced" data-duration="long">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ░░░░░░
+  ██░░██
+  ░████░
+  ██░░██
+  ░░░░░░
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">Game Dev</div>
+            <div class="course-title">Multiplayer Game Server with Socket.io</div>
+            <div class="course-meta"><span>Advanced</span><span>5 hrs</span><span>★ 4.9</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="ai" data-level="intermediate" data-duration="short">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ░░██░░
+  ░███░░
+  ██████
+  ░███░░
+  ░░██░░
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">AI / ML</div>
+            <div class="course-title">Build a Chatbot with LangChain + Python</div>
+            <div class="course-meta"><span>Intermediate</span><span>2 hrs</span><span>★ 4.7</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="backend" data-level="beginner" data-duration="short">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ██████
+  ░░░░░░
+  ██████
+  ░░░░░░
+  ██████
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">Backend</div>
+            <div class="course-title">REST API from Scratch with Express</div>
+            <div class="course-meta"><span>Beginner</span><span>1.5 hrs</span><span>★ 4.6</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="data" data-level="advanced" data-duration="long">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ██░░██
+  ░███░░
+  ░░█░░░
+  ░███░░
+  ██░░██
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">Data</div>
+            <div class="course-title">Data Pipeline with Apache Kafka + Go</div>
+            <div class="course-meta"><span>Advanced</span><span>7 hrs</span><span>★ 4.8</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+        <a class="course-card" href="02-course.html" data-category="webdev" data-level="beginner" data-duration="short">
+          <div class="course-thumb">
+            <div class="pixel-art">
+  ░░░░░░
+  ░████░
+  ██░░██
+  ░████░
+  ░░░░░░
+            </div>
+          </div>
+          <div class="course-body">
+            <div class="course-tag">Web Dev</div>
+            <div class="course-title">CSS Grid + Flexbox Layout Masterclass</div>
+            <div class="course-meta"><span>Beginner</span><span>1 hr</span><span>★ 4.9</span></div>
+            <div class="course-footer">
+              <div class="course-free">Free</div>
+              <button class="course-btn">Start</button>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 adventurez — <span>open source</span> on GitHub</p>
+  <p style="font-size:12px;">Contribute · Course requests · Bug reports</p>
+</footer>
+
+<script>
+(function() {
+  var filters = { category: 'all', level: 'all', duration: 'all' };
+  var searchQuery = '';
+
+  function applyFilters() {
+    var cards = document.querySelectorAll('.course-card');
+    var visible = 0;
+
+    cards.forEach(function(card) {
+      var cat = card.getAttribute('data-category');
+      var lvl = card.getAttribute('data-level');
+      var dur = card.getAttribute('data-duration');
+      var title = card.querySelector('.course-title').textContent.toLowerCase();
+
+      var matchCat = filters.category === 'all' || cat === filters.category;
+      var matchLvl = filters.level === 'all' || lvl === filters.level;
+      var matchDur = filters.duration === 'all' || dur === filters.duration;
+      var matchSearch = !searchQuery || title.indexOf(searchQuery) > -1;
+
+      if (matchCat && matchLvl && matchDur && matchSearch) {
+        card.classList.remove('hidden');
+        visible++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('resultsCount').innerHTML = 'Showing <strong>' + visible + '</strong> course' + (visible !== 1 ? 's' : '');
+
+    var noResults = document.querySelector('.no-results');
+    if (visible === 0 && !noResults) {
+      var div = document.createElement('div');
+      div.className = 'no-results';
+      div.innerHTML = '<strong>No courses found</strong>Try adjusting your filters';
+      document.getElementById('courseGrid').appendChild(div);
+    } else if (visible > 0 && noResults) {
+      noResults.remove();
+    }
+
+    updateActivePills();
+  }
+
+  function updateActivePills() {
+    var container = document.getElementById('activeFilters');
+    container.innerHTML = '';
+
+    var labels = {
+      category: { webdev: 'Web Dev', backend: 'Backend', gamedev: 'Game Dev', ai: 'AI / ML', data: 'Data', web3: 'Web3' },
+      level: { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' },
+      duration: { short: 'Under 2 hrs', medium: '2–4 hrs', long: '4+ hrs' }
+    };
+
+    Object.keys(filters).forEach(function(key) {
+      if (filters[key] !== 'all' && labels[key] && labels[key][filters[key]]) {
+        var pill = document.createElement('button');
+        pill.className = 'filter-pill';
+        pill.innerHTML = labels[key][filters[key]] + ' <span class="pill-x">×</span>';
+        pill.addEventListener('click', function() {
+          filters[key] = 'all';
+          document.querySelectorAll('.filter-option[data-filter="' + key + '"]').forEach(function(opt) {
+            opt.classList.toggle('active', opt.getAttribute('data-value') === 'all');
+          });
+          applyFilters();
+        });
+        container.appendChild(pill);
+      }
+    });
+  }
+
+  document.querySelectorAll('.filter-option').forEach(function(opt) {
+    opt.addEventListener('click', function() {
+      var group = this.getAttribute('data-filter');
+      var value = this.getAttribute('data-value');
+
+      document.querySelectorAll('.filter-option[data-filter="' + group + '"]').forEach(function(sibling) {
+        sibling.classList.remove('active');
+      });
+      this.classList.add('active');
+      filters[group] = value;
+      applyFilters();
+    });
+  });
+
+  document.getElementById('filterSearch').addEventListener('input', function() {
+    searchQuery = this.value.toLowerCase().trim();
+    applyFilters();
+  });
+
+  document.getElementById('filterReset').addEventListener('click', function() {
+    filters = { category: 'all', level: 'all', duration: 'all' };
+    searchQuery = '';
+    document.getElementById('filterSearch').value = '';
+    document.querySelectorAll('.filter-option').forEach(function(opt) {
+      opt.classList.toggle('active', opt.getAttribute('data-value') === 'all');
+    });
+    applyFilters();
+  });
+})();
+</script>
+
+</body></html>

@@ -1,55 +1,42 @@
 ---
 interface Props {
   title: string;
-  description: string;
-  thumbnail: string;
-  tags: string[];
+  tag?: string;
+  pixelArt?: string;
   href: string;
-  comingSoon?: boolean;
+  level?: string;
+  duration?: string;
+  rating?: string;
+  price?: string;
 }
 
-const { title, description, thumbnail, tags, href, comingSoon } = Astro.props;
+const { 
+  title, 
+  tag = "Adventure", 
+  pixelArt = "░░██░░\n░░██░░\n░████░\n░░██░░\n░░██░░",
+  href, 
+  level = "Beginner", 
+  duration = "3 hrs", 
+  rating = "★ 4.8",
+  price = "Free"
+} = Astro.props;
 ---
 
-<a
-  href={comingSoon ? undefined : href}
-  class:list={[
-    "flex flex-col rounded-xl overflow-hidden border border-[--sl-color-gray-5] bg-[--sl-color-gray-6] no-underline transition-transform transition-shadow",
-    {
-      "hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)]":
-        !comingSoon,
-      "pointer-events-none cursor-not-allowed opacity-70": comingSoon,
-    },
-  ]}
-  aria-disabled={comingSoon}
->
-  <div
-    class="relative w-full aspect-video overflow-hidden bg-[--sl-color-gray-5]"
-  >
-    {
-      comingSoon && (
-        <span class="absolute top-3 right-3 bg-zinc-700 text-white text-xs font-semibold px-3 py-1 rounded-full z-10">
-          Coming Soon
-        </span>
-      )
-    }
-    <img src={thumbnail} alt={title} class="w-full h-full object-cover" />
+<a class="course-card" href={href}>
+  <div class="course-thumb">
+    <div class="pixel-art">{pixelArt}</div>
   </div>
-  <div class="flex flex-col gap-2 flex-1 p-4">
-    <h2 class="text-xl font-semibold text-[--sl-color-white] m-0 leading-tight">
-      {title}
-    </h2>
-    <p class="text-sm text-[--sl-color-gray-2] m-0 leading-relaxed flex-1">
-      {description}
-    </p>
-    <div class="flex flex-wrap gap-2 mt-2">
-      {
-        tags.map((tag) => (
-          <span class="text-xs px-[10px] py-1 rounded-full bg-[--sl-color-accent-low] text-[--sl-color-accent-high] border border-[--sl-color-accent]">
-            {tag}
-          </span>
-        ))
-      }
+  <div class="course-body">
+    <div class="course-tag">{tag}</div>
+    <div class="course-title">{title}</div>
+    <div class="course-meta">
+      <span>{level}</span>
+      <span>{duration}</span>
+      <span>{rating}</span>
+    </div>
+    <div class="course-footer">
+      <div class="course-free">{price}</div>
+      <button class="course-btn">Start</button>
     </div>
   </div>
 </a>

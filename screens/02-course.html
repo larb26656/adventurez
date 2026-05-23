@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>adventurez — Build a Map Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=VT323&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: oklch(96% 0.02 85);
+      --surface: oklch(98.5% 0.008 85);
+      --surface-alt: oklch(93% 0.018 78);
+      --fg: oklch(25% 0.04 45);
+      --muted: oklch(52% 0.03 65);
+      --border: oklch(88% 0.02 75);
+      --accent: oklch(35% 0.08 45);
+      --accent-dim: oklch(35% 0.08 45 / 0.1);
+      --accent-hover: oklch(30% 0.10 45);
+      --code-bg: oklch(92% 0.015 78);
+
+      --font-display: Georgia, 'Times New Roman', serif;
+      --font-heading: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --font-pixel: 'VT323', 'Courier New', monospace;
+      --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font: 15px/1.7 var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* --- Top nav --- */
+    .topnav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 56px;
+      border-bottom: 1px dashed var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topnav .logo {
+      font: 800 18px/1 var(--font-display);
+      color: var(--fg);
+      text-decoration: none;
+    }
+    .topnav .logo span { color: var(--accent); }
+    .topnav-links { display: flex; align-items: center; gap: 24px; }
+    .topnav-links a {
+      text-decoration: none;
+      color: var(--muted);
+      font: 500 13px/1 var(--font-body);
+      transition: color 0.15s;
+    }
+    .topnav-links a:hover { color: var(--fg); }
+    .topnav-links a.active { color: var(--fg); }
+    .topnav-version {
+      font: 12px/1 var(--font-mono);
+      color: var(--muted);
+      background: var(--surface-alt);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    /* --- Docs layout --- */
+    .docs-shell {
+      display: grid;
+      grid-template-columns: 260px 1fr 200px;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* --- Left sidebar --- */
+    .sidebar {
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+      border-right: 1px dashed var(--border);
+      background: var(--surface);
+      padding: 24px 0;
+    }
+    .sidebar-header {
+      padding: 0 20px 16px;
+      border-bottom: 1px dashed var(--border);
+      margin-bottom: 12px;
+    }
+    .sidebar-course-title {
+      font: 700 14px/1.3 var(--font-display);
+      color: var(--fg);
+      margin-bottom: 4px;
+    }
+    .sidebar-course-meta {
+      font: 12px/1 var(--font-body);
+      color: var(--muted);
+    }
+    .sidebar-group { padding: 8px 0; }
+    .sidebar-group-label {
+      font: 10px/1 var(--font-body);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 8px 20px 6px;
+    }
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 20px;
+      font: 13px/1.3 var(--font-body);
+      color: var(--muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: all 0.12s;
+    }
+    .sidebar-link:hover {
+      color: var(--fg);
+      background: var(--surface-alt);
+    }
+    .sidebar-link.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: var(--accent-dim);
+      font-weight: 500;
+    }
+    .sidebar-link .num {
+      font: 11px/1 var(--font-pixel);
+      width: 22px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .sidebar-link .check {
+      color: var(--accent);
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    /* --- Main content --- */
+    .docs-content {
+      max-width: 720px;
+      padding: 48px 48px 80px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .docs-breadcrumb {
+      font: 13px/1 var(--font-body);
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    .docs-breadcrumb a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .docs-breadcrumb a:hover { color: var(--accent); }
+    .docs-breadcrumb .sep { margin: 0 6px; }
+
+    .docs-content h1 {
+      font: 800 clamp(28px, 3.5vw, 38px)/1.15 var(--font-display);
+      letter-spacing: -0.02em;
+      color: var(--fg);
+      margin-bottom: 12px;
+    }
+    .docs-content .lead {
+      font: 17px/1.65 var(--font-body);
+      color: var(--muted);
+      margin-bottom: 32px;
+      max-width: 560px;
+    }
+
+    .docs-content h2 {
+      font: 700 22px/1.3 var(--font-display);
+      color: var(--fg);
+      margin: 40px 0 16px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border);
+    }
+    .docs-content h2:first-of-type { border-top: none; margin-top: 32px; }
+    .docs-content h3 {
+      font: 600 17px/1.35 var(--font-display);
+      color: var(--fg);
+      margin: 28px 0 12px;
+    }
+    .docs-content p {
+      margin-bottom: 16px;
+      color: var(--fg);
+    }
+    .docs-content p.muted { color: var(--muted); }
+    .docs-content ul, .docs-content ol {
+      margin: 0 0 16px 20px;
+    }
+    .docs-content li {
+      margin-bottom: 6px;
+    }
+    .docs-content a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .docs-content a:hover { color: var(--accent-hover); }
+    .docs-content strong { font-weight: 600; }
+    .docs-content code:not(pre code) {
+      font: 13px/1.5 var(--font-mono);
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    /* Code blocks */
+    .code-block {
+      position: relative;
+      margin: 20px 0 28px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--code-bg);
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      font: 12px/1 var(--font-mono);
+      color: var(--muted);
+      background: var(--surface-alt);
+    }
+    .code-copy {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 3px 10px;
+      font: 11px/1 var(--font-body);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .code-copy:hover { color: var(--fg); border-color: var(--muted); }
+    .code-block pre {
+      padding: 16px;
+      overflow-x: auto;
+      font: 13px/1.65 var(--font-mono);
+      color: var(--fg);
+      tab-size: 2;
+    }
+
+    /* Callouts */
+    .callout {
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 20px 0 28px;
+      font: 14px/1.6 var(--font-body);
+    }
+    .callout-info {
+      background: var(--accent-dim);
+      border: 1px solid oklch(55% 0.18 50 / 0.2);
+      color: var(--fg);
+    }
+    .callout-info .callout-title {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .callout-warn {
+      background: oklch(94% 0.04 80 / 0.3);
+      border: 1px dashed oklch(55% 0.18 50 / 0.3);
+    }
+    .callout-warn .callout-title {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    /* Prev/Next navigation */
+    .docs-nav-bottom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px dashed var(--border);
+    }
+    .docs-nav-link {
+      display: block;
+      padding: 16px 20px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-decoration: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .docs-nav-link:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .docs-nav-link .dir {
+      font: 11px/1 var(--font-body);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .docs-nav-link .label {
+      font: 600 14px/1.3 var(--font-display);
+      color: var(--accent);
+    }
+    .docs-nav-link.next { text-align: right; }
+
+    /* --- Right sidebar (On this page) --- */
+    .toc {
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+      padding: 24px 16px 24px 0;
+    }
+    .toc-label {
+      font: 10px/1 var(--font-body);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .toc-link {
+      display: block;
+      font: 12px/1.5 var(--font-body);
+      color: var(--muted);
+      text-decoration: none;
+      padding: 3px 0 3px 12px;
+      border-left: 2px solid var(--border);
+      transition: all 0.12s;
+    }
+    .toc-link:hover { color: var(--fg); }
+    .toc-link.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+    .toc-link.sub { padding-left: 24px; font-size: 11px; }
+
+    /* --- Sidebar path progress --- */
+    .sidebar-path-progress {
+      margin: 16px 16px 0;
+      padding: 14px 16px;
+      background: var(--surface-alt);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+    }
+    .sidebar-path-label {
+      font: 10px/1 var(--font-body);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .sidebar-path-name {
+      font: 600 13px/1.3 var(--font-display);
+      color: var(--fg);
+      margin-bottom: 8px;
+    }
+    .sidebar-path-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .sidebar-path-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+    .sidebar-path-bar-fill.complete { background: oklch(62% 0.16 145); }
+    .sidebar-path-meta {
+      font: 11px/1 var(--font-body);
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .sidebar-path-link {
+      display: block;
+      margin-top: 10px;
+      font: 12px/1 var(--font-body);
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .sidebar-path-link:hover { text-decoration: underline; }
+
+    /* --- Mobile --- */
+    @media (max-width: 1100px) {
+      .toc { display: none; }
+      .docs-shell { grid-template-columns: 240px 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .docs-shell { grid-template-columns: 1fr; }
+      .docs-content { padding: 32px 24px 64px; }
+      .topnav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="logo" href="01-landing.html">adventure<span>z</span></a>
+  <div class="topnav-links">
+    <a href="01-landing.html">Home</a>
+    <a href="04-explore.html" class="active">Courses</a>
+    <a href="05-path.html">Paths</a>
+    <a href="#">Community</a>
+    <span class="topnav-version">v0.3.1</span>
+  </div>
+</nav>
+
+<div class="docs-shell">
+
+  <!-- Left sidebar — course navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-course-title">Build a Map Explorer</div>
+      <div class="sidebar-course-meta">React + Leaflet · 5 lessons</div>
+    </div>
+
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Getting Started</div>
+      <a class="sidebar-link active" href="#">
+        <span class="num">01</span>
+        Setup + Install
+      </a>
+      <a class="sidebar-link" href="#">
+        <span class="num">02</span>
+        Render a Map
+      </a>
+      <a class="sidebar-link" href="#">
+        <span class="num">03</span>
+        Markers + Popups
+      </a>
+    </div>
+
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Core</div>
+      <a class="sidebar-link" href="#">
+        <span class="num">04</span>
+        GeoJSON Layers
+      </a>
+      <a class="sidebar-link" href="#">
+        <span class="num">05</span>
+        User Location
+      </a>
+    </div>
+
+    <div class="sidebar-group">
+      <div class="sidebar-group-label">Deploy</div>
+      <a class="sidebar-link" href="#">
+        <span class="num">06</span>
+        Build + Deploy
+      </a>
+    </div>
+
+    <!-- Path progress indicator -->
+    <div class="sidebar-path-progress" id="sidebar-path-progress">
+      <!-- rendered by JS -->
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="docs-content">
+    <p class="docs-breadcrumb">
+      <a href="04-explore.html">Courses</a><span class="sep">/</span>
+      <a href="#">Build a Map Explorer</a><span class="sep">/</span>
+      Setup + Install
+    </p>
+
+    <h1>Lesson 1 — Setup + Install</h1>
+    <p class="lead">เตรียม project ด้วย React + Vite แล้วติดตั้ง Leaflet — ใช้เวลาไม่เกิน 5 นาที</p>
+
+    <h2 id="prerequisites">Prerequisites</h2>
+    <p>ก่อนเริ่ม ควรมีสิ่งเหล่านี้ติดตั้งอยู่ในเครื่อง:</p>
+    <ul>
+      <li><strong>Node.js</strong> v18 ขึ้นไป — <a href="#">ดาวน์โหลด</a></li>
+      <li><strong>npm</strong> หรือ <strong>pnpm</strong> — ตัวใดตัวหนึ่ง</li>
+      <li>Text editor ที่ถนัด — VS Code แนะนำ</li>
+    </ul>
+
+    <div class="callout callout-info">
+      <div class="callout-title">Note</div>
+      <p style="margin:0;">คอร์สนี้ใช้ <code>pnpm</code> ในตัวอย่าง แต่ <code>npm</code> หรือ <code>yarn</code> ก็ใช้ได้เหมือนกัน — แค่เปลี่ยนคำสั่ง install</p>
+    </div>
+
+    <h2 id="create-project">สร้าง Project ใหม่</h2>
+    <p>เริ่มจากสร้าง React project ด้วย Vite:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>terminal</span>
+        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>pnpm create vite map-explorer --template react
+cd map-explorer
+pnpm install</code></pre>
+    </div>
+
+    <p>จากนั้นติดตั้ง Leaflet และ type definitions:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>terminal</span>
+        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>pnpm add leaflet
+pnpm add -D @types/leaflet</code></pre>
+    </div>
+
+    <h2 id="import-css">นำเข้า Leaflet CSS</h2>
+    <p>Leaflet ต้องการ CSS สำหรับ render map — เพิ่มใน <code>src/main.tsx</code>:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>src/main.tsx</span>
+        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>import 'leaflet/dist/leaflet.css'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  &lt;React.StrictMode&gt;
+    &lt;App /&gt;
+  &lt;/React.StrictMode&gt;,
+)</code></pre>
+    </div>
+
+    <div class="callout callout-warn">
+      <div class="callout-title">Common pitfall</div>
+      <p style="margin:0;">ถ้าไม่ import Leaflet CSS — map จะ render แต่ marker และ control จะหายไปหมด ไม่มี error ด้วย — ตรวจสอบให้แน่ใจว่า import แล้ว</p>
+    </div>
+
+    <h2 id="verify">ตรวจสอบว่าทำงาน</h2>
+    <p>รัน dev server แล้วเปิด browser:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>terminal</span>
+        <button class="code-copy" onclick="copyCode(this)">Copy</button>
+      </div>
+      <pre><code>pnpm dev</code></pre>
+    </div>
+
+    <p>ถ้าเห็นหน้า Vite default — พร้อมแล้ว ไป <a href="#">Lesson 2: Render a Map</a> ต่อได้เลย</p>
+
+    <!-- Prev/Next -->
+    <nav class="docs-nav-bottom">
+      <a class="docs-nav-link prev" href="04-explore.html">
+        <div class="dir">← Previous</div>
+        <div class="label">Back to Courses</div>
+      </a>
+      <a class="docs-nav-link next" href="#">
+        <div class="dir">Next →</div>
+        <div class="label">Lesson 2: Render a Map</div>
+      </a>
+    </nav>
+  </main>
+
+  <!-- Right sidebar — On this page -->
+  <aside class="toc">
+    <div class="toc-label">On this page</div>
+    <a class="toc-link active" href="#prerequisites">Prerequisites</a>
+    <a class="toc-link" href="#create-project">สร้าง Project ใหม่</a>
+    <a class="toc-link" href="#import-css">นำเข้า Leaflet CSS</a>
+    <a class="toc-link" href="#verify">ตรวจสอบว่าทำงาน</a>
+  </aside>
+
+</div>
+
+<script>
+  function copyCode(btn) {
+    const code = btn.closest('.code-block').querySelector('code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    });
+  }
+
+  // --- Path progress in sidebar ---
+  (function() {
+    const STORAGE_KEY = 'adventurez:paths';
+    const CURRENT_COURSE = 'react-leaflet';
+    try {
+      var paths = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      var matching = paths.filter(function(p) {
+        return p.courses && p.courses.indexOf(CURRENT_COURSE) >= 0;
+      });
+      var container = document.getElementById('sidebar-path-progress');
+      if (!container || matching.length === 0) return;
+
+      var path = matching[0];
+      var total = path.courses.length;
+      var done = (path.completed || []).length;
+      var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      var isComplete = total > 0 && done === total;
+
+      container.innerHTML =
+        '<div class="sidebar-path-label">In your path</div>' +
+        '<div class="sidebar-path-name">' + esc(path.name) + '</div>' +
+        '<div class="sidebar-path-bar"><div class="sidebar-path-bar-fill ' + (isComplete ? 'complete' : '') + '" style="width:' + pct + '%"></div></div>' +
+        '<div class="sidebar-path-meta"><span>' + done + '/' + total + ' courses</span><span>' + pct + '%</span></div>' +
+        '<a class="sidebar-path-link" href="05-path.html">View path →</a>';
+    } catch(_) {}
+
+    function esc(s) {
+      var d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+  })();
+</script>
+
+</body>
+</html>
