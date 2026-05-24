@@ -4,6 +4,7 @@ import type { Course } from "../data/courses";
 import { Checkbox } from "./ui";
 
 const ALL_CATEGORIES = ["Technology", "AI", "Design", "Data"] as const;
+const ALL_LEVELS = ["Beginner", "Intermediate", "Advanced"] as const;
 
 interface FilterOptionProps {
   checked: boolean;
@@ -45,6 +46,7 @@ export default function CourseFilter({ courses }: Props) {
   const [filters, setFilters] = useState<Record<string, string>>({
     category: "all",
     status: "all",
+    level: "all",
   });
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -63,6 +65,18 @@ export default function CourseFilter({ courses }: Props) {
     return counts;
   }, [courses]);
 
+  const levelCount = useMemo(() => {
+    const counts: Record<string, number> = {
+      Beginner: 0,
+      Intermediate: 0,
+      Advanced: 0,
+    };
+    courses.forEach((c) => {
+      if (counts[c.level] !== undefined) counts[c.level]++;
+    });
+    return counts;
+  }, [courses]);
+
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
       const status = course.comingSoon ? "coming-soon" : "available";
@@ -72,10 +86,12 @@ export default function CourseFilter({ courses }: Props) {
         filters.category === "all" ||
         course.categories.includes(filters.category);
       const matchStatus = filters.status === "all" || status === filters.status;
+      const matchLevel =
+        filters.level === "all" || course.level === filters.level;
       const matchSearch =
         !searchQuery || title.includes(searchQuery.toLowerCase());
 
-      return matchCat && matchStatus && matchSearch;
+      return matchCat && matchStatus && matchLevel && matchSearch;
     });
   }, [courses, filters, searchQuery]);
 
@@ -84,7 +100,7 @@ export default function CourseFilter({ courses }: Props) {
   };
 
   const resetFilters = () => {
-    setFilters({ category: "all", status: "all" });
+    setFilters({ category: "all", status: "all", level: "all" });
     setSearchQuery("");
   };
 
@@ -98,6 +114,11 @@ export default function CourseFilter({ courses }: Props) {
     status: {
       available: "Available",
       "coming-soon": "Coming Soon",
+    },
+    level: {
+      Beginner: "Beginner",
+      Intermediate: "Intermediate",
+      Advanced: "Advanced",
     },
   };
 
@@ -120,6 +141,18 @@ export default function CourseFilter({ courses }: Props) {
       { key: "coming-soon", label: "Coming Soon" },
     ],
     [],
+  );
+
+  const levelOptions = useMemo(
+    () => [
+      { key: "all", label: "All", count: courses.length },
+      ...ALL_LEVELS.map((lvl) => ({
+        key: lvl,
+        label: lvl,
+        count: levelCount[lvl],
+      })),
+    ],
+    [courses.length, levelCount],
   );
 
   const activePills = Object.entries(filters)
@@ -158,6 +191,20 @@ export default function CourseFilter({ courses }: Props) {
                 label={label}
                 count={count}
                 activeClass={filters.category === key ? "text-primary" : ""}
+              />
+            ))}
+          </div>
+
+          <div className="mb-4 sm:mb-6 last:mb-0">
+            <div className="typo-badge text-muted mb-2 sm:mb-3">Level</div>
+            {levelOptions.map(({ key, label, count }) => (
+              <FilterOption
+                key={key}
+                checked={filters.level === key}
+                onChange={() => handleFilterChange("level", key)}
+                label={label}
+                count={count}
+                activeClass={filters.level === key ? "text-primary" : ""}
               />
             ))}
           </div>
