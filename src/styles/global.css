@@ -19,24 +19,24 @@
   --font-pixel: "VT323", monospace;
 
   /* Colors */
-  --color-bg: oklch(96% 0.02 85);
+  --color-bg: #f4f7fb;
   --color-surface: #e4edf5;
   --color-surface-alt: #ebf4fc;
-  --color-foreground: oklch(25% 0.04 45);
+  --color-foreground: #1a2332;
   --color-muted: #5a6064;
-  --color-border: oklch(88% 0.02 75);
+  --color-border: #dfe6ee;
   --color-primary: #003d7a;
   --color-primary-dim: #003d7a1a;
   --color-primary-hover: #002b57;
-  --color-primary-foreground: oklch(98% 0.008 85);
+  --color-primary-foreground: #f8fafc;
   --color-success: oklch(62% 0.16 145);
   --color-success-dim: oklch(62% 0.16 145 / 0.1);
 
   /* Accent colors (legacy support) */
-  --color-accent-200: #d0c6c5;
-  --color-accent-600: #7f6462;
-  --color-accent-900: #3b2f2e;
-  --color-accent-950: #292221;
+  --color-accent-200: #c6d8eb;
+  --color-accent-600: #4a6fa5;
+  --color-accent-900: #1e3a5f;
+  --color-accent-950: #0f1f33;
 
   /* Gray scale */
   --color-gray-100: #f5f6f8;
