@@ -19,9 +19,11 @@ export default defineConfig({
     starlight({
       title: "Adventurez",
       logo: {
-        src: "/public/favicon.png",
+        light: "/public/logo.svg",
+        dark: "/public/dark-logo.svg",
         replacesTitle: true,
       },
+      customCss: ["./src/styles/starlight-theme.css"],
       social: [
         {
           icon: "github",
@@ -30,7 +32,6 @@ export default defineConfig({
         },
       ],
       plugins: [
-        // starlightThemeNova(),
         starlightSidebarTopics([
           {
             label: "React Adventure",
