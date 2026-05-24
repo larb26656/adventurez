@@ -15,23 +15,14 @@ const { id } = Astro.props;
   >
     <div>
       <h1
-        class="font-bold text-[clamp(40px,5vw,64px)] leading-[1.05] tracking-tight text-foreground mb-5"
-        style="font-family: var(--font-display); letter-spacing: -0.02em;"
+        class="font-display font-bold text-[clamp(40px,5vw,64px)] leading-[1.05] tracking-tight text-foreground mb-5"
       >
-        <span
-          class="italic"
-          style="font-family: var(--font-heading); font-style: italic; font-weight: 400;"
-          >The new way to learn</span
-        >
+        <span class="italic font-light">The new way to learn</span>
         <span class="text-primary">something</span>
       </h1>
-      <p
-        class="text-[17px] leading-[1.65] text-muted max-w-[480px] mb-9"
-        style="font-family: var(--font-body);"
-      >
-        คอร์สแบบ text-based ล้วนๆ ที่ทุกคนเข้าถึงได้ — ไม่ต้องดูวิดีโอ
-        ไม่ต้องมีพื้นฐาน อ่านแล้วลงมือทำได้เลย พร้อม community
-        ที่ช่วยกันเขียนเนื้อหา
+      <p class="text-muted max-w-[480px] mb-9">
+        ให้การเรียนเป็นเหมือนการผจญภัย คอร์สแบบ text-based ล้วนๆ
+        ที่ทุกคนเข้าถึงได้ อ่านแล้วลงมือทำได้เลย
       </p>
 
       <div class="flex gap-3 flex-wrap">

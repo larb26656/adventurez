@@ -22,29 +22,16 @@ export default function CourseCard({
   return (
     <a
       href={href}
-      className="group block bg-surface border border-border rounded-xl overflow-hidden cursor-pointer no-underline text-inherit transition-all duration-200 hover:border-border hover:shadow-lg hover:-translate-y-0.5"
+      className="group block border border-border rounded-xl overflow-hidden cursor-pointer no-underline text-inherit transition-all duration-200 hover:border-border hover:shadow-lg hover:-translate-y-0.5"
     >
-      <div className="aspect-video bg-surface-alt border-b border-border relative overflow-hidden">
-        {thumbnail ? (
+      <div className="aspect-video border-b border-border relative overflow-hidden">
+        {
           <img
             src={thumbnail}
             alt={title}
             className="w-full h-full object-cover"
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div
-              className="font-mono text-sm leading-none tracking-[2px] text-primary whitespace-pre text-center p-2 opacity-60"
-              style={{ fontFamily: "var(--font-pixel)" }}
-            >
-              {`░░██░░
-░░██░░
-████░░
-░░██░░
-░░██░░`}
-            </div>
-          </div>
-        )}
+        }
         {comingSoon && (
           <div className="absolute top-3 left-3 bg-foreground/80 text-primary-foreground text-[10px] font-bold tracking-[0.08em] uppercase px-2.5 py-1 rounded-full backdrop-blur-sm">
             Coming Soon
@@ -67,16 +54,11 @@ export default function CourseCard({
         <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-primary mb-2">
           {level}
         </div>
-        <h3
-          className="font-semibold text-[15px] leading-snug text-foreground mb-3 line-clamp-2"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
+        <h3 className="font-semibold text-xl leading-snug text-foreground mb-3 line-clamp-2">
           {title}
         </h3>
         {description && (
-          <p className="text-[13px] text-muted-foreground line-clamp-2 mb-0">
-            {description}
-          </p>
+          <p className="text-sm text-muted line-clamp-2 mb-0">{description}</p>
         )}
       </div>
     </a>

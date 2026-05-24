@@ -17,47 +17,46 @@ const { courses } = Astro.props;
 const displayCourses = courses.slice(0, 4);
 ---
 
-<section id="explore" class="box-container px-12 py-12 overflow-hidden">
-  <div class="flex items-end justify-between mb-8">
-    <div>
-      <div
-        class="text-[11px] font-bold tracking-[0.14em] uppercase text-primary mb-2"
-      >
-        All courses
-      </div>
-      <h2
-        class="font-bold text-[clamp(24px,3vw,36px)] leading-[1.15] tracking-tight text-foreground"
-        style="font-family: var(--font-display); letter-spacing: -0.02em;"
-      >
-        Pick your next adventure
-      </h2>
-    </div>
-    <a
-      href="/explore"
-      class="font-semibold text-[14px] text-primary no-underline hover:text-primary-hover transition-colors duration-150 shrink-0"
-      >View all courses →</a
-    >
-  </div>
-
-  <div class="flex gap-5 overflow-x-auto pb-4 -mx-1 px-1 scrollbar-hide">
-    {
-      displayCourses.map((course) => (
-        <div class="shrink-0 w-[360px]">
-          <CourseCard
-            client:load
-            title={course.title}
-            description={course.description}
-            tags={course.tags}
-            thumbnail={course.thumbnail}
-            href={course.comingSoon ? "#" : `/${course.id}`}
-            level={
-              course.comingSoon ? "Coming Soon" : course.tags[0] || "Adventure"
-            }
-            comingSoon={course.comingSoon}
-          />
+<section id="explore" class="px-12 py-20">
+  <div class="box-container">
+    <div class="flex items-end justify-between mb-8">
+      <div>
+        <div class="font-heading text-sm text-primary font-bold mb-2">
+          All courses
         </div>
-      ))
-    }
+        <h2 class="font-display text-4xl font-semibold">
+          Pick your next adventure
+        </h2>
+      </div>
+      <a
+        href="/explore"
+        class="font-semibold text-primary no-underline hover:text-primary-hover transition-colors duration-150 shrink-0"
+        >View all courses →</a
+      >
+    </div>
+
+    <div class="flex gap-5 overflow-x-auto pb-4 -mx-1 px-1 scrollbar-hide">
+      {
+        displayCourses.map((course) => (
+          <div class="shrink-0 w-[360px]">
+            <CourseCard
+              client:load
+              title={course.title}
+              description={course.description}
+              tags={course.tags}
+              thumbnail={course.thumbnail}
+              href={course.comingSoon ? "#" : `/${course.id}`}
+              level={
+                course.comingSoon
+                  ? "Coming Soon"
+                  : course.tags[0] || "Adventure"
+              }
+              comingSoon={course.comingSoon}
+            />
+          </div>
+        ))
+      }
+    </div>
   </div>
 </section>
 

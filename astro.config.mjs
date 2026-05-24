@@ -29,7 +29,6 @@ export default defineConfig({
           href: "https://github.com/larb26656",
         },
       ],
-      customCss: ["./src/styles/global.css"],
       plugins: [
         // starlightThemeNova(),
         starlightSidebarTopics([
@@ -107,7 +106,6 @@ export default defineConfig({
       ],
     }),
   ],
-
   vite: {
     plugins: [tailwindcss()],
   },

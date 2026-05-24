@@ -2,24 +2,19 @@
 import Button from "./ui/Button.astro";
 ---
 
-<section class="px-12 py-16 pb-24 bg-surface-alt">
+<section class="px-12 py-20">
   <div
-    class="box-container p-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+    class="box-container grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
   >
     <div>
-      <div
-        class="text-[11px] font-bold tracking-[0.14em] uppercase text-primary mb-3"
-      >
+      <div class="font-heading text-sm text-primary font-bold mb-2">
         Community
       </div>
-      <h2
-        class="font-bold text-[clamp(24px,3vw,34px)] leading-[1.15] tracking-tight text-foreground mb-4"
-        style="font-family: var(--font-display); letter-spacing: -0.02em;"
-      >
+      <h2 class="font-display text-4xl font-semibold mb-6">
         Help write the next adventure
       </h2>
-      <p class="text-[16px] leading-[1.65] text-muted mb-7">
-        adventurez เป็น open-source project ที่ทุกคนช่วยกันสร้างเนื้อหาได้ —
+      <p class="text-muted mb-7">
+        Adventurez เป็น open-source project ที่ทุกคนช่วยกันสร้างเนื้อหาได้
         ตั้งแต่เขียนคอร์สใหม่, แก้ไขเนื้อหา, ไปจนถึงเพิ่มตัวอย่างโค้ด
       </p>
       <ul class="flex flex-col gap-4 list-none m-0 p-0 mb-7">
@@ -57,8 +52,11 @@ import Button from "./ui/Button.astro";
           </div>
         </li>
       </ul>
-      <Button variant="primary" size="lg" href="#" class="mt-6"
-        >Contribute on GitHub →</Button
+      <Button
+        variant="primary"
+        size="sm"
+        href="https://github.com/larb26656/adventurez"
+        class="mt-6">Contribute on GitHub →</Button
       >
     </div>
     <div class="flex items-center justify-center">

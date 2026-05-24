@@ -2,7 +2,7 @@
 import Button from "./ui/Button.astro";
 ---
 
-<section class="px-12 pt-20 pb-16">
+<section class="px-12 pt-20 pb-16 bg-surface">
   <div
     class="box-container grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
   >
@@ -10,18 +10,13 @@ import Button from "./ui/Button.astro";
       <img src="/misc/map.png" alt="Map" width="450px" />
     </div>
     <div class="order-1 lg:order-2">
-      <div
-        class="text-[11px] font-bold tracking-[0.14em] uppercase text-primary mb-3"
-      >
+      <div class="font-heading text-sm text-primary font-bold mb-2">
         Feature
       </div>
-      <h2
-        class="font-bold text-[clamp(24px,3vw,34px)] leading-[1.15] tracking-tight text-foreground mb-4"
-        style="font-family: var(--font-display); letter-spacing: -0.02em;"
-      >
+      <h2 class="font-display text-4xl font-semibold mb-6">
         Design your own learning path
       </h2>
-      <p class="text-[16px] leading-[1.65] text-muted mb-6">
+      <p class="text-muted mb-6">
         เลือกคอร์สเรียงลำดับเอง ตั้งเป้าหมาย แล้วค่อยๆ ทำทีละขั้น —
         ข้อมูลเก็บในเครื่อง ไม่ต้องสมัคร ไม่ต้องมีบัญชี
       </p>
@@ -101,7 +96,7 @@ import Button from "./ui/Button.astro";
           </div>
         </li>
       </ul>
-      <Button variant="primary" size="lg" href="/path">Build your path →</Button
+      <Button variant="primary" size="sm" href="/path">Build your path →</Button
       >
     </div>
   </div>

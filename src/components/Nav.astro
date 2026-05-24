@@ -9,10 +9,14 @@ const { active = "Home" } = Astro.props;
 <nav
   class="sticky top-0 left-0 right-0 z-50 flex items-center justify-between px-12 py-5 border-b border-stone-200 bg-white/80 backdrop-blur-md"
 >
-  <a
-    class="font-serif font-bold text-[22px] tracking-tight text-stone-800 no-underline"
-    href="/">adventure<span class="text-emerald-600">z</span></a
-  >
+  <div class="flex gap-2 items-center">
+    <img src="logo.svg" width="32px" height="32px" />
+    <a
+      class="font-bold text-xl tracking-tight text-stone-800 no-underline"
+      href="/">Adventure<span class="text-primary">z</span></a
+    >
+  </div>
+
   <ul class="flex gap-8 list-none m-0 p-0">
     <li>
       <a

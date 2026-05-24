@@ -1,8 +1,8 @@
-@import "tailwindcss";
-
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped:wght@100;200;300;400;500;600;700;800;900&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=VT323&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap");
+
+@import "tailwindcss";
 
 @import "@astrojs/starlight-tailwind";
 @import "tailwindcss/theme.css" layer(theme);
@@ -14,16 +14,16 @@
   /* Font families */
   --font-sans: "Noto Sans Thai Looped", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --font-display: Georgia, "Times New Roman", serif;
-  --font-heading: "Instrument Serif", Georgia, serif;
+  --font-display: "Playfair Display", serif;
+  --font-heading: "Google Sans", sans-serif, serif;
   --font-pixel: "VT323", monospace;
 
   /* Colors */
   --color-bg: oklch(96% 0.02 85);
-  --color-surface: oklch(98.5% 0.008 85);
-  --color-surface-alt: oklch(93% 0.018 78);
+  --color-surface: #e4edf5;
+  --color-surface-alt: #ebf4fc;
   --color-foreground: oklch(25% 0.04 45);
-  --color-muted: oklch(52% 0.03 65);
+  --color-muted: #5a6064;
   --color-border: oklch(88% 0.02 75);
   --color-primary: #003d7a;
   --color-primary-dim: #003d7a1a;
@@ -55,6 +55,10 @@
   --radius-xl: 14px;
   --radius-2xl: 18px;
   --radius-full: 999px;
+}
+
+@utility typo-* {
+  font: --value(--typo-*);
 }
 
 .course-grid {
