@@ -4,6 +4,8 @@ description: ทำความรู้จัก Context Window และ Syste
 order: 5
 ---
 
+import ChatMessage from "@/components/ChatMessage.astro"
+
 ## Context Window
 
 ปกติแล้วปกติแล้ว LLM จะเป็น Stateless (ไม่มีความจำในตัวเอง) แต่ทำไมเราคุยกับ ai เราจะสังเกตุว่าเมื่อคุยไปเรื่อยๆ มันจะจำ บริบทก่อนหน้าได้ เช่น
@@ -94,3 +96,5 @@ ai: คุณชื่อ shiro คุณเป็น Software engineer ที�
 **สำคัญ:** `{ "role": "system" }` จะถูกล็อคไว้ที่ด้านบนเสมอและไม่ถูกลบ แม้ในขณะที่ Compact หรือ Drop Context
 
 **หมายเหตุ:** ควรทำให้ system prompt กระชับเพื่อรักษาพื้นที่ memory ไว้สำหรับเนื้อหาอื่น
+
+<ChatMessage message="ระวัง context ที่มากเกินไปจะทำให้ AI หลุดโฟกัสและทำงานไม่แม่นยำ ระวังด้วยหล่ะ!" avatarKey="blackCat" />

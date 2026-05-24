@@ -1,0 +1,54 @@
+---
+title: Basic Commands
+description: คำสั่งพื้นฐานที่ควรรู้ในการใช้งาน Opencode
+order: 6
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+## /new - เริ่ม Session ใหม่
+
+ใช้ `/new` เมื่อต้องการเริ่มงานใหม่ทั้งหมด หรือต้องการ reset context ทั้งหมด
+
+```bash
+/new
+```
+
+<ChatMessage message="พิมพ์ /new เมื่อต้องการเริ่มงานใหม่ เหมาะสำหรับเริ่มโปรเจคใหม่ หรือเปลี่ยนไปทำงานอื่น" avatarKey="whiteCat" />
+
+## /models - เปลี่ยน Model
+
+ใช้ `/models` เพื่อดูและเลือก model ที่ต้องการใช้ในการสนทนา
+
+```bash
+/models
+```
+
+## /session - จัดการ Sessions
+
+ใช้ `/session` เพื่อดูรายการ sessions ทั้งหมดและสลับไปมาระหว่าง sessions ได้
+
+```bash
+/session              # ดูรายการ sessions
+```
+
+<ChatMessage message="สลับ session ได้ง่ายๆ ตอนไหนก็ได้ ไม่ต้องออกจากโปรแกรม" avatarKey="whiteCat" />
+
+## /compacts - Compact Session
+
+ใช้ `/compacts` เพื่อ compact session ปัจจุบัน ลดขนาด context โดยสรุปสิ่งที่ทำมาแล้วให้เล็กลง ช่วยประหยัด token และทำให้ session ทำงานได้เร็วขึ้น
+
+```bash
+/compacts
+```
+
+<ChatMessage message="ใช้เมื่อ session ยาวมากและเริ่มทำงานช้าลง หรือต้องการเก็บ context สำคัญไว้แต่ลดขนาดลง" avatarKey="whiteCat" />
+
+## สรุป
+
+| Command | คำอธิบาย |
+|---------|----------|
+| `/new` | เริ่ม session ใหม่ทั้งหมด |
+| `/models` | เลือก model สำหรับ LLM |
+| `/session` | ดูข้อมูล session ปัจจุบัน |
+| `/compact` | Compact session ลดขนาด context |
