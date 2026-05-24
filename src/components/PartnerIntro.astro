@@ -1,0 +1,28 @@
+---
+import ChatMessage from "./ChatMessage.astro";
+
+const partners = [
+  {
+    name: "Shiro",
+    description:
+      "จอมปราชญ์! คอยบอกเคล็ดลับที่จะทำให้การทำภารกิจของเจ้าง่ายขึ้น",
+  },
+  {
+    name: "Kuro",
+    description: "จอมดุ! คอยเตือนเวลาข้อห้าม หรือสิ่งอันตรายต่างๆ",
+  },
+];
+---
+
+<br />
+ก่อนอื่นข้าขอแนะนำคู่หู ที่่จะร่วมเดินทางไปกับเจ้า
+<img src="/misc/introduce.png" alt="introduce" />
+<ul>
+  {
+    partners.map((partner) => (
+      <li>
+        <strong>{partner.name}</strong>: {partner.description}
+      </li>
+    ))
+  }
+</ul>

@@ -10,40 +10,10 @@ sidebar:
   order: 0
 ---
 import ChatMessage from "@/components/ChatMessage.astro"
+import PartnerIntro from "@/components/PartnerIntro.astro"
 
-```mermaid
-graph TD
-    A[Start] --> B[Process]
-    B --> C[End]
-```
+สวัสดีเหล่านักเดินทาง ในการเดินทางครั้งนี้ข้าจะพาเจ้าไปรู้จักกับ Opencode เครื่องมือ AI agent ที่เน้นความเป็นอิสระ
 
-# บทที่ 0: ปฐมบทแห่งโรงน้ำชา
-## 📜 ภารกิจจากคุณยาย
-สวัสดีเหล่านักเดินทาง.. พักให้หายเหนื่อยก่อนเถิด ข้าคือ **Zen** ผู้ท่องโลกมานักต่อนัก 
-<img src="/avatar/zen.png" alt="zen" />
-ก่อนที่เจ้าจะก้าวเท้าออกจากโรงเตี้ยมแห่งนี้ มีอีกคนหนึ่งที่เจ้าควรพบ... 
-นั่นคือ **คุณยาย Mari** นางมีบางอย่างจะบอกเจ้า
-
----
-
-<img src="/react-adventure/tea-shop.png" alt="tea-shop" />
-**คุณยาย Mari** เจ้าของร้านน้ำชาเก่าแก่ กำลังต้องการความช่วยเหลือ! ท่านอยากให้คุณสร้าง "โรงน้ำชาออนไลน์" เพื่อส่งต่อใบชาไปทั่วอาณาจักร!
-แน่นอนว่าหนทางย่อมไม่ได้โรยด้วยกลีบดอกไม้ ข้าจึงได้เตรียม
-'คู่หู' ที่จะร่วมร่วมหัวจมท้ายไปกับพวกเจ้าไว้แล้ว..."
-<img src="/misc/introduce.png" alt="introduce" />
-- **Shiro**: จอมปราชญ์! คอยบอกเคล็ดลับที่จะทำให้การทำภารกิจของคุณง่ายขึ้น
-- **Kuro**: จอมดุ! คอยเตือนเวลาข้อห้าม หรือสิ่งอันตรายต่างๆ
-
-## 📚 เนื้อหาในคอร์สนี้
-
-| บท | หัวข้อ | คำอธิบาย |
-|----|--------|----------|
-| 1 | [LLM และ AI Agent](/opencode-adventure/01-fundamental/llm-and-agent) | ทำความรู้จัก LLM และ AI Agent รวมถึงส่วนประกอบสำคัญ |
-| 2 | [Mode และ Context](/opencode-adventure/02-basic-usage/modes-and-context) | ทำความรู้จัก Mode ต่างๆ และการจัดการ Context |
-| 3 | [ตัวอย่างการใช้งาน](/opencode-adventure/03-examples/usage-examples) | ตัวอย่างการใช้ Opencode ในชีวิตจริง |
-| 4 | [MCP](/opencode-adventure/04-mcp/mcp-introduction) | ทำความรู้จัก Model Context Protocol |
-| 5 | [Skill](/opencode-adventure/05-skill/skill-introduction) | วิธีเพิ่มทักษะให้ AI Agent |
-| 6 | [Sub Agent](/opencode-adventure/06-sub-agent/sub-agents) | สร้างและใช้ Agent เฉพาะทาง |
-| 7 | [Plugin](/opencode-adventure/07-plugin/index) | ขยายความสามารถด้วย Plugin และ Hooks |
+<PartnerIntro />
 
 <ChatMessage message="พร้อมแล้วก็เริ่มบทที่ 1 กันเถอะ!" avatarKey="whiteCat" />
