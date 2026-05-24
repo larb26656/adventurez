@@ -91,10 +91,10 @@ export default function CourseFilter({ courses }: Props) {
     .map(([key, value]) => ({ key, value, label: labels[key][value] }));
 
   return (
-    <div className="max-w-[1100px] mx-auto px-12 py-12">
-      <div className="grid grid-cols-[240px_1fr] gap-8 items-start">
-        <aside className="bg-surface border border-border rounded-[14px] p-6 sticky top-6">
-          <div className="flex items-center justify-between mb-5 font-bold text-[14px] text-foreground" style={{ fontFamily: "var(--font-display)" }}>
+    <div className="max-w-[1100px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-8 sm:py-12">
+      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6 lg:gap-8 items-start">
+        <aside className="bg-surface border border-border rounded-[14px] p-4 sm:p-6 lg:sticky lg:top-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-5 font-bold text-[14px] text-foreground" style={{ fontFamily: "var(--font-display)" }}>
             Filters
             <button className="text-[12px] text-primary bg-none border-none cursor-pointer font-semibold hover:underline" onClick={resetFilters}>
               Reset
@@ -103,14 +103,14 @@ export default function CourseFilter({ courses }: Props) {
 
           <input
             type="text"
-            className="w-full px-3 py-2.5 border border-border rounded-[8px] bg-bg text-foreground text-[14px] leading-none outline-none transition-colors mb-5 placeholder:text-muted focus:border-primary"
+            className="w-full px-3 py-2.5 border border-border rounded-[8px] bg-bg text-foreground text-[14px] leading-none outline-none transition-colors mb-4 sm:mb-5 placeholder:text-muted focus:border-primary"
             placeholder="Search courses..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-          <div className="mb-6 last:mb-0">
-            <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-muted mb-3">Category</div>
+          <div className="mb-4 sm:mb-6 last:mb-0">
+            <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-muted mb-2 sm:mb-3">Category</div>
             {[
               { key: "all", label: "All", count: courses.length },
               { key: "webdev", label: "Web Dev", count: categoryCount.webdev },
@@ -139,8 +139,8 @@ export default function CourseFilter({ courses }: Props) {
             ))}
           </div>
 
-          <div className="mb-6 last:mb-0">
-            <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-muted mb-3">Status</div>
+          <div className="mb-4 sm:mb-6 last:mb-0">
+            <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-muted mb-2 sm:mb-3">Status</div>
             {[
               { key: "all", label: "All" },
               { key: "available", label: "Available" },
@@ -178,11 +178,11 @@ export default function CourseFilter({ courses }: Props) {
               ))}
             </div>
           )}
-          <div className="text-[13px] text-muted mb-5">
+          <div className="text-[13px] text-muted mb-4 sm:mb-5">
             Showing <strong className="text-foreground font-semibold">{filteredCourses.length}</strong> course
             {filteredCourses.length !== 1 ? "s" : ""}
           </div>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 sm:gap-5">
             {filteredCourses.length > 0 ? (
               filteredCourses.map((course) => (
                 <CourseCard
@@ -192,12 +192,11 @@ export default function CourseFilter({ courses }: Props) {
                   thumbnail={course.thumbnail}
                   href={course.comingSoon ? "#" : (course as any).href}
                   level={course.comingSoon ? "Coming Soon" : "Available"}
-                  duration={course.tags.slice(0, 2).join(" · ")}
                   comingSoon={course.comingSoon}
                 />
               ))
             ) : (
-              <div className="col-span-full text-center p-16">
+              <div className="col-span-full text-center p-8 sm:p-16">
                 <strong className="text-[18px] text-foreground font-semibold block mb-2">No courses found</strong>
                 <span className="text-muted">Try adjusting your filters</span>
               </div>

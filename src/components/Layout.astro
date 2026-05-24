@@ -26,11 +26,22 @@ const { title = "adventurez", active = "Home", showCta = false } = Astro.props;
     /><link
       href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=VT323&display=swap"
       rel="stylesheet"
-    /></head
-  >
+    />
+    <style>
+      html, body {
+        min-height: 100vh;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
+  </head>
 </html>
-<body>
+<body class="min-h-screen flex flex-col">
   <Nav active={active} showCta={showCta} />
-  <slot />
+  <main class="flex-1">
+    <slot />
+  </main>
   <Footer />
 </body>

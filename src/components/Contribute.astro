@@ -3,22 +3,22 @@ import Button from "./ui/Button.astro";
 import FeatureItem from "./ui/FeatureItem.astro";
 ---
 
-<section class="px-12 py-20">
+<section class="px-4 sm:px-6 md:px-8 lg:px-12 py-12 sm:py-16 lg:py-20">
   <div
-    class="box-container grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+    class="box-container grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center"
   >
     <div>
       <div class="typo-label text-primary mb-2">
         Community
       </div>
-      <h2 class="typo-h2 mb-6">
+      <h2 class="typo-h2 mb-4 sm:mb-6">
         Help write the next adventure
       </h2>
-      <p class="typo-body text-muted mb-7">
+      <p class="typo-body text-muted mb-5 sm:mb-7">
         Adventurez เป็น open-source project ที่ทุกคนช่วยกันสร้างเนื้อหาได้
         ตั้งแต่เขียนคอร์สใหม่, แก้ไขเนื้อหา, ไปจนถึงเพิ่มตัวอย่างโค้ด
       </p>
-      <ul class="flex flex-col gap-4 list-none m-0 p-0 mb-7">
+      <ul class="flex flex-col gap-3 sm:gap-4 list-none m-0 p-0 mb-5 sm:mb-7">
         <FeatureItem
           icon="1"
           title="Fork the repo"
@@ -42,11 +42,11 @@ import FeatureItem from "./ui/FeatureItem.astro";
         variant="primary"
         size="sm"
         href="https://github.com/larb26656/adventurez"
-        class="mt-6">Contribute on GitHub →</Button
+        class="mt-4 sm:mt-6">Contribute on GitHub →</Button
       >
     </div>
     <div class="flex items-center justify-center">
-      <img src="/misc/contribute.png" alt="Contribute" width="450px" />
+      <img src="/misc/contribute.png" alt="Contribute" class="w-full max-w-[300px] sm:max-w-[400px] lg:max-w-[450px] h-auto" />
     </div>
   </div>
 </section>

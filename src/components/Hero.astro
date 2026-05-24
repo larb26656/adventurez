@@ -9,16 +9,16 @@ interface Props {
 const { id } = Astro.props;
 ---
 
-<section {id} class="px-12 py-20">
+<section {id} class="px-4 sm:px-6 md:px-8 lg:px-12 py-12 sm:py-16 lg:py-20">
   <div
-    class="box-container grid grid-cols-1 lg:grid-cols-2 gap-16 items-center"
+    class="box-container grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center"
   >
     <div>
-      <h1 class="typo-display text-foreground mb-5">
+      <h1 class="typo-display text-foreground mb-4 sm:mb-5 text-[clamp(28px,6vw,48px)]">
         <span class="italic font-light">The new way to learn</span>
         <span class="text-primary">something</span>
       </h1>
-      <p class="typo-body text-muted max-w-[480px] mb-9">
+      <p class="typo-body text-muted max-w-[480px] mb-6 sm:mb-9">
         ให้การเรียนเป็นเหมือนการผจญภัย คอร์สแบบ text-based ล้วนๆ
         ที่ทุกคนเข้าถึงได้ อ่านแล้วลงมือทำได้เลย
       </p>
@@ -30,7 +30,7 @@ const { id } = Astro.props;
       </div>
     </div>
     <div class="flex items-center justify-center">
-      <div class="relative w-[500px] h-[300px] rounded-full overflow-hidden">
+      <div class="relative w-full max-w-[500px] aspect-[5/3] rounded-full overflow-hidden">
         <img
           src="/misc/sea.png"
           alt="Sea"
@@ -40,11 +40,10 @@ const { id } = Astro.props;
           <img
             src="/misc/travel.png"
             alt="Travel"
-            width="300px"
-            class="floating delay-1"
+            class="w-[60%] floating delay-1"
           />
         </div>
-        <div class="absolute top-35 left-20 floating delay-2">
+        <div class="absolute top-[35%] left-[15%] floating delay-2">
           <Sprite
             client:load
             src="misc/sprite/seagull_animation.png"
@@ -55,7 +54,7 @@ const { id } = Astro.props;
             fps={16}
           />
         </div>
-        <div class="absolute top-25 right-20 floating delay-3">
+        <div class="absolute top-[25%] right-[15%] floating delay-3">
           <Sprite
             client:load
             src="misc/sprite/seagull_animation.png"
