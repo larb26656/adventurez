@@ -6,6 +6,7 @@ export interface Course {
 	description: string;
 	thumbnail: string;
 	tags: string[];
+	categories: string[];
 	href: string;
 	level: string;
 	comingSoon?: boolean;
@@ -29,7 +30,6 @@ export async function getCourses(): Promise<Course[]> {
 			// This distinguishes courses (which have thumbnails) from other sections like 'cheatsheet'
 			const data = entry.data as Record<string, unknown>;
 			const hasThumbnail = !!data.thumbnail;
-			const comingSoon = !!data.comingSoon;
 
 			return isTopLevelFolder && hasThumbnail;
 		})
@@ -43,8 +43,9 @@ export async function getCourses(): Promise<Course[]> {
 				description: (data.description as string) || '',
 				thumbnail: (data.thumbnail as string) || '/placeholder.png',
 				tags: (data.tags as string[]) || [],
+				categories: (data.categories as string[]) || ["Technology"],
 				href: `/${folderName}`,
-				level: comingSoon ? "Coming Soon" : ((data.tags as string[])?.[0] || "Adventure"),
+				level: data.level as string,
 				comingSoon,
 				color: (data.color as string) || '#808080',
 			};

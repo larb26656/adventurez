@@ -4,6 +4,7 @@ export interface Course {
   description: string;
   thumbnail: string;
   tags: string[];
+  categories: string[];
   href: string;
   comingSoon?: boolean;
   color: string;
