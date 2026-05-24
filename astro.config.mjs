@@ -13,11 +13,12 @@ export default defineConfig({
   integrations: [
     react(),
     mermaid({
-      theme: "forest",
+      theme: "dark",
       autoTheme: true,
     }),
     starlight({
       title: "Adventurez",
+      favicon: "/public/favicon.png",
       logo: {
         light: "/public/logo.svg",
         dark: "/public/dark-logo.svg",

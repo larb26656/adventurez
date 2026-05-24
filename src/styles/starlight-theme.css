@@ -1,4 +1,40 @@
-@import "./global.css";
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped:wght@100;200;300;400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap");
+
+@import "tailwindcss";
+
+@theme {
+  /* Font families */
+  --font-sans: "Noto Sans Thai Looped", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Playfair Display", serif;
+  --font-heading: "Noto Sans Thai Looped", sans-serif, serif;
+
+  /* Colors */
+  --color-bg: #f4f7fb;
+  --color-surface: #e4edf5;
+  --color-surface-alt: #ebf4fc;
+  --color-foreground: #1a2332;
+  --color-muted: #5a6064;
+  --color-border: #dfe6ee;
+  --color-primary-low: #0a1f44;
+  --color-primary: #003d7a;
+  --color-primary-high: #6ec6ff;
+  --color-primary-dim: #003d7a1a;
+  --color-primary-hover: #002b57;
+  --color-primary-foreground: #f8fafc;
+  --color-success: oklch(62% 0.16 145);
+  --color-success-dim: oklch(62% 0.16 145 / 0.1);
+
+  /* Border radius */
+  --radius-*: initial;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+  --radius-full: 999px;
+}
 
 /* ========================================
    LIGHT MODE
