@@ -33,7 +33,7 @@ export default function CourseCard({
           />
         }
         {comingSoon && (
-          <div className="absolute top-3 left-3 bg-foreground/80 text-primary-foreground text-[10px] font-bold tracking-[0.08em] uppercase px-2.5 py-1 rounded-full backdrop-blur-sm">
+          <div className="absolute top-3 left-3 bg-foreground/80 text-primary-foreground typo-badge px-2.5 py-1 rounded-full backdrop-blur-sm">
             Coming Soon
           </div>
         )}
@@ -42,7 +42,7 @@ export default function CourseCard({
             {tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="text-[10px] font-semibold tracking-[0.06em] uppercase bg-primary/90 text-primary-foreground px-2 py-0.5 rounded-full backdrop-blur-sm"
+                className="typo-tag bg-primary/90 text-primary-foreground px-2 py-0.5 rounded-full backdrop-blur-sm"
               >
                 {tag}
               </span>
@@ -51,14 +51,14 @@ export default function CourseCard({
         </div>
       </div>
       <div className="p-5">
-        <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-primary mb-2">
+        <div className="typo-badge text-primary mb-2">
           {level}
         </div>
-        <h3 className="font-semibold text-xl leading-snug text-foreground mb-3 line-clamp-2">
+        <h3 className="typo-card-title text-foreground mb-3 line-clamp-2">
           {title}
         </h3>
         {description && (
-          <p className="text-sm text-muted line-clamp-2 mb-0">{description}</p>
+          <p className="typo-body-sm text-muted line-clamp-2 mb-0">{description}</p>
         )}
       </div>
     </a>
