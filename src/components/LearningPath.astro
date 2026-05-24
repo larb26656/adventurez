@@ -1,5 +1,6 @@
 ---
 import Button from "./ui/Button.astro";
+import FeatureItem from "./ui/FeatureItem.astro";
 ---
 
 <section class="px-12 pt-20 pb-16 bg-surface">
@@ -17,84 +18,29 @@ import Button from "./ui/Button.astro";
         Design your own learning path
       </h2>
       <p class="text-muted mb-6">
-        เลือกคอร์สเรียงลำดับเอง ตั้งเป้าหมาย แล้วค่อยๆ ทำทีละขั้น —
-        ข้อมูลเก็บในเครื่อง ไม่ต้องสมัคร ไม่ต้องมีบัญชี
+        เลือกคอร์สเรียงลำดับเอง ตั้งเป้าหมาย แล้วค่อยๆ ทำทีละขั้น
       </p>
       <ul class="flex flex-col gap-3.5 list-none m-0 p-0 mb-7">
-        <li class="flex items-center gap-3.5">
-          <div
-            class="w-9 h-9 rounded-[10px] bg-primary-dim flex items-center justify-center shrink-0"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              class="w-[18px] h-[18px] stroke-primary fill-none stroke-2 stroke-linecap-round stroke-linejoin-round"
-            >
-              <circle cx="12" cy="12" r="9"></circle><line
-                x1="12"
-                y1="3"
-                x2="12"
-                y2="6"></line><line x1="12" y1="18" x2="12" y2="21"></line><line
-                x1="3"
-                y1="12"
-                x2="6"
-                y2="12"></line><line x1="18" y1="12" x2="21" y2="12"
-              ></line><polygon points="12,7 13,11 12,12 11,11"></polygon>
-            </svg>
-          </div>
-          <div class="text-[14px] leading-[1.5] text-foreground">
-            <strong class="font-semibold">สร้าง path</strong> — ตั้งชื่อแล้วอธิบายเป้าหมาย
-          </div>
-        </li>
-        <li class="flex items-center gap-3.5">
-          <div
-            class="w-9 h-9 rounded-[10px] bg-primary-dim flex items-center justify-center shrink-0"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              class="w-[18px] h-[18px] stroke-primary fill-none stroke-2 stroke-linecap-round stroke-linejoin-round"
-            >
-              <path d="M12 2--2 7l10 5 10-5-10-5z"></path><path
-                d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path>
-            </svg>
-          </div>
-          <div class="text-[14px] leading-[1.5] text-foreground">
-            <strong class="font-semibold">เลือกคอร์ส</strong> — เพิ่มจาก library เรียงตามลำดับที่ต้องการ
-          </div>
-        </li>
-        <li class="flex items-center gap-3.5">
-          <div
-            class="w-9 h-9 rounded-[10px] bg-primary-dim flex items-center justify-center shrink-0"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              class="w-[18px] h-[18px] stroke-primary fill-none stroke-2 stroke-linecap-round stroke-linejoin-round"
-            >
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </div>
-          <div class="text-[14px] leading-[1.5] text-foreground">
-            <strong class="font-semibold">check off</strong> — ทำเสร็จแล้วกด mark
-            progress เก็บ offline
-          </div>
-        </li>
-        <li class="flex items-center gap-3.5">
-          <div
-            class="w-9 h-9 rounded-[10px] bg-primary-dim flex items-center justify-center shrink-0"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              class="w-[18px] h-[18px] stroke-primary fill-none stroke-2 stroke-linecap-round stroke-linejoin-round"
-            >
-              <path
-                d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"
-              ></path><line x1="4" y1="22" x2="4" y2="15"></line>
-            </svg>
-          </div>
-          <div class="text-[14px] leading-[1.5] text-foreground">
-            <strong class="font-semibold">รับ badge</strong> — ครบทุกคอร์ส = achievement
-            unlocked
-          </div>
-        </li>
+        <FeatureItem
+          icon='<circle cx="12" cy="12" r="9"></circle><line x1="12" y1="3" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="21"></line><line x1="3" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="21" y2="12"></line><polygon points="12,7 13,11 12,12 11,11"></polygon>'
+          title="สร้าง path"
+          description="ตั้งชื่อแล้วอธิบายเป้าหมาย"
+        />
+        <FeatureItem
+          icon='<path d="M12 2--2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path>'
+          title="เลือกคอร์ส"
+          description="เพิ่มจาก library เรียงตามลำดับที่ต้องการ"
+        />
+        <FeatureItem
+          icon='<polyline points="20 6 9 17 4 12"></polyline>'
+          title="check off"
+          description="ทำเสร็จแล้วกด mark progress เก็บ offline"
+        />
+        <FeatureItem
+          icon='<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line>'
+          title="รับ badge"
+          description="ครบทุกคอร์ส = achievement unlocked"
+        />
       </ul>
       <Button variant="primary" size="sm" href="/path">Build your path →</Button
       >

@@ -1,5 +1,6 @@
 ---
 import Button from "./ui/Button.astro";
+import FeatureItem from "./ui/FeatureItem.astro";
 ---
 
 <section class="px-12 py-20">
@@ -18,39 +19,24 @@ import Button from "./ui/Button.astro";
         ตั้งแต่เขียนคอร์สใหม่, แก้ไขเนื้อหา, ไปจนถึงเพิ่มตัวอย่างโค้ด
       </p>
       <ul class="flex flex-col gap-4 list-none m-0 p-0 mb-7">
-        <li class="flex items-start gap-3.5">
-          <div
-            class="w-8 h-8 rounded-[8px] bg-primary-dim text-primary font-bold text-[14px] flex items-center justify-center shrink-0"
-          >
-            1
-          </div>
-          <div class="text-[14px] leading-[1.5] text-foreground">
-            <strong class="font-semibold">Fork the repo</strong> — clone แล้วเลือก
-            course ที่อยากเขียน
-          </div>
-        </li>
-        <li class="flex items-start gap-3.5">
-          <div
-            class="w-8 h-8 rounded-[8px] bg-primary-dim text-primary font-bold text-[14px] flex items-center justify-center shrink-0"
-          >
-            2
-          </div>
-          <div class="text-[14px] leading-[1.5] text-foreground">
-            <strong class="font-semibold">เขียนเนื้อหา</strong> — text-based, markdown
-            ล้วน ไม่มีวิดีโอ
-          </div>
-        </li>
-        <li class="flex items-start gap-3.5">
-          <div
-            class="w-8 h-8 rounded-[8px] bg-primary-dim text-primary font-bold text-[14px] flex items-center justify-center shrink-0"
-          >
-            3
-          </div>
-          <div class="text-[14px] leading-[1.5] text-foreground">
-            <strong class="font-semibold">เปิด PR</strong> — community review แล้ว
-            merge เข้า main
-          </div>
-        </li>
+        <FeatureItem
+          icon="1"
+          title="Fork the repo"
+          description="clone แล้วเลือก course ที่อยากเขียน"
+          numbered
+        />
+        <FeatureItem
+          icon="2"
+          title="เขียนเนื้อหา"
+          description="text-based, markdown ล้วน ไม่มีวิดีโอ"
+          numbered
+        />
+        <FeatureItem
+          icon="3"
+          title="เปิด PR"
+          description="community review แล้ว merge เข้า main"
+          numbered
+        />
       </ul>
       <Button
         variant="primary"

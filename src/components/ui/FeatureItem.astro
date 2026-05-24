@@ -1,0 +1,33 @@
+---
+interface Props {
+  icon: string;
+  title: string;
+  description: string;
+  numbered?: boolean;
+}
+
+const { icon, title, description, numbered = false } = Astro.props;
+---
+
+<li class="flex items-center gap-3.5">
+  {numbered ? (
+    <div
+      class="w-8 h-8 rounded-[8px] bg-primary-dim text-primary font-bold text-[14px] flex items-center justify-center shrink-0"
+    >
+      {icon}
+    </div>
+  ) : (
+    <div
+      class="w-9 h-9 rounded-[10px] bg-primary-dim flex items-center justify-center shrink-0"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="w-[18px] h-[18px] stroke-primary fill-none stroke-2 stroke-linecap-round stroke-linejoin-round"
+        set:html={icon}
+      />
+    </div>
+  )}
+  <div class="text-[14px] leading-[1.5] text-foreground">
+    <strong class="font-semibold">{title}</strong> — {description}
+  </div>
+</li>
