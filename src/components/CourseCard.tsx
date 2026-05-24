@@ -1,49 +1,83 @@
+import type { Course } from "../data/courses";
+
 interface Props {
   title: string;
-  tag?: string;
+  description?: string;
+  tags?: string[];
   thumbnail?: string;
-  href: string;
+  href?: string;
   level?: string;
-  duration?: string;
-  rating?: string;
-  price?: string;
+  comingSoon?: boolean;
 }
 
 export default function CourseCard({
   title,
-  tag = "Adventure",
+  description,
+  tags = [],
   thumbnail,
-  href,
+  href = "#",
   level = "Beginner",
-  duration = "3 hrs",
-  price = "Free",
+  comingSoon = false,
 }: Props) {
   return (
-    <a className="course-card" href={href}>
-      <div className="course-thumb">
+    <a
+      href={href}
+      className="group block bg-surface border border-border rounded-xl overflow-hidden cursor-pointer no-underline text-inherit transition-all duration-200 hover:border-border hover:shadow-lg hover:-translate-y-0.5"
+    >
+      <div className="aspect-video bg-surface-alt border-b border-border relative overflow-hidden">
         {thumbnail ? (
-          <img src={thumbnail} alt={title} className="course-thumbnail-img" />
+          <img
+            src={thumbnail}
+            alt={title}
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <div className="pixel-art">
-            ░░██░░
-            ░░██░░
-            ████░░
-            ░░██░░
-            ░░██░░
+          <div className="w-full h-full flex items-center justify-center">
+            <div
+              className="font-mono text-sm leading-none tracking-[2px] text-primary whitespace-pre text-center p-2 opacity-60"
+              style={{ fontFamily: "var(--font-pixel)" }}
+            >
+              {`░░██░░
+░░██░░
+████░░
+░░██░░
+░░██░░`}
+            </div>
           </div>
         )}
+        {comingSoon && (
+          <div className="absolute top-3 left-3 bg-foreground/80 text-primary-foreground text-[10px] font-bold tracking-[0.08em] uppercase px-2.5 py-1 rounded-full backdrop-blur-sm">
+            Coming Soon
+          </div>
+        )}
+        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex gap-1.5 flex-wrap">
+            {tags.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                className="text-[10px] font-semibold tracking-[0.06em] uppercase bg-primary/90 text-primary-foreground px-2 py-0.5 rounded-full backdrop-blur-sm"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className="course-body">
-        <div className="course-tag">{tag}</div>
-        <div className="course-title">{title}</div>
-        <div className="course-meta">
-          <span>{level}</span>
-          <span>{duration}</span>
+      <div className="p-5">
+        <div className="text-[11px] font-bold tracking-[0.1em] uppercase text-primary mb-2">
+          {level}
         </div>
-        <div className="course-footer">
-          <div className="course-free">{price}</div>
-          <button className="course-btn">Start</button>
-        </div>
+        <h3
+          className="font-semibold text-[15px] leading-snug text-foreground mb-3 line-clamp-2"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          {title}
+        </h3>
+        {description && (
+          <p className="text-[13px] text-muted-foreground line-clamp-2 mb-0">
+            {description}
+          </p>
+        )}
       </div>
     </a>
   );

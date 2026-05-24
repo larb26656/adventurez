@@ -91,26 +91,26 @@ export default function CourseFilter({ courses }: Props) {
     .map(([key, value]) => ({ key, value, label: labels[key][value] }));
 
   return (
-    <div className="explore">
-      <div className="explore-layout">
-        <aside className="filter-panel">
-          <div className="filter-title">
+    <div className="max-w-[1100px] mx-auto px-12 py-12">
+      <div className="grid grid-cols-[240px_1fr] gap-8 items-start">
+        <aside className="bg-surface border border-border rounded-[14px] p-6 sticky top-6">
+          <div className="flex items-center justify-between mb-5 font-bold text-[14px] text-foreground" style={{ fontFamily: "var(--font-display)" }}>
             Filters
-            <button className="filter-reset" onClick={resetFilters}>
+            <button className="text-[12px] text-primary bg-none border-none cursor-pointer font-semibold hover:underline" onClick={resetFilters}>
               Reset
             </button>
           </div>
 
           <input
             type="text"
-            className="filter-search"
+            className="w-full px-3 py-2.5 border border-border rounded-[8px] bg-bg text-foreground text-[14px] leading-none outline-none transition-colors mb-5 placeholder:text-muted focus:border-primary"
             placeholder="Search courses..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
-          <div className="filter-group">
-            <div className="filter-group-label">Category</div>
+          <div className="mb-6 last:mb-0">
+            <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-muted mb-3">Category</div>
             {[
               { key: "all", label: "All", count: courses.length },
               { key: "webdev", label: "Web Dev", count: categoryCount.webdev },
@@ -123,18 +123,24 @@ export default function CourseFilter({ courses }: Props) {
             ].map(({ key, label, count }) => (
               <div
                 key={key}
-                className={`filter-option ${filters.category === key ? "active" : ""}`}
+                className={`flex items-center gap-[10px] py-1.5 cursor-pointer text-[14px] leading-[1.3] text-foreground transition-colors ${filters.category === key ? "text-primary" : ""}`}
                 onClick={() => handleFilterChange("category", key)}
               >
-                <div className="filter-checkbox" />
+                <div className={`w-[18px] h-[18px] border rounded-[4px] bg-surface flex items-center justify-center shrink-0 transition-colors ${filters.category === key ? "border-primary bg-primary" : "border-border"}`}>
+                  {filters.category === key && (
+                    <svg viewBox="0 0 8 5" className="w-2 h-1.5">
+                      <path d="M1 1L3.5 4L7 0" stroke="var(--color-primary-foreground)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
                 <span>{label}</span>
-                <span className="filter-count">{count}</span>
+                <span className="ml-auto text-[12px] text-muted">{count}</span>
               </div>
             ))}
           </div>
 
-          <div className="filter-group">
-            <div className="filter-group-label">Status</div>
+          <div className="mb-6 last:mb-0">
+            <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-muted mb-3">Status</div>
             {[
               { key: "all", label: "All" },
               { key: "available", label: "Available" },
@@ -142,10 +148,16 @@ export default function CourseFilter({ courses }: Props) {
             ].map(({ key, label }) => (
               <div
                 key={key}
-                className={`filter-option ${filters.status === key ? "active" : ""}`}
+                className={`flex items-center gap-[10px] py-1.5 cursor-pointer text-[14px] leading-[1.3] text-foreground transition-colors ${filters.status === key ? "text-primary" : ""}`}
                 onClick={() => handleFilterChange("status", key)}
               >
-                <div className="filter-checkbox" />
+                <div className={`w-[18px] h-[18px] border rounded-[4px] bg-surface flex items-center justify-center shrink-0 transition-colors ${filters.status === key ? "border-primary bg-primary" : "border-border"}`}>
+                  {filters.status === key && (
+                    <svg viewBox="0 0 8 5" className="w-2 h-1.5">
+                      <path d="M1 1L3.5 4L7 0" stroke="var(--color-primary-foreground)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
                 <span>{label}</span>
               </div>
             ))}
@@ -154,39 +166,40 @@ export default function CourseFilter({ courses }: Props) {
 
         <div>
           {activePills.length > 0 && (
-            <div className="active-filters">
+            <div className="flex flex-wrap gap-2 mb-5">
               {activePills.map(({ key, value, label }) => (
                 <button
                   key={`${key}-${value}`}
-                  className="filter-pill"
+                  className="inline-flex items-center gap-1.5 bg-primary-dim text-primary text-[12px] font-semibold py-1.5 px-2.5 rounded-full border-none cursor-pointer hover:bg-primary/20 transition-colors"
                   onClick={() => handleFilterChange(key, "all")}
                 >
-                  {label} <span className="pill-x">×</span>
+                  {label} <span className="text-[14px] leading-none">×</span>
                 </button>
               ))}
             </div>
           )}
-          <div className="results-count">
-            Showing <strong>{filteredCourses.length}</strong> course
+          <div className="text-[13px] text-muted mb-5">
+            Showing <strong className="text-foreground font-semibold">{filteredCourses.length}</strong> course
             {filteredCourses.length !== 1 ? "s" : ""}
           </div>
-          <div className="course-grid">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5">
             {filteredCourses.length > 0 ? (
               filteredCourses.map((course) => (
                 <CourseCard
                   key={course.id}
                   title={course.title}
-                  tag={course.tags[0] || "Adventure"}
+                  tags={course.tags}
                   thumbnail={course.thumbnail}
-                  href={course.comingSoon ? "#" : course.href}
+                  href={course.comingSoon ? "#" : (course as any).href}
                   level={course.comingSoon ? "Coming Soon" : "Available"}
                   duration={course.tags.slice(0, 2).join(" · ")}
-                  price={course.comingSoon ? "Soon" : "Free"}
+                  comingSoon={course.comingSoon}
                 />
               ))
             ) : (
-              <div className="no-results">
-                <strong>No courses found</strong>Try adjusting your filters
+              <div className="col-span-full text-center p-16">
+                <strong className="text-[18px] text-foreground font-semibold block mb-2">No courses found</strong>
+                <span className="text-muted">Try adjusting your filters</span>
               </div>
             )}
           </div>

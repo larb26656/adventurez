@@ -7,6 +7,7 @@ export interface Course {
 	thumbnail: string;
 	tags: string[];
 	href: string;
+	level: string;
 	comingSoon?: boolean;
 	color: string;
 }
@@ -35,6 +36,7 @@ export async function getCourses(): Promise<Course[]> {
 		.map((entry) => {
 			const folderName = entry.id;
 			const data = entry.data as Record<string, unknown>;
+			const comingSoon = !!data.comingSoon;
 			return {
 				id: folderName,
 				title: (data.title as string) || folderName,
@@ -42,7 +44,8 @@ export async function getCourses(): Promise<Course[]> {
 				thumbnail: (data.thumbnail as string) || '/placeholder.png',
 				tags: (data.tags as string[]) || [],
 				href: `/${folderName}`,
-				comingSoon: !!data.comingSoon,
+				level: comingSoon ? "Coming Soon" : ((data.tags as string[])?.[0] || "Adventure"),
+				comingSoon,
 				color: (data.color as string) || '#808080',
 			};
 		});

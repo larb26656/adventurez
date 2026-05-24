@@ -7,11 +7,25 @@ const stats = [
 ];
 ---
 
-<div class="stats">
-  {stats.map(stat => (
-    <div class="stat">
-      <div class="stat-num">{stat.num}</div>
-      <div class="stat-label">{stat.label}</div>
-    </div>
-  ))}
+<div class="flex box-container px-12 border-y border-dashed border-border">
+  {
+    stats.map((stat, i) => (
+      <div
+        class="flex-1 py-7 text-center"
+        style={
+          i < stats.length - 1
+            ? "border-right: 1px dashed var(--color-border);"
+            : ""
+        }
+      >
+        <div
+          class="font-bold text-[30px] leading-none tracking-tight text-foreground mb-1"
+          style="font-family: var(--font-display); letter-spacing: -0.03em;"
+        >
+          {stat.num}
+        </div>
+        <div class="text-[13px] leading-none text-muted">{stat.label}</div>
+      </div>
+    ))
+  }
 </div>

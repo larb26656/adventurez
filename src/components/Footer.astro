@@ -6,12 +6,12 @@ const footerLinks = [
 ];
 ---
 
-<footer>
-  <p>© 2026 adventurez — <span>open source</span> on GitHub</p>
-  <p style="font-size:12px;">
+<footer class="border-t border-dashed border-border py-8 px-12 flex items-center justify-between max-w-[1100px] mx-auto">
+  <p class="text-[13px] text-muted">© 2026 adventurez — <span class="text-primary font-semibold">open source</span> on GitHub</p>
+  <p class="text-[12px] text-muted">
     {footerLinks.map((link, i) => (
       <>
-        <a href={link.href}>{link.label}</a>
+        <a href={link.href} class="hover:text-primary transition-colors">{link.label}</a>
         {i < footerLinks.length - 1 && " · "}
       </>
     ))}

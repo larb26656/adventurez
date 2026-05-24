@@ -1,5 +1,8 @@
+@import "tailwindcss";
+
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans+Thai:wght@100;200;300;400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped:wght@100;200;300;400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=VT323&display=swap");
 
 @import "@astrojs/starlight-tailwind";
 @import "tailwindcss/theme.css" layer(theme);
@@ -8,17 +11,34 @@
 @layer base, starlight, theme, components, utilities;
 
 @theme {
-  --font-sans: "Noto Sans Thai Looped";
+  /* Font families */
+  --font-sans: "Noto Sans Thai Looped", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-heading: "Instrument Serif", Georgia, serif;
+  --font-pixel: "VT323", monospace;
 
-  --font-mono: "IBM Plex Mono";
+  /* Colors */
+  --color-bg: oklch(96% 0.02 85);
+  --color-surface: oklch(98.5% 0.008 85);
+  --color-surface-alt: oklch(93% 0.018 78);
+  --color-foreground: oklch(25% 0.04 45);
+  --color-muted: oklch(52% 0.03 65);
+  --color-border: oklch(88% 0.02 75);
+  --color-primary: #003d7a;
+  --color-primary-dim: #003d7a1a;
+  --color-primary-hover: #002b57;
+  --color-primary-foreground: oklch(98% 0.008 85);
+  --color-success: oklch(62% 0.16 145);
+  --color-success-dim: oklch(62% 0.16 145 / 0.1);
 
-  --color-primary: #000000;
-
+  /* Accent colors (legacy support) */
   --color-accent-200: #d0c6c5;
   --color-accent-600: #7f6462;
   --color-accent-900: #3b2f2e;
   --color-accent-950: #292221;
 
+  /* Gray scale */
   --color-gray-100: #f5f6f8;
   --color-gray-200: #eceef2;
   --color-gray-300: #c0c2c7;
@@ -27,6 +47,14 @@
   --color-gray-700: #353841;
   --color-gray-800: #24272f;
   --color-gray-900: #17181c;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+  --radius-full: 999px;
 }
 
 .course-grid {
@@ -40,4 +68,33 @@
 [data-sidebar-topics],
 .starlight-sidebar-topics {
   display: none !important;
+}
+
+.box-container {
+  @apply max-w-5xl mx-auto;
+}
+
+.floating {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* เพิ่มให้แต่ละตัวขยับไม่เท่ากันโดยสุ่มเวลาเล็กน้อย */
+.delay-1 {
+  animation-delay: 0s;
+}
+.delay-2 {
+  animation-delay: 2s;
+}
+.delay-3 {
+  animation-delay: 4s;
 }

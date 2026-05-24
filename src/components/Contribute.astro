@@ -1,0 +1,68 @@
+---
+import Button from "./ui/Button.astro";
+---
+
+<section class="px-12 py-16 pb-24 bg-surface-alt">
+  <div
+    class="box-container p-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+  >
+    <div>
+      <div
+        class="text-[11px] font-bold tracking-[0.14em] uppercase text-primary mb-3"
+      >
+        Community
+      </div>
+      <h2
+        class="font-bold text-[clamp(24px,3vw,34px)] leading-[1.15] tracking-tight text-foreground mb-4"
+        style="font-family: var(--font-display); letter-spacing: -0.02em;"
+      >
+        Help write the next adventure
+      </h2>
+      <p class="text-[16px] leading-[1.65] text-muted mb-7">
+        adventurez เป็น open-source project ที่ทุกคนช่วยกันสร้างเนื้อหาได้ —
+        ตั้งแต่เขียนคอร์สใหม่, แก้ไขเนื้อหา, ไปจนถึงเพิ่มตัวอย่างโค้ด
+      </p>
+      <ul class="flex flex-col gap-4 list-none m-0 p-0 mb-7">
+        <li class="flex items-start gap-3.5">
+          <div
+            class="w-8 h-8 rounded-[8px] bg-primary-dim text-primary font-bold text-[14px] flex items-center justify-center shrink-0"
+          >
+            1
+          </div>
+          <div class="text-[14px] leading-[1.5] text-foreground">
+            <strong class="font-semibold">Fork the repo</strong> — clone แล้วเลือก
+            course ที่อยากเขียน
+          </div>
+        </li>
+        <li class="flex items-start gap-3.5">
+          <div
+            class="w-8 h-8 rounded-[8px] bg-primary-dim text-primary font-bold text-[14px] flex items-center justify-center shrink-0"
+          >
+            2
+          </div>
+          <div class="text-[14px] leading-[1.5] text-foreground">
+            <strong class="font-semibold">เขียนเนื้อหา</strong> — text-based, markdown
+            ล้วน ไม่มีวิดีโอ
+          </div>
+        </li>
+        <li class="flex items-start gap-3.5">
+          <div
+            class="w-8 h-8 rounded-[8px] bg-primary-dim text-primary font-bold text-[14px] flex items-center justify-center shrink-0"
+          >
+            3
+          </div>
+          <div class="text-[14px] leading-[1.5] text-foreground">
+            <strong class="font-semibold">เปิด PR</strong> — community review แล้ว
+            merge เข้า main
+          </div>
+        </li>
+      </ul>
+      <Button variant="primary" size="lg" href="#" class="mt-6"
+        >Contribute on GitHub →</Button
+      >
+    </div>
+    <div class="flex items-center justify-center">
+      <img src="/misc/contribute.png" alt="Contribute" width="450px" />
+    </div>
+  </div>
+</section>

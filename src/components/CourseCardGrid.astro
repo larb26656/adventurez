@@ -3,32 +3,18 @@ import CourseCard from "./CourseCard";
 import { getCourses } from "../data/courses";
 
 const courses = await getCourses();
-
-const PIXEL_ARTS = [
-  "██░░██\n██░░██\n░████░\n░░██░░\n░░██░░",
-  "░░██░░\n░████░\n██████\n░████░\n░░██░░",
-  "░░████\n████░░\n░░████\n████░░\n░░░░░░",
-  "░░░░░░\n░████░\n██░░██\n░████░\n░░░░░░",
-  "██████\n░░░░░░\n██████\n░░░░░░\n██████",
-  "░████░\n██░░██\n██░░██\n░████░\n░░░░░░",
-  "░░██░░\n░░██░░\n░████░\n░░██░░\n░░██░░",
-  "░░██░░\n██████\n██████\n██████\n░░██░░",
-  "░░████\n████░░\n████░░\n░░████\n░░░░░░",
-  "████░░\n░░██░░\n░░██░░\n░░██░░\n████░░",
-  "░░░░░░\n██████\n░░██░░\n██████\n░░░░░░",
-  "██░░██\n░████░\n░░██░░\n░████░\n██░░██",
-];
 ---
 
-<div class="course-grid" id="courseGrid">
-  {
-    courses.map((course, index) => (
-      <CourseCard 
-        title={course.title}
-        tag={course.tags[0] || "Adventure"}
-        pixelArt={PIXEL_ARTS[index % PIXEL_ARTS.length]}
-        href={`/${course.id}`}
-      />
-    ))
-  }
+<div class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5 p-4">
+  {courses.map((course) => (
+    <CourseCard
+      title={course.title}
+      description={course.description}
+      tags={course.tags}
+      thumbnail={course.thumbnail}
+      href={`/${course.id}`}
+      level={course.comingSoon ? "Coming Soon" : course.tags[0] || "Adventure"}
+      duration={course.tags.slice(0, 2).join(" · ") || "3 hrs"}
+    />
+  ))}
 </div>
