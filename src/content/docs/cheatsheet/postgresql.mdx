@@ -1,0 +1,149 @@
+---
+title: PostgreSQL
+description: A cheatsheet of PostgreSQL
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+### User
+
+```sql
+-- สร้าง user
+CREATE USER username WITH PASSWORD 'password';
+
+-- ลบ user
+DROP USER username;
+
+-- เปลี่ยนรหัสผ่าน
+ALTER USER username WITH PASSWORD 'new_password';
+```
+
+```sql
+CREATE ROLE readonly;
+GRANT USAGE ON SCHEMA public TO readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly;
+
+CREATE USER username WITH PASSWORD 'password';
+
+GRANT readonly TO bob;
+
+```
+
+### Role Types
+
+```sql
+-- Read Only Role
+CREATE ROLE readonly;
+
+
+DROP ROLE username;
+
+
+GRANT CONNECT ON DATABASE dbname TO readonly;
+-- รันภายใต้การ connect database เท่านั้น
+GRANT USAGE ON SCHEMA public TO readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly;
+
+-- Read/Write Role
+CREATE ROLE readwrite;
+GRANT CONNECT ON DATABASE dbname TO readwrite;
+GRANT USAGE ON SCHEMA public TO readwrite;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO readwrite;
+
+-- Admin Role
+CREATE ROLE dbadmin WITH SUPERUSER CREATEDB CREATEROLE;
+
+GRANT readonly TO bob;
+```
+
+### Grant / Revoke Privileges
+
+```sql
+-- ให้สิทธิ์ connect เข้า database
+GRANT CONNECT ON DATABASE dbname TO username;
+
+-- ให้สิทธิ์ใช้งาน schema
+GRANT USAGE ON SCHEMA public TO username;
+
+-- ให้สิทธิ์อ่านตารางทั้งหมดใน schema
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO username;
+
+-- ให้สิทธิ์แก้ไขตารางทั้งหมด (อ่าน/เขียน)
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO username;
+
+-- ยกเลิกสิทธิ์
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM username;
+```
+
+### Default Privileges
+
+```sql
+-- กำหนด default privileges สำหรับ object ที่จะถูกสร้างใหม่ใน schema public
+-- ให้ role 'readonly' มีสิทธิ์ SELECT (อ่านข้อมูลได้) บน TABLES ที่สร้างใหม่โดยอัตโนมัติ
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly;
+
+SELECT n.nspname AS schema,
+       r.rolname AS grantor,
+       d.defaclobjtype AS object_type,
+       d.defaclacl AS privileges
+FROM pg_default_acl d
+JOIN pg_roles r ON r.oid = d.defaclrole
+LEFT JOIN pg_namespace n ON n.oid = d.defaclnamespace;
+
+-- กำหนด default privileges สำหรับ object ที่จะถูกสร้างใหม่ใน schema public
+-- ให้ role 'readwrite' มีสิทธิ์ SELECT, INSERT, UPDATE, DELETE (อ่าน/เขียน/แก้ไข/ลบ) 
+-- บน TABLES ที่สร้างใหม่โดยอัตโนมัติ
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO readwrite;
+```
+
+### Useful
+
+```sql
+-- ดู users ทั้งหมด
+\du
+SELECT rolname, rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolcanlogin
+FROM pg_roles;
+
+-- ดู สิทธิในตาราง
+\dp
+SELECT n.nspname AS schema,
+       c.relname AS name,
+       c.relkind AS type,
+       c.relacl,
+       pg_catalog.array_to_string(c.relacl, E'\n') AS access_privileges
+FROM pg_catalog.pg_class c
+     LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+WHERE c.relkind IN ('r','v','m','S','f','p')  -- r = table, v = view, S = sequence ฯลฯ
+  AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+ORDER BY n.nspname, c.relname;
+
+
+-- ดูสิทธิ์ในตาราง
+\z 
+\z tablename
+
+SELECT rolname, rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolcanlogin
+FROM pg_roles;
+
+SELECT r.rolname,
+       r.rolsuper,
+       r.rolinherit,
+       r.rolcreaterole,
+       r.rolcreatedb,
+       r.rolcanlogin,
+       r.rolreplication,
+       ARRAY(
+         SELECT b.rolname
+         FROM pg_auth_members m
+         JOIN pg_roles b ON (m.roleid = b.oid)
+         WHERE m.member = r.oid
+       ) AS memberof
+FROM pg_roles r
+ORDER BY r.rolname;
+
+-- เปลี่ยนเจ้าของตาราง/DB
+ALTER TABLE tablename OWNER TO username;
+ALTER DATABASE dbname OWNER TO username;
+```

@@ -1,0 +1,85 @@
+---
+title: Shardcn
+description: A cheatsheet of shardcn
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+## Dropdown menu
+### ปัญหา dropdown menu ใช้กับ dialog แล้วเมื่อ close dialog แล้วกดอะไรไม่ได้
+โดยปกติแล้วเมื่อกดเปิด dropdown menu มันจะไปใส่ `pointer-events: none;` ที่ body เพื่อป้องกันการ click ที่อื่น
+แต่ถ้าเรากำหนดให้การเลือก DropdownMenuItem จะเปิด dialog เรจะพบปัญหาเมื่่อกดปุ่มปิด dialog มันจะไม่ยอมลบ `pointer-events: none;` ออกจาก body
+
+<ChatMessage message="เข้าใจว่าปัญหาพอเลือกเมนูแล้วเปิด dialog มันไม่ปิด dropdown menu state เลยค้าง"  avatarKey="blackCat" />
+
+**Solution 1:**
+manual ปิด dropdown menu ก่อนก่อนเปิด dialog
+
+```tsx
+<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+  <DropdownMenuTrigger asChild>
+    <Button variant="ghost">
+      Menu
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent>
+    <DropdownMenuItem
+      onClick={handleShowDialog}
+      className="cursor-pointer"
+    >
+      openDialog
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
+
+const handleShowDialog = () => {
+  // ปิด dropdown menu
+  setDropdownOpen(false);
+  setShowDialog(true);
+};
+```
+
+**Solution 2:**
+ปรับ model จาก true เป็น false เพื่อไม่ให้ dropdown menu มัน ใส่ pointer-events: none;
+
+```tsx
+<DropdownMenu modal={true}>
+  <DropdownMenuTrigger asChild>
+    <Button variant="outline" size="icon">
+      <MoreVertical />
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent>
+    <DropdownMenuItem
+      onSelect={() => openViewDialog()}
+    >
+      View
+    </DropdownMenuItem>
+    <DropdownMenuItem
+      onSelect={() => openEditDialog()}
+    >
+      Edit
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
+```
+
+## Dialog
+### Dialog สูงทะลุจอเมื่อ content เกินขนาดจอ
+โดยปกติแล้ว dialog สูงตาม content แต่ถ้า content เกินขนาดจอ มันจะทะลุจอได้
+
+**Solution:**
+เราสามารถใช้ `overflow-y-auto` เพื่อทำให้ content สามารถ scroll ได้
+
+```tsx
+<Dialog open={open} onOpenChange={setOpen}>
+  <DialogContent className={"max-h-[95vh] flex flex-col"}>
+    <DialogHeader>
+      <DialogTitle>Add Group</DialogTitle>
+    </DialogHeader>
+    <div className={"overflow-y-scroll flex-1"}>
+      <GroupForm />
+    </div>
+  </DialogContent>
+</Dialog>
+```

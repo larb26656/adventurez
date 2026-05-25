@@ -1,0 +1,165 @@
+---
+title: Minio
+description: A cheatsheet of minio
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+คือระบบ object storage แบบ high-performance ที่เข้ากันได้กับ Amazon S3 API ช่วยให้จัดเก็บและบริหารจัดการไฟล์ขนาดใหญ่ได้อย่างปลอดภัย รองรับการจัดการผู้ใช้งานด้วย User / Group / Policy และสามารถใช้งานผ่าน Console, CLI (mc), API/SDK
+
+## Bucket
+ที่เก็บข้อมูล ใน MinIO หรือ S3
+> เปรียบเหมือน โฟลเดอร์ใหญ่ ที่เก็บไฟล์หลาย ๆ ตัว
+
+## Object
+ไฟล์หรือข้อมูลที่เก็บใน bucket
+
+## Permision
+
+Root account คือผู้ใช้ระดับสูงสุด (superuser) เพียงคนเดียว มีสิทธิ์จัดการทุกอย่างในระบบ
+
+ในการจัดการ permission ของ minio จะประกอบด้วย 2 องค์ประกอบดังนี้
+
+### Policy
+
+คือชุดกฎที่ใช้กำหนดสิทธิ์การเข้าถึง เช่น การกำหนดสิทธิ์ให้ bucket หรือบริการอื่น ๆ ในระบบโดยรูปแบบการกำหนดสิทธิ์จะเป็นแบบ json
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Resource": ["arn:aws:s3:::my-bucket/*"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::my-bucket"]
+    }
+  ]
+}
+```
+
+<ChatMessage message="MinIO ใช้ Policy format เหมือน AWS S3 เลยนะ"  avatarKey="blackCat" />
+
+### Group
+
+คือการจัดกลุ่มผู้ใช้งาน โดยเราสามารถผูก Policy หลาย ๆ ตัวเข้ากับ Group ได้ ตัวอย่างเช่น
+**Group: contentManger** ประกอบไปด้วย Policy publicAssetEdit และ contentEdit เป็นต้น
+
+<ChatMessage message="การเพิ่ม User เข้า ไปใน Group User จะได้สิทธิ์ตาม Policy ของ Group ทันที" avatarKey="blackCat" />
+<ChatMessage message="ถ้าอยากให้ User ใน Group มีสิทธิ์เพิ่ม → แค่เพิ่ม Policy ให้ Group ใช่ไหม?" avatarKey="me" isFromMe="true" />
+<ChatMessage message="ใช่แล้ว~" avatarKey="blackCat" />
+
+## Authentication
+
+ในการยืนยันตัวตน (authentication) เราสามารถใช้ 2 วิธีดังนี้
+
+### User account
+
+ใช้ username และ password ในการยืนยันตน เหมาะสำหรับการใช้งานผ่าน MinIO Console
+
+### Service account
+
+ใช้ accesskey และ secretkey ในการยืนยันตน เหมาะสำหรับการใช้งานผ่าน API หรือ SDK
+
+การสร้าง Service account จะต้องอ้างอิงกับ User account เสมอ
+
+- หนึ่ง User account สามารถสร้าง หลาย Service account ได้
+
+## Minio client commands
+<ChatMessage message="ก่อนจะเริ่มใช้งาน Minio client จะต้องสร้าง alias ก่อน"  avatarKey="me" isFromMe="true" />
+
+สร้าง alias ด้วยคำสั่ง
+
+```bash
+mc alias set <alias> <url> <username> <password>
+```
+
+### Alias
+
+alias คือชื่อที่ใช้แทน url ของ minio server
+
+```bash
+# แสดง alias ในระบบ
+mc alias list
+```
+
+<ChatMessage message="ส่วนใหญ่คำสั่งต้องระบุ alias ด้วย เพื่อให้ MinIO Client รู้ว่ากำลังจัดการกับ server ไหนอยู่"  avatarKey="blackCat" />
+
+### Bucket
+
+```bash
+# แสดง bucket ในระบบ
+mc ls <alias>
+
+# สร้าง bucket
+mc mb <alias>/<bucketname>
+
+# ลบ bucket ระวังการใช้งาน! เพราะมันไม่มี confirm ก่อน
+mc rb <alias>/<bucketname>  
+```
+
+### Bucket permission
+
+MinIO bucket มี **สิทธิ์การเข้าถึง 4 ประเภท** ดังนี้:
+1. **public**  
+   - อ่านข้อมูลได้ (read)  
+   - อัพโหลดไฟล์ได้ (write)
+2. **upload**  
+   - อัพโหลดไฟล์ได้เท่านั้น (write)  
+   - ไม่สามารถอ่านไฟล์ได้ (no read)
+3. **download**  
+   - ดาวน์โหลดไฟล์ได้เท่านั้น (read)  
+   - ไม่สามารถอัพโหลดไฟล์ได้ (no write)
+4. **private**  
+   - ไม่สามารถอ่านหรือเขียนไฟล์ได้ (no read/write)  
+   - เหมาะสำหรับเก็บข้อมูลส่วนตัว
+
+```bash
+# แสดงสิทธิ์การเข้าถึง bucket
+mc anonymous list <alias>/<bucketname>/<bucket-path>
+
+# ตั้งสิทธิ์การเข้าถึง bucket
+mc anonymous set <permission> <alias>/<bucketname>/<bucket-path>
+```
+
+<ChatMessage message="ถ้าอยาก clear การเข้าถึง bucket ให้ set เป็น private"  avatarKey="blackCat" />
+
+### Group
+
+```bash
+# แสดง group ในระบบ
+mc admin group list <alias>
+
+# เพิ่ม policy ให้ group
+mc admin policy attach <alias> <policy> --group <groupname>
+```
+
+### Policy
+
+```bash
+# แสดง policy ในระบบ
+mc admin policy list <alias>
+```
+
+### User
+
+```bash
+# แสดง user ในระบบ
+mc admin user list <alias>
+
+# เพิ่ม user ในระบบ
+mc admin user add <alias> <username> <password>
+
+# แสดง policy ของ user
+mc admin user policy <alias> <username>
+
+# เพิ่ม policy ให้ user
+mc admin policy attach <alias> <policy> --user <username>
+
+# ลบ policy ออกจาก user
+mc admin policy detach <alias> <policy> --user <username>
+```

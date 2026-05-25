@@ -1,0 +1,52 @@
+---
+title: Sdkman
+description: A cheatsheet of sdkman
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+คือ cli ที่ใช้ในการจัดการ sdk ต่าง ที่เกี่ยวกับการพัฒนาโปรแกรมด้วยภาษา java
+
+## Commands
+### List
+
+alias คือชื่อที่ใช้แทน url ของ minio server
+
+```bash
+# แสดงรายการ sdk ตาม candidate
+sdk list <candidate> # sdk list java
+```
+
+### Install
+
+```bash
+# ติดตั้ง sdk
+sdk install <candidate> <identifier> # sdk install java 25-amzn
+```
+
+
+### Env
+<ChatMessage message="ถ้าคุณเคยเจอปัญหาต้อง switch jdk ไปมาระหว่างโปรเจคคำสั่งนี้จะช่วยคุณ"  avatarKey="blackCat" />
+
+ก่อนจะใช้ให้ทำการตั้งค่า env เสียก่อน
+```bash
+sdk env init
+```
+
+sdkman จะสร้างไฟล์ `.sdkmanrc` ที่ระบุ version java ที่จะใช้ในโปรเจคนี้ ให้ปรับ version ตามที่โปรเจคของคุณใช้
+```bash
+# Enable auto-env through the sdkman_auto_env config
+# Add key=value pairs of SDKs to use below
+java=21.0.4-tem
+```
+
+```bash
+# แสดงรายการ env ที่ตั้งค่าใน project
+sdk env
+
+# ยกเลิกการตั้งค่า env
+sdk env clear
+
+# ติดตั้ง dependencies ตาม env
+sdk env install
+```

@@ -114,6 +114,16 @@ export default defineConfig({
               },
             ],
           },
+          {
+            label: "Cheatsheet",
+            link: "/cheatsheet/",
+            items: [
+              {
+                label: "Start Here",
+                autogenerate: { directory: "cheatsheet" },
+              },
+            ],
+          },
         ]),
       ],
     }),

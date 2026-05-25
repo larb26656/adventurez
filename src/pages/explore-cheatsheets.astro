@@ -1,0 +1,27 @@
+---
+import Layout from "../components/Layout.astro";
+import CheatsheetFilter from "../components/CheatsheetFilter";
+import { getCheatsheets } from "../data/cheatsheets";
+
+const cheatsheets = await getCheatsheets();
+---
+
+<Layout title="Explore Cheatsheets" active="Cheatsheets">
+  <div
+    class="max-w-[1100px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 pt-8 sm:pt-12"
+  >
+    <h1
+      class="font-bold text-[clamp(28px,5vw,40px)] leading-[1.15] tracking-tight text-foreground mb-2"
+      style="font-family: var(--font-display); letter-spacing: -0.02em;"
+    >
+      Explore all cheatsheets
+    </h1>
+    <p
+      class="text-[15px] sm:text-[16px] leading-[1.6] text-muted max-w-[480px]"
+    >
+      ค้นหา cheatsheet ที่ต้องการ เพื่อช่วยให้การทำงานเร็วขึ้น ✨
+    </p>
+  </div>
+
+  <CheatsheetFilter client:load cheatsheets={cheatsheets} />
+</Layout>

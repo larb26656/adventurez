@@ -1,0 +1,146 @@
+---
+title: Linux
+description: A cheatsheet of linux
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+### User
+
+```bash
+# สร้าง user
+useradd -m <username>
+
+# แสดงว่า session ปัจจุบันเป็น user อะไร
+whoami
+
+# แสดงรายชื่อ user ทั้งหมดในระบบ
+cut -d: -f1 /etc/passwd
+
+# ตั้งค่า password ให้ user
+passwd <username>
+
+# ลบ user
+deluser --remove-home <username>
+
+# เปลี่ยน home user
+usermod -d <home-dir> <username>
+```
+
+### Group
+
+```bash
+# สร้าง group
+groupadd <groupname>
+
+# เพิ่ม user เข้าสู่ group
+usermod -aG <groupname> <username>
+
+# แสดง group ของตัวเอง
+groups
+
+# แสดง group ของ user
+groups <username> 
+id <username>
+
+# แสดงรายชื่อ group ทั้งหมด
+getent group
+
+# ลบ group
+groupdel <groupname>
+```
+
+### Shell
+
+```bash
+# ตรวจสอบ shell ที่กำลังใช้งาน
+echo $SHELL
+
+# ตรวจสอบ shell ของ process ปัจจุบัน
+ps -p $$
+
+# ดู shell ที่มีให้ใช้งาน
+cat /etc/shells
+
+# เปลี่ยน default shell ของ user
+chsh -s /bin/bash
+
+# สลับ shell ชั่วคราว
+zsh
+bash
+fish
+
+# แสดง environment variables
+env
+printenv
+
+# แสดงค่าของตัวแปรเฉพาะ
+echo $HOME
+echo $PATH
+
+# ตั้งค่า environment variable ชั่วคราว
+export MY_VAR="value"
+
+# แสดงประวัติคำสั่ง
+history
+
+# รันคำสั่งล่าสุด
+!!
+
+# รันคำสั่งลำดับที่ n
+!n
+```
+
+## Create jail
+การ สร้าง Jail (chroot jail) คือการ “จำกัดขอบเขตการเข้าถึงของผู้ใช้” ให้อยู่ภายในพื้นที่เฉพาะของระบบไฟล์ (directory) เท่านั้น — เหมือน “ขังผู้ใช้ไว้ในกรง” ที่มองเห็นและเข้าถึงได้เฉพาะไฟล์และคำสั่งที่อนุญาตเท่านั้น
+
+สร้าง jail
+```bash
+mkdir -p <jail-path>
+chown root:root <jail-path>
+chmod 755 <jail-path>
+```
+
+สร้าง group
+```bash
+groupadd <group>
+```
+
+สร้าง user
+```bash
+useradd -M -g <group> <username>
+```
+
+ตั้งรหัสให้ user
+```bash
+passwd <username>
+```
+
+สร้าง home folder
+```bash
+mkdir -p <jail-path>/home<username>
+chown <username>: <jail-path>/home<username>
+chmod 750  <jail-path>/home<username>
+usermod -d  <jail-path>/home<username> <username>
+```
+
+ตั้งค่า ssh โดยการเขียนไฟล์ `/etc/ssh/sshd_config` ให้เลื่อนมาด้านล่างสุดของไฟล์จากนั้นใส่ข้อความดังต่อไปนี้เพื่อกำหนด chroot
+```bash
+Match Group <group>
+    ChrootDirectory <jail-path>
+    ForceCommand internal-sftp
+    AllowTcpForwarding no
+    X11Forwarding no
+```
+
+ถ้าอยากให้ใช้ shell ได้ให้ทำการ copy sh กับ bash เข้าไปด้วย chroot ด้วย
+```bash
+sudo mkdir <jail-path>/bin/
+sudo cp /bin/bash <jail-path>/bin/
+sudo cp /bin/sh /jail/testuser/bin/s
+```
+
+ทำการ reload config ssh
+```bash
+systemctl reload ssh
+```

@@ -1,0 +1,131 @@
+---
+title: Traefik
+description: A cheatsheet of traefik
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+คือ reverse proxy และ load balancer แบบ modern ที่ออกแบบมาเพื่อทำงานกับระบบ container และ cloud-native อย่าง Docker, Kubernetes, และ Consul ได้อย่างราบรื่น
+
+## จุดเด่นของ Traefik
+- Auto discovery — ดึงข้อมูล service ใหม่จาก Docker/Kubernetes โดยอัตโนมัติ
+- Dynamic routing — สร้าง route ตาม label/config โดยไม่ต้องแก้ไฟล์ config มือ
+- Let’s Encrypt integration — ออกใบรับรอง SSL อัตโนมัติ
+- Load balancing และ middleware — รองรับ sticky session, rate limit, auth ฯลฯ
+- Web UI Dashboard — มีหน้า dashboard ดูการจราจรและสถานะ routing
+
+
+## Concept หลัก
+- **Entrypoints** คือจุดเชื่อมต่อทางเครือข่าย (network entry points) ที่ใช้รับคำขอ (requests) จากภายนอกเข้าสู่ Traefik โดยตรงแต่ละ entrypoint จะระบุว่า Traefik ต้อง ฟัง (listen) ที่ พอร์ตใด และใช้ โปรโตคอลใด (TCP หรือ UDP) ในการรับข้อมูล
+โดยทั่วไป มักจะมี entrypoint หลักอยู่ 2 ประเภทคือ:
+	- web สำหรับรับทราฟฟิก HTTP ปกติ (เช่น พอร์ต :80)
+	- websecure สำหรับรับทราฟฟิก HTTPS ที่มีการเข้ารหัส SSL/TLS (เช่น พอร์ต :443)
+
+การกำหนด entrypoints จะทำในไฟล์ `traefik.yml` โดยสามารถระบุพอร์ตและชื่อ entrypoint ได้ตามต้องการ เช่น
+
+```yaml
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+  internal-api:
+    address: ":8080"
+```
+
+<ChatMessage message="นอกจาก web และ websecure แล้วเราสามารถสร้าง entrypoint อื่นๆได้ด้วย"  avatarKey="blackCat" />
+- **Routers** ทำหน้าที่เชื่อมต่อคำขอ (incoming request) ที่เข้ามายัง entrypoint ไปยัง service ที่สามารถตอบสนองคำขอนั้นได้
+ในขั้นตอนนี้ router สามารถใช้ middleware เพื่อปรับแต่งหรือประมวลผลคำขอ
+ก่อนที่จะส่งต่อไปยัง service จริง เช่น การเพิ่ม header, ตรวจสอบสิทธิ์, หรือเปลี่ยนเส้นทาง (redirect)
+
+<ChatMessage message="Router = ตัวกำหนดว่าคำขอนี้จะถูกส่งไปที่ service ไหน"  avatarKey="blackCat" />
+<ChatMessage message="Middleware = ตัวช่วยที่อยู่ระหว่างทางเพื่อดัดแปลงคำขอก่อนถึง service"  avatarKey="whiteCat" /> 
+
+```yaml
+http:
+  routers:
+    api-router:
+      entryPoints:
+        - web
+      rule: "Host(`api.example.com`)"
+      middlewares:
+        - auth
+      service: api-service
+```
+
+- **Services** คือส่วนที่บอก Traefik ว่า เมื่อมีคำขอเข้ามาแล้ว ควรจะส่งต่อไปยัง ปลายทางจริง ที่จะจัดการคำขอนั้นอย่างไร เช่น จะไปที่ container ไหน หรือ backend ไหน
+- **Providers** คือแหล่งข้อมูล (infrastructure sources) ที่ Traefik ใช้ในการ ค้นหาและอัปเดต routing อัตโนมัติ
+
+<ChatMessage message="หรือพูดง่ายๆ คือเป็นตัวกำหนดว่าจะให้ traefik ไปหาข้อมูลการตั้งค่าที่ไหน"  avatarKey="blackCat" />
+
+### Provider ที่ traefik รองรับ
+
+| ประเภท | ตัวอย่าง |
+|---------|-----------|
+| **Container Orchestrator** | Docker, Kubernetes, Marathon |
+| **Cloud Provider** | AWS ECS, Azure Service Fabric |
+| **Key-Value Store** | etcd, Consul |
+| **File-based** | YAML / TOML configuration (เช่น `traefik.yml`, `dynamic.yml`) |
+
+<ChatMessage message="ข้อดีของ provider ตระกูล container ochestrator ก็คือเมื่อ service เปลี่ยนชื่อ หรือมีการ เปลี่ยน traefik จะ detect และ update ให้อัตโนมัติ"  avatarKey="blackCat" />
+
+
+## Enable dashboard
+
+เพื่ม property `api.dashboard` กับ `api.insecure`
+
+``` yaml
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+api:
+  dashboard: true
+  insecure: true
+```
+
+ทดสอบเข้า dashboard ที่ url `http://localhost:8080` จะพบหน้า dashboard ของ traefik
+
+<ChatMessage message="ไม่แน่นำให้ใช้วิธีนี้ใน production นะ"  avatarKey="blackCat" />
+
+### Secure dashboard
+
+เพิ่ม entrypoint `webapi` และ ปรับ property `api.insecure` เป็น `false`
+
+```yaml
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+  webapi:
+    address: ":8080"
+api:
+  dashboard: true
+  insecure: false
+```
+
+สร้างไฟล์ config เพื่อกำหนด router และ middleware basic auth ให้ entrypoint 
+
+```yaml
+http:
+  routers:
+    webapi:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - webapi
+      service: api@internal
+      middlewares:
+        - auth
+  middlewares:
+    auth:
+      basicAuth:
+        users:
+          - "admin:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"  # username: admin password: test
+          # เพิ่ม user ได้ตรงนี้
+```
+
+restart traefik service และ เข้า url `http://localhost:8080` จะพบหน้าต่างให้เรากรอก username และ password เพื่อเข้าใช้งาน
+

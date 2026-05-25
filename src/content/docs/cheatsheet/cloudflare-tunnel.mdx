@@ -1,0 +1,173 @@
+---
+title: Cloudflare tunnel
+description: A cheatsheet of Cloudflare tunnel
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+Cloudflare Tunnel (cloudflared) สร้างการเชื่อมต่อออกรูปแบบ persistent outbound TLS จากเครื่องต้นทาง (origin) 
+ไปยังเครือข่าย edge ของ Cloudflare ทำให้ Cloudflare สามารถรับทราฟฟิกและส่งต่อไปยัง service ภายในเครื่องของคุณ
+ได้โดยตรงโดยไม่ต้องเปิดพอร์ตบนไฟร์วอลล์
+
+## องค์ประกอบหลัก
+- cloudflared (client) — ตัวโปรแกรมที่รันบนเครื่องของคุณ สร้างการเชื่อมต่อออกไปยัง Cloudflare และอ่าน config.yml / credentials เพื่อกำหนด ingress rules
+- Cloudflare Edge — จุดรับทราฟฟิกจากอินเทอร์เน็ต (HTTPS) และส่งต่อผ่าน tunnel ไปยัง client
+- Tunnel Credentials — ไฟล์ JSON ที่ได้จาก cloudflared tunnel create หรือ cloudflared login เก็บไว้บนเครื่อง (~/.cloudflared หรือโฟลเดอร์ที่กำหนด)
+- Ingress rules / DNS route — นิยามว่า hostname ไหนจะถูกแมปไปที่ service ไหน (เช่น myapp.example.com → http://localhost:3000) และสามารถ map DNS ด้วย cloudflared tunnel route dns ได้
+
+## Install
+https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads
+
+## Commands
+
+### Authentication
+
+``` bash
+# เข้าสู่ระบบ
+cloudflared login
+```
+
+### tunnel
+
+```bash
+# สร้าง url tunnel แบบชั่วคราว
+cloudflared tunnel --url <local-url>
+
+# สร้าง tunnel
+cloudflared tunnel create <name>
+
+# ดูรายการ tunnel ที่มี
+cloudflared tunnel list
+
+# ดูรายละเอียดของ tunnel
+cloudflared tunnel info <name-or-UUID>
+
+# รัน tunnel ที่สร้างไว้ (ใช้ชื่อหรือ UUID)
+cloudflared tunnel run <name-or-UUID>
+
+# หยุดการรัน (ถ้ารัน foreground ให้ Ctrl+C)
+# ลบ tunnel (จะลบ credentials/registration ใน Cloudflare)
+cloudflared tunnel delete <name-or-UUID>
+
+# map tunnel กับ dns
+cloudflared tunnel route dns <name-or-UUID> <hostname>
+```
+
+## วิธีใช้งานเบื้องต้น
+สร้าง tunnel
+```bash
+cloudflared tunnel create <name>
+```
+
+ทำการสร้าง config เพื่อ setting การ map router โดยสร้างไฟล์ `config.yml` ที่ path `~/.cloudflared/config.yml`
+
+```yaml
+// ~/.cloudflared/config.yml
+tunnel: {UUID}
+credentials-file: /home/{username}/.cloudflared/{UUID}.json
+
+ingress:
+  # frontend
+  - hostname: app.example.com
+    service: http://localhost:3000
+
+  # api service
+  - hostname: api.example.com
+    service: http://localhost:8080
+
+  - service: http_status:404
+```
+
+<ChatMessage message="ใช้ full path แทน ~ เพราะเวลารันเป็น service จะเป็น root และ ~ จะชี้ไปที่ /root แทน" avatarKey="blackCat" />
+
+สร้าง dns record เพื่อเชื่อมเข้ากับ tunnel ด้วยคำสั่ง
+
+```bash
+cloudflared tunnel route dns <name-or-UUID> <hostname>
+```
+
+<ChatMessage message="ถ้าต้องการลบ router dns สามารถทำได้ใน ui dns ของ cloudflare เลย"  avatarKey="whiteCat" />
+
+รัน tunnel
+
+```bash
+cloudflared tunnel run <name-or-UUID>
+```
+
+ลองเข้าเว็บด้วย `app.example.com` จะพบว่า cloudflare มัน route มาที่ `http://localhost:3000` ถือว่าเสร็จสิ้นขั้นตอนการใช้งาน
+
+### Set cloudflare as service
+ถ้าอยากให้เปิดเครื่องมาแล้ว start tunnel เลย set ตามนี้เลย
+
+#### macOS
+
+```bash
+# รันตอน login (ใช้ user ปกติ)
+cloudflared service install
+
+# รันตอน boot (ต้อง sudo)
+sudo cloudflared service install
+
+# start service
+sudo launchctl start com.cloudflare.cloudflared
+
+# stop service
+sudo launchctl stop com.cloudflare.cloudflared
+```
+
+#### Linux (systemd)
+
+```bash
+# ย้าย config ไปที่ /etc/cloudflared/
+sudo mv /home/{username}/.cloudflared/config.yml /etc/cloudflared/
+sudo chmod 600 /etc/cloudflared/config.yml
+```
+
+<ChatMessage message="เพราะ service รันเป็น root เลยไม่เห็น config ที่อยู่่ใน /home/{username} เพราะ ~ ของ root คือ /root)" avatarKey="blackCat" />
+
+``` bash
+
+# install service (ต้อง sudo)
+sudo cloudflared service install
+
+# start
+sudo systemctl start cloudflared
+
+# enable ตอน boot
+sudo systemctl enable cloudflared
+
+# stop
+sudo systemctl stop cloudflared
+
+# restart
+sudo systemctl restart cloudflared
+
+# status
+sudo systemctl status cloudflared
+```
+
+#### Docker
+
+```bash
+docker run -d \
+  --name cloudflared \
+  --network host \
+  -v ~/.cloudflared:/etc/cloudflared \
+  cloudflare/cloudflared:latest tunnel run --config /etc/cloudflared/config.yml <name-or-UUID>
+```
+
+### Reload config
+
+หลังแก้ไข `config.yml` แล้ว ต้อง restart service เพื่อให้มีผล (cloudflared ไม่รองรับ reload แบบ hot reload)
+
+```bash
+# Linux (systemd)
+sudo systemctl restart cloudflared
+
+# macOS
+sudo launchctl stop com.cloudflare.cloudflared
+sudo launchctl start com.cloudflare.cloudflared
+
+# Docker
+docker restart cloudflared
+```

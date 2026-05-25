@@ -1,0 +1,162 @@
+---
+title: Openfeign
+description: A cheatsheet of open feign
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+คือ library ใช้ในการเรียก Http request ด้วยการเขียนแบบ declarative โดยปกติแล้วเวลาเขียนโค้ด เรียกใช้งาน Http request เราจะต้องเขียนโค้ดเป็นลำดับขั้นตอนค่อนข้างเยอะแบบนี้
+
+``` java
+RestTemplate restTemplate = new RestTemplate();
+String url = "https://jsonplaceholder.typicode.com/posts/1";
+
+ResponseEntity<PostDto> response = restTemplate.getForEntity(url, PostDto.class);
+
+if (response.getStatusCode().is2xxSuccessful()) {
+    PostDto post = response.getBody();
+    System.out.println(post.getTitle());
+} else {
+    throw new RuntimeException("Request failed with status: " + response.getStatusCode());
+}
+```
+
+แต่ถ้าเราใช้ OpenFeign จะทำให้โค้ดกระชับขึ้น เพราะเราสามารถเขียนแบบ declarative ได้เลย เช่น
+
+```
+@FeignClient(name = "jsonPlaceholder", url = "https://jsonplaceholder.typicode.com")
+public interface PostClient {
+
+    @GetMapping("/posts/{id}")
+    PostDto getPostById(@PathVariable("id") Long id);
+}
+```
+> Declarative style คือการเขียนโค้ดในลักษณะที่ บอกความต้องการ โดยไม่ต้องกำหนดรายละเอียดการทำงานทีละขั้น ซึ่งในตัวอย่างนี้ กระบวนการที่เกิดขึ้นคือ
+> - method getPostById ให้เรียก HTTP GET
+> - ไปที่ path /posts/id
+> - แล้ว map ค่ากลับมาเป็น PostDto
+
+<ChatMessage message="จะเห็นได้ว่าเราไม่ต้องเขียนโค้ดเรียก HTTP client เองเลย ทำให้โค้ดสั้น กระชับ สะดวกสุดๆ"  avatarKey="blackCat" />
+
+## Ref link
+[openfeign doc](https://docs.spring.io/spring-cloud-openfeign/docs/current/reference/html/)
+
+## Pros
+- โค้ดสั้น กระชับ และเข้าใจง่าย
+- สร้างการเชื่อมต่อกับ API ได้อย่างรวดเร็ว
+
+## Cons
+- ยากต่อการจัดการเงื่อนไขซับซ้อน เช่น การแปลง request/response หรือการจัดการ exception แบบพิเศษ
+- ความยืดหยุ่นต่ำกว่าการเขียนโค้ดแบบ imperative ตรง ๆ
+
+## เริ่มต้นการใช้งาน
+เพิ่ม dependency openfeign
+
+``` gradle
+  implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+  // สำหรับกรณีทำเป็น library แยก เพื่อให้ OpenFeign แปลง JSON เป็น DTO ได้
+	implementation('com.fasterxml.jackson.core:jackson-databind')
+```
+
+สร้าง interface ขึ้นมา
+
+``` java
+@FeignClient(name = "oneId", url = "http://localhost:3000")
+public interface OneIdClient {
+
+    @GetMapping("/api/v1/users")
+    SuccessResponse<PageResponse<UserDto>> getUsers();
+
+}
+```
+
+อธิบายทีละขั้นตอน
+  1.  ใส่ @FeignClient เพื่อกำหนดให้ interface นี้เป็น Feign Client
+	  - name ใช้ตั้งชื่อ client
+	  - url ระบุ URL ของ API ปลายทาง
+	2.  กำหนด method โดยใช้ annotation เช่น @GetMapping เพื่อเรียก HTTP GET พร้อมระบุ path ของ endpoint
+	3.  OpenFeign จะจัดการ HTTP request และ mapping response เป็น `SuccessResponse<PageResponse<UserDto>>` ให้โดยอัตโนมัติ
+
+## PostMapping
+
+``` java
+@PostMapping("/api/v1/users")
+SuccessResponse<UserDto> createUser(@RequestBody CreateUserRequest request);
+```
+
+## GetMapping
+
+``` java
+@GetMapping("/api/v1/users")
+SuccessResponse<PageResponse<UserDto>> getUsers(
+    @RequestParam(value = "page", defaultValue = "0") int page,
+    @RequestParam(value = "size", defaultValue = "10") int size
+);
+```
+
+## PutMapping
+
+``` java
+@PutMapping("/api/v1/users/{id}")
+SuccessResponse<UserDto> updateUser(
+    @PathVariable("id") String id,
+    @RequestBody UpdateUserRequest request
+);
+```
+
+## DeleteMapping
+
+``` java
+@DeleteMapping("/api/v1/users/{id}")
+SuccessResponse<Void> deleteUser(@PathVariable("id") String id);
+```
+
+## QueryMapping
+``` java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class GetAllUserParamsDto extends PageParams {
+    private List<String> userIdIn;
+    private String fullNameLike;
+    private List<String> rolesIn;
+    private List<Integer> groupIdsIn;
+
+    private SortOrder sortByFullName;
+
+    public enum SortOrder {
+        ASC, DESC
+    }
+}
+```
+
+``` java
+@GetMapping("/internal/api/v1/users")
+SuccessResponse<PageResponse<UserDto>> getUsers(@SpringQueryMap GetAllUserParamsDto params);
+```
+
+<ChatMessage message="ถ้าเราลองสังเกตุการออกแบบ api ของ openfeign จะมี annotaion หรือวิธีเขียนเหมือนกับ การสร้าง Rest controller เลย"  avatarKey="blackCat" />
+
+## อ่านค่า จาก application.yml
+
+เวลาใช้ `@FeignClient` เราสามารถ map ค่า name และ url ให้ไปอ่านจาก `application.yml`
+
+กำหนดค่าใน `application.yml`
+
+``` yaml
+feign:
+  name: store-service
+  url: http://localhost:8081
+```
+
+ใช้ค่าใน @FeignClient
+```
+@FeignClient(name = "${feign.name}", url = "${feign.url}")
+public interface StoreClient {
+    //..
+}
+```
+
+<ChatMessage message="แบบนี้จะช่วยให้ไม่ต้อง hardcode ค่าในโค้ด เวลาเปลี่ยน environment (dev, uat, prod) ก็แค่เปลี่ยนใน application.yml ได้เลย"  avatarKey="blackCat" />
+
+## Beans
