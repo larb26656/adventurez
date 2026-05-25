@@ -29,7 +29,7 @@ export default defineConfig({
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/larb26656",
+          href: "https://github.com/larb26656/adventurez",
         },
       ],
       plugins: [
