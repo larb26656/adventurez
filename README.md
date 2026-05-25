@@ -1,49 +1,113 @@
-# Starlight Starter Kit: Basics
+# Adventure
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+A personal learning platform for documenting courses and cheatsheets on various technology topics.
+
+## Project Overview
+
+Adventure is a documentation and learning platform that provides interactive courses and quick reference cheatsheets. It features a clean, modern interface designed for easy navigation through learning materials.
+
+## Tech Stack
+
+- **Framework**: [Astro](https://astro.build/) v6 with static site generation
+- **UI Framework**: [React](https://react.dev/) 19 for interactive components
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) v4
+- **Documentation**: [Starlight](https://starlight.astro.build/) (Astro's documentation framework)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Testing**: [Vitest](https://vitest.dev/) + [Playwright](https://playwright.dev/)
+- **Component Explorer**: [Storybook](https://storybook.js.org/) 10
+
+## Project Structure
 
 ```
-npm create astro@latest -- --template starlight
+src/
+├── components/          # React & Astro components
+│   ├── ui/              # Reusable UI components
+│   ├── quiz/            # Quiz components
+│   └── DebugCanvas/     # Interactive debugging tools
+├── content/
+│   └── docs/            # Documentation content (MDX)
+│       ├── cheatsheet/  # Cheatsheet articles
+│       └── *-adventure/ # Course modules
+├── data/                # Data layer (courses, cheatsheets)
+├── pages/               # Astro pages
+└── styles/              # Global styles
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Courses
 
-## 🚀 Project Structure
+Self-paced learning modules covering various technology topics:
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+- **Docker Adventure** - Container fundamentals and orchestration
+- **GitHub Actions Adventure** - CI/CD pipeline development
+- **n8n Adventure** - Workflow automation
 
+Each course includes hands-on exercises and practical examples.
+
+## Cheatsheets
+
+Quick reference guides for common tools and technologies:
+
+- Docker, PostgreSQL, Linux, Traefik, SSL
+- SDKman, Shadcn, MinIO, Cloudflare Tunnel, OpenFeign
+
+## How to Contribute
+
+### Adding a New Course
+
+1. Create a new folder in `src/content/docs/` following the `{course-name}-adventure` naming convention
+2. Add a frontmatter configuration with metadata:
+
+```mdx
+---
+title: Your Course Title
+description: Course description
+thumbnail: /path/to/thumbnail.png
+tags: [Tag1, Tag2]
+categories: [Technology]
+level: Beginner|Intermediate|Advanced
+color: "#hexcode"
+---
 ```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+
+3. Add lesson files numbered sequentially (e.g., `01-getting-started.mdx`, `02-advanced.mdx`)
+4. The course will automatically appear on the homepage
+
+### Adding a New Cheatsheet
+
+1. Create a new file in `src/content/docs/cheatsheet/` with the tool name as the filename (e.g., `docker.md`)
+2. Add frontmatter with metadata:
+
+```mdx
+---
+title: Tool Name
+description: A brief description
+tags: [Tag1, Tag2]
+categories: [Category]
+---
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+3. Write your cheatsheet content in MDX format
+4. The cheatsheet will automatically appear in the cheatsheet gallery
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+### Development Commands
 
-Static assets, like favicons, can be placed in the `public/` directory.
+```bash
+# Start development server
+npm run dev
 
-## 🧞 Commands
+# Build for production
+npm run build
 
-All commands are run from the root of the project, from a terminal:
+# Preview production build
+npm run preview
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+# Run Storybook component explorer
+npm run storybook
 
-## 👀 Want to learn more?
+# Build Storybook static site
+npm run build-storybook
+```
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+## License
+
+MIT
