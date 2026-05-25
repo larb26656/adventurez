@@ -104,6 +104,16 @@ export default defineConfig({
               },
             ],
           },
+          {
+            label: "AI Tools สำหรับชีวิตจริง",
+            link: "/ai-for-everyone/",
+            items: [
+              {
+                label: "Start Here",
+                autogenerate: { directory: "ai-for-everyone" },
+              },
+            ],
+          },
         ]),
       ],
     }),
