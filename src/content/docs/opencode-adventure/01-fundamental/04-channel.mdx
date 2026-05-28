@@ -36,9 +36,20 @@ opencode
 
 **วิธีใช้:**
 ```bash
-opencode --web
-# หรือ
 opencode web
 ```
 
 <ChatMessage message="เลือกช่องทางที่ถนัดได้เลย ไม่ว่าจะเป็น TUI หรือ Web!" avatarKey="whiteCat" />
+
+## Scope ของ Opencode
+
+Opencode ทำงานใน **working directory** ที่คุณเปิด terminal ณ ตอนนั้น หมายความว่า:
+
+- **เข้าถึงได้เฉพาะไฟล์ใน directory นั้น** - Opencode จะเห็นและทำงานกับไฟล์ที่อยู่ใน directory ปัจจุบันและ subdirectory ของมัน
+- **ไม่สามารถอ่านไฟล์ข้างนอก directory** - โดยค่าเริ่มต้น Opencode จะจำกัด scope ไว้เพื่อความปลอดภัย
+
+**กรณีต้องการเข้าถึงไฟล์นอก directory:**
+
+หากคุณต้องการให้ Opencode ทำงานกับไฟล์ที่อยู่นอก working directory จะมีข้อความแจ้งเตือนขอ permission ก่อน และเมื่ออนุญาตแล้ว Opencode จะสามารถเข้าถึงไฟล์ใน path ที่ระบุได้
+
+<ChatMessage message="ถ้าต้องการทำงานกับไฟล์ที่อยู่นอก directory ก็แค่ขอ permission ผ่านข้อความยืนยัน" avatarKey="whiteCat" />

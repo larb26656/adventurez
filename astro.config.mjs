@@ -119,7 +119,7 @@ export default defineConfig({
             link: "/cheatsheet/",
             items: [
               {
-                label: "Start Here",
+                label: "Cheatsheet",
                 autogenerate: { directory: "cheatsheet" },
               },
             ],

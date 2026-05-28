@@ -1,0 +1,41 @@
+---
+title: Mention
+order: 7
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+## การ mention ไฟล์
+
+Opencode สามารถอ่านไฟล์ที่คุณต้องการได้โดยตรง โดยใช้ `@` นำหน้าชื่อไฟล์
+
+**ตัวอย่างการใช้งาน:**
+
+```
+@src/app/page.tsx
+```
+
+<ChatMessage message="พิมพ์ @ แล้วกรอกชื่อบางส่วนได้เลยนะไม่จำเป็นต้องระบุ Path เต็ม เพราะ opencode มีฟีเจอร์ช่วยค้นหาที่ยืดหยุ่นไว้รองรับแล้ว" avatarKey="whiteCat" />
+
+## การทำงานข้ามโปรเจค
+
+นอกจากไฟล์ในโปรเจคปัจจุบันแล้ว Opencode ยังสามารถเปิดดูไฟล์จากโปรเจคอื่นๆ ได้อีกด้วย ซึ่งจะมีข้อความขอ permission ก่อน
+
+**ตัวอย่าง prompt ที่ reference ไฟล์จากโปรเจคอื่น:**
+
+```
+ช่วยดู pattern การเขียน authentication จาก ~/projects/my-auth-app ให้หน่อย
+แล้วเอามาใช้กับโปรเจคนี้
+```
+
+## การ mention Agent
+
+นอกจาก mention ไฟล์แล้ว คุณยังสามารถ mention Agent ที่ต้องการให้ทำเรื่องนี้ได้โดยตรง โดยใช้ `@` นำหน้าชื่อ agent
+
+**ตัวอย่างการใช้งาน:**
+
+```
+@frontend-designer ช่วยออกแบบ UI ให้หน่อย
+```
+
+<ChatMessage message="อยากให้ agent ไหนทำเรื่องอะไร ก็ @ หาได้เลย แต่ต้องเป็น agent ที่มีอยู่ใน opencode นะ" avatarKey="whiteCat" />
