@@ -33,3 +33,38 @@ order: 3
 ```
 ช่วยสร้าง html report สรุป module นี้ว่าทำอะไรบ้าง
 ```
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizCodeDev = {
+  id: "code-dev-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับการใช้งานในการพัฒนาโค้ด",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "คำสั่งใดใช้สำหรับ implement feature จาก requirement?",
+      options: ["ช่วย implement feature นี้จาก requirement ที่เป็น spec ให้หน่อย", "ช่วย refactor โค้ดนี้", "ช่วยเปลี่ยนชื่อตัวแปร", "ช่วยสร้าง report"],
+      correctAnswer: "ช่วย implement feature นี้จาก requirement ที่เป็น spec ให้หน่อย",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "คำสั่งใดใช้เปลี่ยนชื่อตัวแปรจาก underscore เป็น snake case?",
+      options: ["ช่วย implement feature นี้จาก requirement", "ช่วยเปลี่ยนชื่อตัวแปรจาก underscore เป็น snake case", "ช่วย refactor โค้ดนี้", "ช่วยสร้าง html report"],
+      correctAnswer: "ช่วยเปลี่ยนชื่อตัวแปรจาก underscore เป็น snake case",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "Opencode สามารถช่วยเขียน unit test ได้หรือไม่?",
+      options: ["ได้", "ไม่ได้", "ได้เฉพาะบางภาษา", "ได้เฉพาะ Node.js"],
+      correctAnswer: "ได้",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quizCodeDev} client:load />

@@ -16,11 +16,11 @@ interface Props {
 const { message, avatarKey, isFromMe = false } = Astro.props as Props;
 const avatarUrl = avatarMap[avatarKey];
 const avatarClass = `mt ${isFromMe ? "" : "scale-x-[-1]"}`;
-const rowClass = `my-6 flex items-start gap-3 ${isFromMe ? "flex-row-reverse" : ""}`;
+const rowClass = `not-content my-6 flex items-start gap-3 ${isFromMe ? "flex-row-reverse" : ""}`;
 const isFormMeDeclaratorClass = isFromMe
   ? "rounded-tr-none"
   : "rounded-tl-none";
-const bubbleClass = `max-w-[70ch] m-0! rounded-2xl border border-neutral-200 bg-neutral-100 px-4 py-2 text-[0.95rem] leading-relaxed text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 relative z-10 ${isFormMeDeclaratorClass}`;
+const bubbleClass = `max-w-[70ch] rounded-2xl border border-neutral-200 bg-neutral-100 px-4 py-2 text-[0.95rem] leading-relaxed text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 relative z-10 ${isFormMeDeclaratorClass}`;
 ---
 
 <div class={rowClass}>

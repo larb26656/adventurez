@@ -52,3 +52,46 @@ import ChatMessage from "@/components/ChatMessage.astro"
 | `/models` | เลือก model สำหรับ LLM |
 | `/session` | ดูข้อมูล session ปัจจุบัน |
 | `/compact` | Compact session ลดขนาด context |
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quiz6 = {
+  id: "commands-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Basic Commands",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "คำสั่งใดใช้เริ่ม session ใหม่ทั้งหมด?",
+      options: ["/models", "/new", "/session", "/compacts"],
+      correctAnswer: "/new",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "คำสั่งใดใช้ดูและเลือก model?",
+      options: ["/new", "/models", "/session", "/compacts"],
+      correctAnswer: "/models",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "/compacts ทำหน้าที่อะไร?",
+      options: ["เริ่ม session ใหม่", "ดูรายการ sessions", "ลดขนาด context โดยสรุปสิ่งที่ทำมาแล้ว", "เปลี่ยน model"],
+      correctAnswer: "ลดขนาด context โดยสรุปสิ่งที่ทำมาแล้ว",
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "ควรใช้ /compacts เมื่อใด?",
+      options: ["เมื่อต้องการเริ่มงานใหม่", "เมื่อ session ยาวมากและเริ่มทำงานช้าลง", "เมื่อต้องการเปลี่ยน model", "เมื่อต้องการดู session ทั้งหมด"],
+      correctAnswer: "เมื่อ session ยาวมากและเริ่มทำงานช้าลง",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quiz6} client:load />

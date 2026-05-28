@@ -1,4 +1,5 @@
-import type { AnswerState, QuizQuestion } from './types';
+import { Button } from "../ui";
+import type { AnswerState, QuizQuestion } from "./types";
 
 interface QuizResultProps {
   questions: QuizQuestion[];
@@ -12,49 +13,70 @@ export function QuizResult({ questions, answers, onRetry }: QuizResultProps) {
   const percentage = Math.round((earnedPoints / totalPoints) * 100);
 
   const getGrade = () => {
-    if (percentage >= 80) return { text: 'ดีเยี่ยม!', color: 'text-green-600' };
-    if (percentage >= 60) return { text: 'ดี', color: 'text-blue-600' };
-    if (percentage >= 40) return { text: 'พอใช้', color: 'text-yellow-600' };
-    return { text: 'ควรทบทวน', color: 'text-red-600' };
+    if (percentage >= 80)
+      return { text: "ดีเยี่ยม!", color: "text-[--sl-color-accent-high]" };
+    if (percentage >= 60)
+      return { text: "ดี", color: "text-[--sl-color-accent]" };
+    if (percentage >= 40)
+      return { text: "พอใช้", color: "text-[--sl-color-gray-3]" };
+    return { text: "ควรทบทวน", color: "text-red-500" };
   };
 
   const grade = getGrade();
 
   return (
     <div className="max-w-2xl mx-auto text-center">
-      <h3 className="text-lg font-semibold mb-4">ผลการทดสอบ</h3>
+      <h3 className="text-lg font-semibold mb-4 text-border-gray-100">
+        ผลการทดสอบ
+      </h3>
 
       <div className="mb-4">
-        <div className="text-3xl font-bold mb-1">{percentage}%</div>
-        <div className={`text-base font-medium ${grade.color}`}>{grade.text}</div>
-        <p className="text-gray-600 text-sm">
+        <div className="text-3xl font-bold mb-1 text-border-gray-100">
+          {percentage}%
+        </div>
+        <div className={`text-base font-medium ${grade.color}`}>
+          {grade.text}
+        </div>
+        <p className="text-sm text-[--sl-color-gray-3]">
           ได้คะแนน {earnedPoints} / {totalPoints} คะแนน
         </p>
       </div>
 
       <div className="text-left space-y-2 mb-4">
-        <h4 className="font-medium text-sm">สรุปคำตอบ:</h4>
+        <h4 className="font-medium text-sm text-border-gray-100">สรุปคำตอบ:</h4>
         {questions.map((q, idx) => {
           const answer = answers.find((a) => a.questionId === q.id);
           return (
             <div
               key={q.id}
-              className={`p-2 border rounded-lg ${
-                answer?.isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
+              className={`p-2 rounded-lg border ${
+                answer?.isCorrect
+                  ? "bg-green-500/10 border-green-500"
+                  : "bg-red-500/10 border-red-500"
               }`}
             >
               <div className="flex items-start gap-2">
-                <span className={answer?.isCorrect ? 'text-green-600' : 'text-red-600'}>
-                  {answer?.isCorrect ? '✓' : '✗'}
+                <span
+                  className={
+                    answer?.isCorrect ? "text-green-500" : "text-red-500"
+                  }
+                >
+                  {answer?.isCorrect ? "✓" : "✗"}
                 </span>
                 <div>
-                  <p className="text-sm">{q.question}</p>
-                  <p className="text-xs text-gray-600">
-                    คำตอบ: {Array.isArray(answer?.answer) ? answer.answer.join(', ') : answer?.answer}
+                  <p className="text-sm text-border-gray-100">{q.question}</p>
+                  <p className="text-xs text-border-gray-100">
+                    คำตอบ:{" "}
+                    {Array.isArray(answer?.answer)
+                      ? answer.answer.join(", ")
+                      : answer?.answer}
                   </p>
                   {!answer?.isCorrect && (
-                    <p className="text-xs text-gray-600">
-                      เฉลย: {Array.isArray(q.correctAnswer) ? q.correctAnswer.join(', ') : q.correctAnswer}
+                    <p className="text-xs text-border-gray-100">
+                      เฉลย:{" "}
+                      {Array.isArray(q.correctAnswer)
+                        ? q.correctAnswer.join(", ")
+                        : q.correctAnswer}
                     </p>
                   )}
                 </div>
@@ -64,12 +86,9 @@ export function QuizResult({ questions, answers, onRetry }: QuizResultProps) {
         })}
       </div>
 
-      <button
-        onClick={onRetry}
-        className="px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-      >
+      <Button onClick={onRetry} variant="primary" size="sm">
         ทำอีกครั้ง
-      </button>
+      </Button>
     </div>
   );
 }

@@ -32,3 +32,38 @@ order: 2
 - Single quotes, no semicolons
 - Use functional patterns where possible
 ```
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizAgentMd = {
+  id: "agents-md-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ AGENT.md",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "AGENT.md แตกต่างจาก README.md อย่างไร?",
+      options: ["AGENT.md สำหรับมนุษย์, README.md สำหรับ AI", "AGENT.md สำหรับ AI, README.md สำหรับมนุษย์", "ทั้งสองเหมือนกัน", "AGENT.md เป็น version เก่าของ README.md"],
+      correctAnswer: "AGENT.md สำหรับ AI, README.md สำหรับมนุษย์",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "multiple",
+      question: "AGENT.md ควรมีเนื้อหาอะไรบ้าง?",
+      options: ["คำสั่ง setup โปรเจกต์", "Code style guidelines", "Framework information", "เนื้อเรื่องของโปรเจกต์"],
+      correctAnswer: ["คำสั่ง setup โปรเจกต์", "Code style guidelines", "Framework information"],
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "README.md สร้างขึ้นเพื่อใคร?",
+      options: ["AI Agent", "มนุษย์", "เครื่องมือ CI/CD", "ผู้เขียนโค้ดเท่านั้น"],
+      correctAnswer: "มนุษย์",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quizAgentMd} client:load />

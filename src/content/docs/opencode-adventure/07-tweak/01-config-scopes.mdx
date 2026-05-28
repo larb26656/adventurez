@@ -138,3 +138,54 @@ Remote ──── .well-known/opencode
 - ค่าบังคับ → Managed/MDM
 
 <ChatMessage message="เลือกระดับ config ให้เหมาะสมกับขอบเขตที่ต้องการใช้งานนะ!" avatarKey="whiteCat" />
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizConfigScopes = {
+  id: "config-scopes-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Config Scopes",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "Config Scope มีกี่ระดับ?",
+      options: ["2 ระดับ", "4 ระดับ", "6 ระดับ", "8 ระดับ"],
+      correctAnswer: "8 ระดับ",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "ระดับ MDM มีลำดับความสำคัญอย่างไร?",
+      options: ["ต่ำสุด", "ปานกลาง", "สูงสุด ผู้ใช้แก้ไขไม่ได้", "ไม่มีผล"],
+      correctAnswer: "สูงสุด ผู้ใช้แก้ไขไม่ได้",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "Global config อยู่ที่ใด?",
+      options: ["project/opencode.json", "~/.config/opencode/opencode.json", "/etc/opencode.json", ".well-known/opencode"],
+      correctAnswer: "~/.config/opencode/opencode.json",
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "config files ถูก merge รวมกันหรือแทนที่กัน?",
+      options: ["แทนที่กัน", "merge รวมกัน", "ไม่มีผล", "ขึ้นอยู่กับชนิดของ config"],
+      correctAnswer: "merge รวมกัน",
+      points: 1
+    },
+    {
+      id: "q5",
+      type: "single",
+      question: "Remote config endpoint อยู่ที่ใด?",
+      options: ["~/.remote/opencode", ".well-known/opencode", "remote.opencode.ai", "config.opencode.ai"],
+      correctAnswer: ".well-known/opencode",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quizConfigScopes} client:load />

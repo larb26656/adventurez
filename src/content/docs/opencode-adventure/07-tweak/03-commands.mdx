@@ -166,3 +166,54 @@ Daily mood tracking:
 Commands เป็นเครื่องมือที่ช่วยให้คุณสามารถสร้างชุดพรอมต์ที่ใช้บ่อยๆ ได้อย่างรวดเร็ว ช่วยเพิ่มประสิทธิภาพและความสม่ำเสมอในการทำงาน
 
 <ChatMessage message="ลองสร้างคำสั่งของคุณเองดูสิ! มันจะช่วยให้ workflow ของคุณเร็วขึ้นมาก" avatarKey="whiteCat" />
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizCommands = {
+  id: "commands-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Commands",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "Commands ใน Opencode ทำหน้าที่อะไร?",
+      options: ["เก็บข้อมูล config", "สร้างชุดพรอมต์ที่ใช้บ่อยๆ เพื่อเรียกใช้งานได้รวดเร็ว", "จัดการ plugins", "ควบคุม session"],
+      correctAnswer: "สร้างชุดพรอมต์ที่ใช้บ่อยๆ เพื่อเรียกใช้งานได้รวดเร็ว",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "ไฟล์คำสั่งถูกสร้างในรูปแบบใด?",
+      options: ["JSON", "YAML", "Markdown", "JavaScript"],
+      correctAnswer: "Markdown",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "ตัวแปรใดใช้สำหรับ arguments ในคำสั่ง?",
+      options: ["$ARGUMENTS", "$1, $2, $3", "$INPUT", "$OPTIONS"],
+      correctAnswer: "$ARGUMENTS",
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "syntax ใดใช้สำหรับแทรก shell output?",
+      options: ["$(command)", "`command`", "!command", "&command"],
+      correctAnswer: "`command`",
+      points: 1
+    },
+    {
+      id: "q5",
+      type: "single",
+      question: "Commands ระดับผู้ใช้ (Global) อยู่ที่ใด?",
+      options: ["~/.config/opencode/commands/", ".opencode/commands/", "/usr/local/commands/", "~/commands/"],
+      correctAnswer: "~/.config/opencode/commands/",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quizCommands} client:load />

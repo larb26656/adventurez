@@ -13,3 +13,30 @@ order: 2
 - รันคำสั่งต่างๆ ใน terminal
 - ค้นหาข้อมูลจากอินเทอร์เน็ต
 - ทำงานร่วมกับเครื่องมือภายนอกผ่าน MCP
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quiz2 = {
+  id: "opencode-intro-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Opencode",
+  questions: [
+    {
+      id: "q1",
+      type: "multiple",
+      question: "Opencode สามารถทำอะไรได้บ้าง?",
+      options: ["อ่านและเข้าใจ codebase", "เขียนและแก้ไขโค้ด", "รันคำสั่งใน terminal", "ค้นหาข้อมูลจากอินเทอร์เน็ต", "ทำงานร่วมกับเครื่องมือภายนอกผ่าน MCP"],
+      correctAnswer: ["อ่านและเข้าใจ codebase", "เขียนและแก้ไขโค้ด", "รันคำสั่งใน terminal", "ค้นหาข้อมูลจากอินเทอร์เน็ต", "ทำงานร่วมกับเครื่องมือภายนอกผ่าน MCP"],
+      points: 2
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "Opencode เป็น AI Agent ที่เน้นด้านใด?",
+      options: ["การตลาด", "การเงิน", "Software Engineering", "การแพทย์"],
+      correctAnswer: "Software Engineering",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quiz2} client:load />

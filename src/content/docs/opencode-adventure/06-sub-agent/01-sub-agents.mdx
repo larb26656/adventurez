@@ -11,22 +11,16 @@ Sub Agent คือ AI Agent เฉพาะทางที่ถูกสร้
 
 ### ประเภทของ Agent ใน OpenCode
 
-```
-┌─────────────────────────────────────────────────┐
-│            Primary Agents (ตัวหลัก)              │
-├─────────────────────────────────────────────────┤
-│  Build   - ทำงานได้ทุกอย่าง (default)           │
-│  Plan    - อ่านอย่างเดียว เหมาะวางแผน           │
-└─────────────────────────────────────────────────┘
+#### Primary Agents (ตัวหลัก)
 
-┌─────────────────────────────────────────────────┐
-│              Sub Agents (ตัวช่วย)                │
-├─────────────────────────────────────────────────┤
-│  @general  - ทำงานหลายอย่าง มีเครื่องมือครบ      │
-│  @explore  - หาข้อมูลใน codebase (read-only)    │
-│  @scout    - หาข้อมูลจากข้างนอก/dependency      │
-└─────────────────────────────────────────────────┘
-```
+- **Build** — ทำงานได้ทุกอย่าง (default)
+- **Plan** — อ่านอย่างเดียว เหมาะวางแผน
+
+#### Sub Agents (ตัวช่วย)
+
+- **@general** — ทำงานหลายอย่าง มีเครื่องมือครบ
+- **@explore** — หาข้อมูลใน codebase (read-only)
+- **@scout** — หาข้อมูลจากข้างนอก/dependency
 
 <ChatMessage message="Sub Agent ก็เหมือนทีม specialist ที่พร้อมช่วยคุณในงานเฉพาะทาง!" avatarKey="blackCat" />
 
@@ -466,3 +460,54 @@ hidden: true
 | `@scout` | ดู dependency / docs ภายนอก |
 
 <ChatMessage message="ลองสร้าง Sub Agent สักตัวดูสิ! มันจะช่วยให้งานของคุณเร็วขึ้นมาก" avatarKey="whiteCat" />
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizSubAgent = {
+  id: "sub-agent-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Sub Agent",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "Sub Agent คืออะไร?",
+      options: ["AI Agent หลัก", "AI Agent เฉพาะทางที่ถูกสร้างขึ้นเพื่อทำงานเฉพาะอย่าง", "AI Agent ที่ทำได้ทุกอย่าง", "AI Agent ที่ทำงานแทน user"],
+      correctAnswer: "AI Agent เฉพาะทางที่ถูกสร้างขึ้นเพื่อทำงานเฉพาะอย่าง",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "multiple",
+      question: "Built-in Sub Agents มีอะไรบ้าง?",
+      options: ["@general", "@explore", "@scout", "@admin"],
+      correctAnswer: ["@general", "@explore", "@scout"],
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "@explore เหมาะสำหรับงานอะไร?",
+      options: ["สร้างโค้ด", "หาข้อมูลใน codebase (read-only)", "รันคำสั่ง terminal", "ส่งอีเมล"],
+      correctAnswer: "หาข้อมูลใน codebase (read-only)",
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "มีกี่วิธีในการสร้าง Sub Agent?",
+      options: ["1 วิธี", "2 วิธี", "3 วิธี", "4 วิธี"],
+      correctAnswer: "3 วิธี",
+      points: 1
+    },
+    {
+      id: "q5",
+      type: "single",
+      question: "คำสั่งใดใช้สร้าง Sub Agent ผ่าน CLI?",
+      options: ["opencode new agent", "opencode agent create", "opencode create subagent", "opencode init agent"],
+      correctAnswer: "opencode agent create",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quizSubAgent} client:load />

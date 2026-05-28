@@ -98,3 +98,46 @@ ai: คุณชื่อ shiro คุณเป็น Software engineer ที�
 **หมายเหตุ:** ควรทำให้ system prompt กระชับเพื่อรักษาพื้นที่ memory ไว้สำหรับเนื้อหาอื่น
 
 <ChatMessage message="ระวัง context ที่มากเกินไปจะทำให้ AI หลุดโฟกัสและทำงานไม่แม่นยำ ระวังด้วยหล่ะ!" avatarKey="blackCat" />
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quiz5 = {
+  id: "context-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Context Window และ System Role",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "ทำไม LLM จึงสามารถจำบริบทการสนทนาก่อนหน้าได้?",
+      options: ["เพราะ LLM มีความจำในตัวเอง", "เพราะระบบส่งประวัติการสนทนาก่อนหน้าไปด้วยทุกครั้ง", "เพราะ LLM เชื่อมต่อกับ internet", "เพราะ user บอกให้จำ"],
+      correctAnswer: "เพราะระบบส่งประวัติการสนทนาก่อนหน้าไปด้วยทุกครั้ง",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "System Role ทำหน้าที่อะไร?",
+      options: ["เก็บข้อมูล user", "กำหนด personality และกฎการตอบของ AI", "เก็บประวัติการสนทนา", "ควบคุมการเชื่อมต่อ internet"],
+      correctAnswer: "กำหนด personality และกฎการตอบของ AI",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "System Role จะถูกลบเมื่อใด?",
+      options: ["เมื่อ context เต็ม", "เมื่อ user ส่งคำถามใหม่", "ไม่ถูกลบแม้ในขณะที่ Compact หรือ Drop Context", "เมื่อ session ใหม่เริ่มต้น"],
+      correctAnswer: "ไม่ถูกลบแม้ในขณะที่ Compact หรือ Drop Context",
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "Roles ใน LLM มีกี่ประเภทและอะไรบ้าง?",
+      options: ["2 ประเภท: System และ User", "3 ประเภท: System, User และ Assistant", "4 ประเภท: System, User, Assistant และ Guest", "1 ประเภท: User"],
+      correctAnswer: "3 ประเภท: System, User และ Assistant",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quiz5} client:load />

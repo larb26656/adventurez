@@ -4,9 +4,12 @@ import type { QuizQuestion } from "./types";
 interface QuizQuestionProps {
   question: QuizQuestion;
   onAnswer: (answer: string | string[]) => void;
+  onPendingAnswer: (answer: string | string[]) => void;
+  onSubmit: () => void;
   isAnswered: boolean;
   submittedAnswer?: string | string[];
   correctAnswer: string | string[];
+  pendingAnswer?: string | string[];
 }
 
 function normalizeAnswer(answer: string): string {
@@ -45,6 +48,8 @@ function isCorrectAnswer(
 export function QuizQuestion({
   question,
   onAnswer,
+  onPendingAnswer,
+  onSubmit,
   isAnswered,
   submittedAnswer,
   correctAnswer,
@@ -67,45 +72,35 @@ export function QuizQuestion({
   const handleSingleChange = (value: string) => {
     if (!isAnswered) {
       setSingleValue(value);
+      onPendingAnswer(value);
     }
   };
 
   const handleMultipleChange = (value: string) => {
     if (!isAnswered) {
-      setMultipleValues((prev) =>
-        prev.includes(value)
-          ? prev.filter((v) => v !== value)
-          : [...prev, value],
-      );
+      const newValues = multipleValues.includes(value)
+        ? multipleValues.filter((v) => v !== value)
+        : [...multipleValues, value];
+      setMultipleValues(newValues);
+      onPendingAnswer(newValues);
     }
   };
 
-  const handleTextSubmit = () => {
-    if (textValue.trim()) {
-      onAnswer(textValue);
+  const handleTextChange = (value: string) => {
+    if (!isAnswered) {
+      setTextValue(value);
+      onPendingAnswer(value);
     }
   };
 
-  const handleSingleSubmit = () => {
-    if (singleValue) {
-      onAnswer(singleValue);
-    }
-  };
-
-  const handleMultipleSubmit = () => {
-    if (multipleValues.length > 0) {
-      onAnswer(multipleValues);
-    }
-  };
-
-  const getSubmitHandler = () => {
+  const getCurrentValue = (): string | string[] => {
     switch (question.type) {
       case "single":
-        return handleSingleSubmit;
+        return singleValue;
       case "multiple":
-        return handleMultipleSubmit;
+        return multipleValues;
       case "text":
-        return handleTextSubmit;
+        return textValue;
     }
   };
 
@@ -120,6 +115,10 @@ export function QuizQuestion({
     }
   }, [question.type, singleValue, multipleValues, textValue]);
 
+  const handleSubmit = () => {
+    onSubmit();
+  };
+
   const renderOptions = () => {
     const options = question.options || [];
 
@@ -129,16 +128,16 @@ export function QuizQuestion({
           {options.map((option, idx) => (
             <label
               key={idx}
-              className={`flex items-center p-3 border rounded-lg gap-3 cursor-pointer transition-colors ${
+              className={`flex items-center p-3 rounded-lg gap-3 cursor-pointer transition-colors border ${
                 isAnswered
                   ? option === correctAnswer
-                    ? "border-green-500 bg-green-50"
+                    ? "bg-green-500/10 border-green-500"
                     : singleValue === option
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-200"
+                      ? "bg-red-500/10 border-red-500"
+                      : "bg-transparent border-gray-500"
                   : singleValue === option
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "bg-blue-950 border-blue-400"
+                    : "bg-transparent border-gray-500 hover:border-gray-400"
               }`}
             >
               <input
@@ -148,9 +147,10 @@ export function QuizQuestion({
                 checked={singleValue === option}
                 onChange={() => handleSingleChange(option)}
                 disabled={isAnswered}
-                className="w-4 h-4 text-blue-500"
+                className="w-4 h-4"
+                style={{ accentColor: "var(--sl-color-accent-high)" }}
               />
-              <span className="ml-3">{option}</span>
+              <span className="ml-3 text-gray-100">{option}</span>
             </label>
           ))}
         </div>
@@ -163,17 +163,17 @@ export function QuizQuestion({
           {options.map((option, idx) => (
             <label
               key={idx}
-              className={`flex items-center p-3 border rounded-lg gap-3 cursor-pointer transition-colors ${
+              className={`flex items-center p-3 rounded-lg gap-3 cursor-pointer transition-colors border ${
                 isAnswered
                   ? Array.isArray(correctAnswer) &&
                     correctAnswer.includes(option)
-                    ? "border-green-500 bg-green-50"
+                    ? "bg-green-500/10 border-green-500"
                     : multipleValues.includes(option)
-                      ? "border-red-500 bg-red-50"
-                      : "border-gray-200"
+                      ? "bg-red-500/10 border-red-500"
+                      : "bg-transparent border-gray-500"
                   : multipleValues.includes(option)
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "bg-blue-950 border-blue-400"
+                    : "bg-transparent border-gray-500 hover:border-gray-400"
               }`}
             >
               <input
@@ -182,9 +182,10 @@ export function QuizQuestion({
                 checked={multipleValues.includes(option)}
                 onChange={() => handleMultipleChange(option)}
                 disabled={isAnswered}
-                className="w-4 h-4 text-blue-500 rounded"
+                className="w-4 h-4 rounded"
+                style={{ accentColor: "var(--sl-color-accent-high)" }}
               />
-              <span className="ml-3">{option}</span>
+              <span className="ml-3 text-gray-100">{option}</span>
             </label>
           ))}
         </div>
@@ -201,15 +202,15 @@ export function QuizQuestion({
           <input
             type="text"
             value={textValue}
-            onChange={(e) => setTextValue(e.target.value)}
+            onChange={(e) => handleTextChange(e.target.value)}
             disabled={isAnswered}
             placeholder="พิมพ์คำตอบของคุณ..."
-            className={`w-full p-3 border rounded-lg ${
+            className={`w-full p-3 rounded-lg border bg-neutral-950 text-gray-100 ${
               isAnswered
                 ? isCorrect
-                  ? "border-green-500 bg-green-50"
-                  : "border-red-500 bg-red-50"
-                : "border-gray-200 focus:border-blue-500"
+                  ? "bg-green-500/10 border-green-500"
+                  : "bg-red-500/10 border-red-500"
+                : "border-gray-500"
             }`}
           />
         </div>
@@ -228,19 +229,21 @@ export function QuizQuestion({
 
     return (
       <div
-        className={`mt-4 p-4 rounded-lg ${
+        className={`mt-4 p-4 rounded-lg border ${
           isCorrect
-            ? "bg-green-50 border border-green-200"
-            : "bg-red-50 border border-red-200"
+            ? "bg-green-500/10 border-green-500"
+            : "bg-red-500/10 border-red-500"
         }`}
       >
         <p
-          className={`font-medium ${isCorrect ? "text-green-700" : "text-red-700"}`}
+          className={`font-medium ${
+            isCorrect ? "text-green-500" : "text-red-500"
+          }`}
         >
           {isCorrect ? "✓ ถูกต้อง!" : "✗ ไม่ถูกต้อง"}
         </p>
-        <p className="mt-1 text-gray-600">เฉลย: {correctText}</p>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1">เฉลย: {correctText}</p>
+        <p className="mt-1 text-sm">
           ได้คะแนน: {isCorrect ? points : 0} / {points}
         </p>
       </div>
@@ -249,24 +252,16 @@ export function QuizQuestion({
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h3 className="text-base font-medium mb-3">{question.question}</h3>
+      <h3 className="text-base font-medium mb-3 text-gray-100">
+        {question.question}
+      </h3>
 
       {question.type === "multiple" && (
-        <p className="text-xs text-gray-500 mb-2">(เลือกได้หลายข้อ)</p>
+        <p className="text-xs mb-2 text-gray-400">(เลือกได้หลายข้อ)</p>
       )}
 
       {renderInput()}
       {renderFeedback()}
-
-      {!isAnswered && (
-        <button
-          onClick={getSubmitHandler()}
-          disabled={canSubmit ? false : true}
-          className="mt-3 px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          ส่งคำตอบ
-        </button>
-      )}
     </div>
   );
 }

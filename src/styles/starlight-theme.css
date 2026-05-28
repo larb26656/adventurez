@@ -2,7 +2,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Thai+Looped:wght@100;200;300;400;500;600;700;800;900&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap");
 
-@import "tailwindcss";
+@layer base, starlight, theme, components, utilities;
+
+@import "@astrojs/starlight-tailwind";
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
 
 @theme {
   /* Font families */
@@ -27,6 +31,21 @@
   --color-success: oklch(62% 0.16 145);
   --color-success-dim: oklch(62% 0.16 145 / 0.1);
 
+  /* Generated accent color palettes. */
+  --color-accent-200: #b8cae2;
+  --color-accent-600: #376dae;
+  --color-accent-900: #1c3350;
+  --color-accent-950: #162537;
+  /* Generated gray color palettes. */
+  --color-gray-100: #f3f7f9;
+  --color-gray-200: #e7eff2;
+  --color-gray-300: #bac4c8;
+  --color-gray-400: #7b8f96;
+  --color-gray-500: #495c62;
+  --color-gray-700: #2a3b41;
+  --color-gray-800: #182a2f;
+  --color-gray-900: #121a1c;
+
   /* Border radius */
   --radius-*: initial;
   --radius-md: 8px;
@@ -36,62 +55,6 @@
   --radius-full: 999px;
 }
 
-/* ========================================
-   LIGHT MODE
-   ======================================== */
-
-/* Dark mode colors. */
-:root {
-  --sl-color-accent-low: var(--color-primary-low);
-  --sl-color-accent: var(--color-primary);
-  --sl-color-accent-high: var(--color-primary-high);
-  --sl-color-white: #ffffff;
-  --sl-color-gray-1: #eceef2;
-  --sl-color-gray-2: #c0c2c7;
-  --sl-color-gray-3: #888b96;
-  --sl-color-gray-4: #545861;
-  --sl-color-gray-5: #353841;
-  --sl-color-gray-6: #24272f;
-  --sl-color-black: #17181c;
-}
-/* Light mode colors. */
-:root[data-theme="light"] {
-  --sl-color-accent-low: var(--color-primary-low);
-  --sl-color-accent: var(--color-primary);
-  --sl-color-accent-high: var(--color-primary-high);
-  --sl-color-white: #17181c;
-  --sl-color-gray-1: #24272f;
-  --sl-color-gray-2: #353841;
-  --sl-color-gray-3: #545861;
-  --sl-color-gray-4: #888b96;
-  --sl-color-gray-5: #c0c2c7;
-  --sl-color-gray-6: #eceef2;
-  --sl-color-gray-7: #f5f6f8;
-  --sl-color-black: #ffffff;
-}
-
-/* Hide default element */
 .starlight-sidebar-topics {
   display: none;
-}
-
-.sl-markdown-content ul {
-  list-style: disc;
-  padding-left: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.sl-markdown-content li {
-  display: list-item;
-}
-
-.sl-markdown-content ol {
-  list-style: decimal;
-  padding-left: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.sl-markdown-content ol li {
-  display: list-item;
-  list-style-position: outside;
 }

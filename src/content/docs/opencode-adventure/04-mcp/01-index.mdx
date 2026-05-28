@@ -89,3 +89,54 @@ opencode mcp list
 ## ปิด/เปิด MCP
 
 ปิดใช้งานชั่วคราวโดยเปลี่ยน `enabled` เป็น `false`
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizMcpIndex = {
+  id: "mcp-index-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ MCP",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "MCP ย่อมาจากอะไร?",
+      options: ["Model Context Protocol", "Machine Control Program", "Memory Cache Protocol", "Module Connection Protocol"],
+      correctAnswer: "Model Context Protocol",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "MCP Server ทำหน้าที่อะไร?",
+      options: ["รัน AI model", "เชื่อมต่อกับแหล่งข้อมูลจริง", "จัดการ session", "ควบคุม memory"],
+      correctAnswer: "เชื่อมต่อกับแหล่งข้อมูลจริง",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "multiple",
+      question: "MCP มีกี่ประเภทและอะไรบ้าง?",
+      options: ["Local", "Remote", "Hybrid", "Virtual"],
+      correctAnswer: ["Local", "Remote"],
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "คำสั่งใดใช้ตรวจสอบสถานะ MCP?",
+      options: ["opencode mcp status", "opencode mcp list", "opencode mcp check", "opencode mcp info"],
+      correctAnswer: "opencode mcp list",
+      points: 1
+    },
+    {
+      id: "q5",
+      type: "single",
+      question: "การตั้งค่า MCP อยู่ในไฟล์ใด?",
+      options: ["opencode.config.json", "opencode.jsonc", "config.opencode.json", "settings.json"],
+      correctAnswer: "opencode.jsonc",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quizMcpIndex} client:load />

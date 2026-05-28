@@ -39,3 +39,46 @@ Opencode สามารถอ่านไฟล์ที่คุณต้อ�
 ```
 
 <ChatMessage message="อยากให้ agent ไหนทำเรื่องอะไร ก็ @ หาได้เลย แต่ต้องเป็น agent ที่มีอยู่ใน opencode นะ" avatarKey="whiteCat" />
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quiz7 = {
+  id: "mention-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Mention",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "สัญลักษณ์ใดใช้สำหรับ mention ไฟล์ใน Opencode?",
+      options: ["#", "@", "/", "$"],
+      correctAnswer: "@",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "การ mention ไฟล์จากโปรเจกต์อื่นต้องทำอย่างไร?",
+      options: ["ใช้คำสั่งพิเศษ", "ต้องขอ permission ก่อน", "ใช้ไม่ได้ต้อง copy ไฟล์มา", "ระบุ path เต็มเท่านั้น"],
+      correctAnswer: "ต้องขอ permission ก่อน",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "นอกจากไฟล์แล้ว สามารถ mention อะไรได้อีก?",
+      options: ["Folder", "Environment", "Agent", "Command"],
+      correctAnswer: "Agent",
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "ต้องระบุ path เต็มของไฟล์เมื่อใช้ @ หรือไม่?",
+      options: ["จำเป็นต้องระบุเสมอ", "ไม่จำเป็น เพราะมีฟีเจอร์ช่วยค้นหา", "ขึ้นอยู่กับขนาดของโปรเจกต์", "ต้องระบุเฉพาะชื่อไฟล์"],
+      correctAnswer: "ไม่จำเป็น เพราะมีฟีเจอร์ช่วยค้นหา",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quiz7} client:load />

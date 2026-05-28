@@ -66,3 +66,46 @@ The page looks strange. Check what's happening there.
 
 - Chrome browser ต้องติดตั้งบนเครื่อง
 - Chrome ต้องเปิดอยู่ (MCP จะเชื่อมต่อผ่าน Chrome DevTools Protocol)
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizMcpChrome = {
+  id: "mcp-chrome-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Chrome DevTools MCP",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "Chrome DevTools MCP พัฒนาโดยใคร?",
+      options: ["Facebook", "Google", "Microsoft", "Apple"],
+      correctAnswer: "Google",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "Chrome DevTools MCP ช่วยให้ AI สามารถทำอะไรได้?",
+      options: ["รัน JavaScript ใน server", "ควบคุม Chrome browser โดยตรง", "เขียนโค้ดแทน", "deploy เว็บไซต์"],
+      correctAnswer: "ควบคุม Chrome browser โดยตรง",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "multiple",
+      question: "Chrome DevTools MCP มี tools ให้ใช้ทำอะไรได้บ้าง?",
+      options: ["ถ่ายภาพหน้าจอ", "ดึง DOM tree", "รัน JavaScript", "ส่งอีเมล"],
+      correctAnswer: ["ถ่ายภาพหน้าจอ", "ดึง DOM tree", "รัน JavaScript"],
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "ข้อกำหนดเบื้องต้นของ Chrome DevTools MCP คืออะไร?",
+      options: ["ต้องติดตั้ง Firefox", "Chrome ต้องเปิดอยู่", "ต้องมี internet", "ต้องใช้ Windows เท่านั้น"],
+      correctAnswer: "Chrome ต้องเปิดอยู่",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quizMcpChrome} client:load />

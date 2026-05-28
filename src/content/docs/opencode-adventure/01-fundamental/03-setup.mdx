@@ -49,3 +49,46 @@ opencode
 ```
 
 **3. รอให้ AI ตอบ** - Opencode จะวิเคราะห์คำถามและตอบกลับมา
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quiz3 = {
+  id: "setup-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับการติดตั้ง Opencode",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "คำสั่งใดใช้ติดตั้ง Opencode ผ่าน npm?",
+      options: ["npm i opencode-ai", "npm install -g opencode-ai", "npm start opencode", "npm run opencode"],
+      correctAnswer: "npm install -g opencode-ai",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "ข้อกำหนดของระบบสำหรับ Node.js คืออะไร?",
+      options: ["Node.js 12+", "Node.js 14+", "Node.js 16+", "Node.js 18+"],
+      correctAnswer: "Node.js 18+",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "คำสั่งใดใช้เลือก model Claude?",
+      options: ["opencode --model gpt", "opencode --model claude", "opencode --model gemini", "opencode --select claude"],
+      correctAnswer: "opencode --model claude",
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "ทำไมแนะนำให้เริ่มต้นด้วย Claude?",
+      options: ["ถูกที่สุด", "มี context window ใหญ่และเหมาะกับงาน coding", "เร็วที่สุด", "รองรับภาษาไทยดีที่สุด"],
+      correctAnswer: "มี context window ใหญ่และเหมาะกับงาน coding",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quiz3} client:load />

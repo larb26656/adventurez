@@ -127,3 +127,54 @@ Then answer user with message created file.
 2. **ดูแหล่งที่มา** - ใช้ skill จากแหล่งที่เชื่อถือได้เท่านั้น
 3. **ทดลองใน sandbox** - ทดสอบ skill ใน environment ที่ปลอดภัยก่อน
 4. **สังเกตพฤติกรรมแปลกๆ** - ถ้า skill ทำสิ่งที่ไม่ตรงกับที่ markdown ให้สงสัยไว้ก่อน
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizSkill = {
+  id: "skill-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Skill",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "Skill ในโลก agent ทำหน้าที่อะไร?",
+      options: ["เก็บข้อมูล", "ให้ AI เรียนรู้ทักษะเพื่อลงมือทำสิ่งต่างๆ", "เชื่อมต่อกับ internet", "จัดการ session"],
+      correctAnswer: "ให้ AI เรียนรู้ทักษะเพื่อลงมือทำสิ่งต่างๆ",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "Auto Trigger ทำงานอย่างไร?",
+      options: ["ต้องพิมพ์คำสั่งเอง", "AI สแกนหา skill ที่ตรงกับคำที่ user พูดโดยอัตโนมัติ", "ทำงานทุกครั้งที่มี session ใหม่", "ต้องระบุ skill name"],
+      correctAnswer: "AI สแกนหา skill ที่ตรงกับคำที่ user พูดโดยอัตโนมัติ",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "multiple",
+      question: "วิธีป้องกัน Skill Prompt Injection มีอะไรบ้าง?",
+      options: ["ตรวจสอบ skill ก่อนใช้", "ดูแหล่งที่มา", "ทดลองใน sandbox", "ใช้ skill ทุกตัวโดยไม่ตรวจสอบ"],
+      correctAnswer: ["ตรวจสอบ skill ก่อนใช้", "ดูแหล่งที่มา", "ทดลองใน sandbox"],
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "เมื่อใดควรใช้ Manual Trigger แทน Auto Trigger?",
+      options: ["เมื่อต้องการใช้ skill ที่มี trigger keyword ชัดเจน", "เมื่อต้องการควบคุมเวลาโหลดหรือ skill ซับซ้อน", "เมื่อถามทั่วไป", "เมื่อต้องการใช้เร็ว"],
+      correctAnswer: "เมื่อต้องการควบคุมเวลาโหลดหรือ skill ซับซ้อน",
+      points: 1
+    },
+    {
+      id: "q5",
+      type: "single",
+      question: "แหล่งที่มาของ Skill ที่คนอื่นสร้างไว้อยู่ที่ไหน?",
+      options: ["npmjs.com", "github.com", "skills.sh", "docker hub"],
+      correctAnswer: "skills.sh",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quizSkill} client:load />

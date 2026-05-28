@@ -39,3 +39,47 @@ Mode ใน opencode จะมี 2 mode หลักๆ คือ:
 - กด **Tab** อีกครั้งเพื่อกลับไปยัง mode เดิม
 
 นอกจากนี้ คุณยังสามารถพิมพ์คำสั่ง `/mode plan` หรือ `/mode build` เพื่อสลับไปยัง mode ที่ต้องการได้โดยตรง
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizModes = {
+  id: "modes-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Mode",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "Plan Mode มีสิทธิ์อะไร?",
+      options: ["อ่านและเขียนได้ทั้งหมด", "อ่านอย่างเดียว", "เขียนอย่างเดียว", "ไม่มีสิทธิ์อะไร"],
+      correctAnswer: "อ่านอย่างเดียว",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "Build Mode ต่างจาก Plan Mode อย่างไร?",
+      options: ["Build Mode อ่านได้อย่างเดียว", "Build Mode มีสิทธิ์ทั้งอ่านและเขียน", "Build Mode ทำงานเร็วกว่า", "Build Mode ใช้ memory น้อยกว่า"],
+      correctAnswer: "Build Mode มีสิทธิ์ทั้งอ่านและเขียน",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "ปุ่มใดใช้สลับ mode ใน TUI?",
+      options: ["Enter", "Tab", "Shift", "Ctrl"],
+      correctAnswer: "Tab",
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "สำหรับ task ที่ซับซ้อนควรทำอย่างไร?",
+      options: ["ข้ามไปทำเลย", "วางแผนก่อนเสมอแล้วค่อยมาทำ", "ใช้ Build Mode ทันที", "ถาม user ทุกขั้นตอน"],
+      correctAnswer: "วางแผนก่อนเสมอแล้วค่อยมาทำ",
+      points: 1
+    }
+  ]
+}
+
+
+<Quiz quiz={quizModes} client:load />

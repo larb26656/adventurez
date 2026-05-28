@@ -80,3 +80,46 @@ Show me the content of my "Projects" page using notion
 ```
 Create a new page titled "Meeting Notes" under the "Work" page using notion
 ```
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizMcpNotion = {
+  id: "mcp-notion-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับ Notion MCP",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "Integration Token ของ Notion ขึ้นต้นด้วยอะไร?",
+      options: ["ntn_", "not_", "api_", "key_"],
+      correctAnswer: "ntn_",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "วิธีการแชร์ content ให้ Integration ทำอย่างไร?",
+      options: ["ส่งอีเมล", "ไปที่หน้า page > ... > Add connections > เลือก integration", "copy link", "ใช้คำสั่ง CLI"],
+      correctAnswer: "ไปที่หน้า page > ... > Add connections > เลือก integration",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "single",
+      question: "เหตุผลที่ควรใช้ {env:NOTION_TOKEN} แทนการใส่ token ตรงๆ คืออะไร?",
+      options: ["เร็วกว่า", "ปลอดภัยกว่า", "รองรับหลาย workspace", "token ไม่หมดอายุ"],
+      correctAnswer: "ปลอดภัยกว่า",
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "multiple",
+      question: "Notion MCP มี tools ให้ใช้ทำอะไรได้บ้าง?",
+      options: ["ค้นหา pages/databases", "ดึงข้อมูล page", "สร้าง page ใหม่", "เพิ่ม/แก้ไข content"],
+      correctAnswer: ["ค้นหา pages/databases", "ดึงข้อมูล page", "สร้าง page ใหม่", "เพิ่ม/แก้ไข content"],
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quizMcpNotion} client:load />

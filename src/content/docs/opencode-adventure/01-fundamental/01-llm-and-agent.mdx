@@ -65,3 +65,46 @@ Agent สามารถย่อยเป้าหมายใหญ่ให�
 - **API/Code Execution:** เพื่อสั่งรันโค้ด, ส่งอีเมล, ดึงข้อมูลสภาพอากาศ หรือต่อเข้ากับซอฟต์แวร์อื่นๆ (เช่น Notion, Slack, Jira)
 
 <ChatMessage message="Opencode คือเครื่องมือที่จะเปลี่ยนวิธีทำงานของคุณไปตลอดกาล!" avatarKey="blackCat" />
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quiz1 = {
+  id: "llm-agent-quiz",
+  title: "ความเข้าใจพื้นฐานเกี่ยวกับ LLM และ AI Agent",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "LLM ย่อมาจากอะไร?",
+      options: ["Large Language Model", "Long Language Memory", "Local Learning Machine", "Large Learning Model"],
+      correctAnswer: "Large Language Model",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "ข้อจำกัดหลักของ LLM คืออะไร?",
+      options: ["ทำงานได้เร็วเกินไป", "เป็น passive ต้องรอ user ถามก่อนถึงจะทำงาน", "ไม่เข้าใจภาษามนุษย์", "ไม่สามารถประมวลผลข้อมูลได้"],
+      correctAnswer: "เป็น passive ต้องรอ user ถามก่อนถึงจะทำงาน",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "multiple",
+      question: "AI Agent ประกอบด้วยองค์ประกอบหลักกี่ส่วน?",
+      options: ["1 ส่วน", "2 ส่วน", "3 ส่วน", "4 ส่วน"],
+      correctAnswer: ["4 ส่วน"],
+      points: 1
+    },
+    {
+      id: "q4",
+      type: "single",
+      question: "เครื่องมือ (Tools) ใน AI Agent ทำหน้าที่อะไร?",
+      options: ["เก็บข้อมูลความทรงจำ", "เป็นแขนขาให้ AI ลงมือทำงานได้", "ควบคุมการวางแผน", "จำบริบทการสนทนา"],
+      correctAnswer: "เป็นแขนขาให้ AI ลงมือทำงานได้",
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quiz1} client:load />

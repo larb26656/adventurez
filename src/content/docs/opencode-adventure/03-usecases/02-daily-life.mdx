@@ -43,3 +43,38 @@ AI จะทำการสกัด task จาก ข้อความ meetin
 ```
 
 AI จะทำการรวบรวมข่าวสารเทคโนโลยีที่น่าสนใจในปี 2026 พร้อม Export ออกมาเป็นไฟล์ HTML ที่มีรูปแบบสวยงามพร้อมใช้งานได้ทันที
+
+import { Quiz } from "@/components/quiz/Quiz"
+
+export const quizDailyLife = {
+  id: "daily-life-quiz",
+  title: "ทดสอบความเข้าใจเกี่ยวกับการใช้งานในชีวิตประจำวัน",
+  questions: [
+    {
+      id: "q1",
+      type: "single",
+      question: "Opencode สามารถช่วยจัด Desktop ได้อย่างไร?",
+      options: ["ต้องใช้คำสั่งยาวๆ", "AI จัดระเบียบไฟล์ให้เป็นหมวดหมู่โดยอัตโนมัติ", "ต้องระบุหมวดหมู่เองทุกครั้ง", "ไม่สามารถทำได้"],
+      correctAnswer: "AI จัดระเบียบไฟล์ให้เป็นหมวดหมู่โดยอัตโนมัติ",
+      points: 1
+    },
+    {
+      id: "q2",
+      type: "single",
+      question: "เมื่อป้อน 'กินข้าว 50 บาท' ลงใน personal-budgeting folder จะเกิดอะไรขึ้น?",
+      options: ["ไม่มีอะไรเกิดขึ้น", "ข้อมูลรายรับ-รายจ่ายถูกจัดเก็บลงไฟล์ CSV", "AI ถามคำถามเพิ่ม", "ระบบแสดง error"],
+      correctAnswer: "ข้อมูลรายรับ-รายจ่ายถูกจัดเก็บลงไฟล์ CSV",
+      points: 1
+    },
+    {
+      id: "q3",
+      type: "multiple",
+      question: "Opencode สามารถช่วยสร้าง report ประเภทใดได้บ้าง?",
+      options: ["HTML report", "PDF report", "สรุป meeting เป็น task", "สร้างข่าว tech รายเดือน"],
+      correctAnswer: ["HTML report", "สรุป meeting เป็น task"],
+      points: 1
+    }
+  ]
+}
+
+<Quiz quiz={quizDailyLife} client:load />
