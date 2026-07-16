@@ -1,0 +1,390 @@
+---
+title: PM2
+description: A cheatsheet of PM2
+---
+
+## Installation
+
+```bash
+# Install PM2 globally
+npm install -g pm2
+
+# Update PM2
+npm install -g pm2@latest
+pm2 update
+```
+
+## Start & Manage Processes
+
+```bash
+# Start an app
+pm2 start app.js
+
+# Start with custom name
+pm2 start app.js --name myapp
+
+# Start with ecosystem config
+pm2 start ecosystem.config.js
+
+# Start with specific environment
+pm2 start ecosystem.config.js --env production
+
+# Auto-restart on file change
+pm2 start app.js --watch
+
+# Cluster mode (4 processes)
+pm2 start app.js -i 4
+
+# Memory limit restart
+pm2 start app.js --max-memory-restart 512M
+```
+
+### Stop & Restart
+
+```bash
+# Stop an app
+pm2 stop myapp
+
+# Restart an app
+pm2 restart myapp
+
+# Reload with zero-downtime (cluster mode)
+pm2 reload myapp
+
+# Graceful reload
+pm2 gracefulReload myapp
+
+# Remove from PM2
+pm2 delete myapp
+
+# Stop all
+pm2 stop all
+
+# Restart all
+pm2 restart all
+
+# Delete all
+pm2 delete all
+```
+
+## Process List & Status
+
+```bash
+# List all processes
+pm2 list
+
+# JSON output
+pm2 jlist
+
+# Pretty JSON
+pm2 prettylist
+
+# Detailed info
+pm2 show myapp
+
+# Restart with updated env
+pm2 restart myapp --update-env
+```
+
+## Logs
+
+```bash
+# All logs
+pm2 logs
+
+# Specific app logs
+pm2 logs myapp
+
+# Last 100 lines
+pm2 logs myapp --lines 100
+
+# No streaming
+pm2 logs myapp --nostream
+
+# Clear logs
+pm2 flush
+
+# JSON format
+pm2 logs --json
+
+# Formatted
+pm2 logs --format
+```
+
+## Process Monitoring
+
+```bash
+# Real-time dashboard
+pm2 monit
+
+# Terminal notification
+pm2 ding
+```
+
+## Scaling & Clustering
+
+```bash
+# Scale to 8 processes
+pm2 scale myapp 8
+
+# Add 3 processes
+pm2 scale myapp +3
+
+# Remove 2 processes
+pm2 scale myapp -2
+
+# Generate startup script
+pm2 startup
+
+# Save current process list
+pm2 save
+
+# Restore saved processes
+pm2 resurrect
+
+# Remove startup script
+pm2 unstartup
+```
+
+## Ecosystem Config
+
+`ecosystem.config.js` คือไฟล์ config หลักของ PM2 ที่ใช้กำหนดการตั้งค่าต่างๆ ของ app แทนการใช้ command line arguments
+
+### พื้นฐาน
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'myapp',
+    script: 'app.js',
+  }]
+};
+```
+
+`name` คือชื่อของ app ที่จะแสดงใน PM2, `script` คือไฟล์ที่ต้องการรัน
+
+### โครงสร้างแบบ cluster mode
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'myapp',
+    script: './build/index.js',
+    instances: 4,
+    exec_mode: 'cluster',
+  }]
+};
+```
+
+`exec_mode: 'cluster'` ใช้สำหรับ app ที่เป็น HTTP server โดย PM2 จะ fork process หลายตัว (4ตัว) ทำ load balancing ให้อัตโนมัติ, เหมาะกับ Next.js, Express, Nuxt
+
+### โครงสร้างแบบ fork mode (default)
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'api',
+    script: 'app.js',
+    instances: 1,
+    exec_mode: 'fork',
+  }]
+};
+```
+
+`exec_mode: 'fork'` เป็น default mode จะรัน process เดียว, เหมาะกับ worker, background service, หรือ app ที่ไม่ต้องการ concurrency
+
+### Environment Variables
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'myapp',
+    script: 'app.js',
+    env: {
+      NODE_ENV: 'development',
+      PORT: 3000,
+    },
+    env_production: {
+      NODE_ENV: 'production',
+      PORT: 8080,
+    },
+  }]
+};
+```
+
+`env` คือตัวแปรสำหรับ environment แบบ general, `env_production` คือตัวแปรสำหรับ production mode จะถูกใช้เมื่อรัน `--env production`
+
+### Watch & Restart
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'myapp',
+    script: 'app.js',
+    watch: true,
+    watch_delay: 1000,
+    ignore_watch: ['node_modules', 'dist'],
+    max_memory_restart: '512M',
+    restart_delay: 4000,
+    max_restarts: 10,
+    min_uptime: '5s',
+  }]
+};
+```
+
+`watch: true` เปิดใช้งาน auto-restart เมื่อไฟล์เปลี่ยน, `ignore_watch` ใช้ exclude folder ที่ไม่ต้องการ, `max_memory_restart` restartเมื่อใช้ memory เกิน, `restart_delay` หน่วงเวลาก่อน restart, `min_uptime` กำหนดเวลาขั้นต่ำที่ app ต้องทำงานก่อนถึงจะนับ restart ว่าสำเร็จ
+
+### Logs
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'myapp',
+    script: 'app.js',
+    error_file: './logs/error.log',
+    out_file: './logs/out.log',
+    log_file: './logs/combined.log',
+    log_date_format: 'YYYY-MM-DD HH:mm:ss',
+    merge_logs: true,
+  }]
+};
+```
+
+`error_file` กำหนด path ของ error log, `out_file`กำหนด path ของ stdout log, `log_file` รวม log ทั้งหมดไฟล์เดียว, `merge_logs` รวม log จากทุก process ใน cluster mode
+
+### Multiple Apps
+
+```javascript
+module.exports = {
+  apps: [
+    {
+      name: 'api',
+      script: 'api.js',
+      env: { NODE_ENV: 'development' },
+    },
+    {
+      name: 'worker',
+      script: 'worker.js',
+      env: { NODE_ENV: 'development' },
+    },
+    {
+      name: 'scheduler',
+      script: 'scheduler.js',
+      env: { NODE_ENV: 'production' },
+      env_production: {
+        NODE_ENV: 'production',
+      },
+    },
+  ]
+};
+```
+
+สามารถกำหนดหลาย app ในไฟล์เดียวกันได้ โดยแต่ละ app จะมี config แยกกัน ทำให้ start/restart พร้อมกันทั้งหมด
+
+### Script Actions (post/start/stop)
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'myapp',
+    script: 'app.js',
+    post_start: './scripts/deploy.sh',
+    post_stop: './scripts/stop.sh',
+    post_restart: './scripts/restart.sh',
+  }]
+};
+```
+
+`post_start` รัน script หลังจาก start เสร็จ, `post_stop` รันหลัง stop, `post_restart` รันหลัง restart (เหมาะสำหรับ deploy hook, cleanup)
+
+### Deploy
+
+```javascript
+module.exports = {
+  apps: [{
+    name: 'myapp',
+    script: './deploy.sh',
+    deploy: {
+      production: {
+        user: 'root',
+        host: '192.168.1.1',
+        ref: 'origin/main',
+        repo: 'git@github.com:user/repo.git',
+        path: '/var/www/myapp',
+        'pre-deploy-local': '',
+        'post-deploy': 'npm install && pm2 reload ecosystem.config.js --env production',
+      },
+    },
+  }]
+};
+```
+
+`deploy` ใช้สำหรับ remote deployment ผ่าน SSH โดยกำหนด server info (`user`, `host`), git repo, deploy path และคำสั่งที่ต้องรันก่อน/หลัง deploy
+
+### คำสั่งที่เกี่ยวข้อง
+
+```bash
+# Start with config
+pm2 start ecosystem.config.js
+
+# Start specific app in config
+pm2 start ecosystem.config.js --only myapp
+
+# Start with specific environment
+pm2 start ecosystem.config.js --env production
+
+# Generate config
+pm2 init
+
+# Generate config with cluster mode
+pm2 init
+```
+
+## Module Management
+
+```bash
+# Install module
+pm2 install pm2-logrotate
+
+# Install from npm
+pm2 install @pm2/pm2-logrotate
+
+# Uninstall module
+pm2 uninstall pm2-logrotate
+
+# Generate local module
+pm2 module:generate mymodule
+```
+
+## Environment Variables
+
+```bash
+# Set global env var
+pm2 set MY_VAR "hello"
+
+# Remove env var
+pm2 unset MY_VAR
+```
+
+## Process Metadata
+
+```bash
+# Full details
+pm2 describe myapp
+
+# Inspect process
+pm2 inspect myapp
+
+# Reset restart count
+pm2 reset myapp
+```
+
+## Docker Tips
+
+```bash
+# No fork mode (Docker-friendly)
+pm2 start app.js --no-fork
+
+# Docker CMD
+CMD [ "pm2-runtime", "start", "ecosystem.config.js" ]
+```
