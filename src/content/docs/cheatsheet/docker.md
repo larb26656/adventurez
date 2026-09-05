@@ -40,6 +40,28 @@ docker rmi <image_id>
 docker tag <image> <new_name:tag>
 ```
 
+### Push ขึ้น Docker Hub
+
+```bash
+# Login เข้า Docker Hub
+docker login
+
+# Tag image ให้พร้อม push (ต้องมีชื่อ username นำหน้า)
+docker tag <image> <username>/<repo>:<tag>
+
+# Push image ขึ้น Docker Hub
+docker push <username>/<repo>:<tag>
+
+# Logout เมื่อใช้งานเสร็จ
+docker logout
+```
+
+<ChatMessage message="ชื่อ image ต้องขึ้นต้นด้วย `username/` เท่านั้นถึงจะ push ขึ้น Docker Hub ได้ เช่น `luckytime1996/myapp:1.0`" avatarKey="blackCat" />
+
+<ChatMessage message="ถ้าไม่ระบุ tag จะเป็น `latest` โดย default" isFromMe="true" />
+
+<ChatMessage message="ใช้ `docker login -u <username>` แทนได้ ถ้าไม่อยากพิมพ์รหัสผ่านแบบ interactive" avatarKey="blackCat" />
+
 ### Container
 
 ```bash
