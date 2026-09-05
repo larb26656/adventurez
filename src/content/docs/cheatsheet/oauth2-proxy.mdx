@@ -1,0 +1,223 @@
+---
+title: OAuth2 Proxy (htpasswd)
+description: A cheatsheet of OAuth2 Proxy with htpasswd authentication for quick adhoc proxy setup
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+[OAuth2 Proxy](https://oauth2-proxy.github.io/oauth2-proxy/) คือ reverse proxy ที่ทำ authentication ให้กับ backend services โดยรองรับหลาย OAuth providers (Google, GitHub, etc.) และ **htpasswd authentication** สำหรับ quick setup แบบไม่ต้องมี OAuth provider
+
+## Quick Setup ด้วย Docker
+
+```yaml
+services:
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    container_name: oauth2-proxy
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Bangkok
+      OAUTH2_PROXY_CLIENT_ID: dummy
+      OAUTH2_PROXY_CLIENT_SECRET: dummy
+      OAUTH2_PROXY_REDIRECT_URL: https://your-domain.com/oauth2/callback
+      OAUTH2_PROXY_HTPASSWD_FILE: /etc/oauth2-proxy/htpasswd
+      OAUTH2_PROXY_COOKIE_SECRET: 12345678901234567890123456789012
+      OAUTH2_PROXY_COOKIE_SECURE: "true"
+      OAUTH2_PROXY_UPSTREAMS: http://backend-service:8080
+      OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:4180"
+      OAUTH2_PROXY_SKIP_AUTH_ROUTES: "^/api(/.*)?$"
+      OAUTH2_PROXY_DISPLAY_HTPASSWD_FORM: "true"
+      OAUTH2_PROXY_EMAIL_DOMAINS: "*"
+    volumes:
+      - ./proxy/htpasswd:/etc/oauth2-proxy/htpasswd:ro
+      - ./proxy/logs:/var/log/oauth2-proxy
+    ports:
+      - "4180:4180"
+    networks:
+      - app-network
+
+  backend-service:
+    image: your-backend-image
+    container_name: backend-service
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+> ใช้ `dummy` สำหรับ `CLIENT_ID` และ `CLIENT_SECRET` เมื่อใช้ htpasswd auth เท่านั้น
+
+## สร้าง htpasswd File
+
+```bash
+# ติดตั้ง apache2-utils ก่อน
+# macOS
+brew install httpd
+
+# Ubuntu/Debian
+apt install apache2-utils
+
+# Alpine
+apk add apache2-utils
+```
+
+```bash
+# สร้าง file ใหม่ (สร้าง user)
+htpasswd -c ./proxy/htpasswd admin
+# พิมพ์ password ที่ต้องการ 2 ครั้ง
+
+# เพิ่ม user เพิ่มเติม (ไม่ใช้ -c)
+htpasswd ./proxy/htpasswd another-user
+
+# ดู users ใน file
+cat ./proxy/htpasswd
+```
+
+### ตัวอย่าง htpasswd file
+
+```
+admin:$apr1$L5/8HJ..$k8kTfxCj4E8K5T5X5xXyX/
+bob:$apr1$Hz/8HJ..$m8kTfxCj4E8K5T5X5xXyX/
+```
+
+## Environment Variables
+
+### Core Settings
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `OAUTH2_PROXY_UPSTREAMS` | Backend service URL | ✅ |
+| `OAUTH2_PROXY_HTTP_ADDRESS` | Listen address | ✅ |
+| `OAUTH2_PROXY_HTPASSWD_FILE` | Path to htpasswd file | ✅ |
+| `OAUTH2_PROXY_COOKIE_SECRET` | Secret for cookie encryption (32 chars) | ✅ |
+
+### Authentication
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `OAUTH2_PROXY_CLIENT_ID` | OAuth client ID (ใช้ `dummy` กับ htpasswd) | - |
+| `OAUTH2_PROXY_CLIENT_SECRET` | OAuth client secret (ใช้ `dummy` กับ htpasswd) | - |
+| `OAUTH2_PROXY_REDIRECT_URL` | OAuth callback URL | - |
+| `OAUTH2_PROXY_EMAIL_DOMAINS` | Allowed email domains (`*` for all) | `*` |
+| `OAUTH2_PROXY_DISPLAY_HTPASSWD_FORM` | แสดง htpasswd login form | `false` |
+| `OAUTH2_PROXY_COOKIE_SECURE` | Set `Secure` flag on cookies | `true` if HTTPS |
+
+### Routing
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OAUTH2_PROXY_SKIP_AUTH_ROUTES` | Routes to skip auth (regex) | `^/api(/.*)?$` |
+| `OAUTH2_PROXY_SKIP_PROVIDER_CHECK` | Skip OAuth provider check | `true` |
+
+### Logging
+
+| Variable | Description | Values |
+|----------|-------------|--------|
+| `OAUTH2_PROXY_LOG_LEVEL` | Log verbosity | `debug`, `info`, `warn`, `error` |
+| `OAUTH2_PROXY_LOG_JSON` | JSON format logging | `true` or `false` |
+
+<ChatMessage message="OAUTH2_PROXY_SKIP_AUTH_ROUTES ใช้ regex สำหรับ public API routes ที่ต้องการเข้าถึงได้เลย" avatarKey="blackCat" />
+
+## ใช้กับ Traefik
+
+```yaml
+# docker-compose.yml
+services:
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    container_name: oauth2-proxy
+    environment:
+      OAUTH2_PROXY_UPSTREAMS: http://backend-service:8080
+      OAUTH2_PROXY_HTPASSWD_FILE: /etc/oauth2-proxy/htpasswd
+      OAUTH2_PROXY_COOKIE_SECRET: 12345678901234567890123456789012
+      OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:4180"
+      OAUTH2_PROXY_DISPLAY_HTPASSWD_FORM: "true"
+    volumes:
+      - ./proxy/htpasswd:/etc/oauth2-proxy/htpasswd:ro
+    networks:
+      - app-network
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.oauth2-proxy.rule=Host(`grist.example.com`)"
+      - "traefik.http.routers.oauth2-proxy.entrypoints=websecure"
+      - "traefik.http.routers.oauth2-proxy.tls=true"
+      - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
+      - "traefik.http.routers.oauth2-proxy.middlewares=oauth2-proxy-auth"
+      - "traefik.http.middlewares.oauth2-proxy-auth.forwardauth.address=http://oauth2-proxy:4180"
+      - "traefik.http.middlewares.oauth2-proxy-auth.forwardauth.trustForwardHeader=true"
+
+  backend-service:
+    image: your-backend-image
+    container_name: backend-service
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`grist.example.com`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.middlewares=oauth2-proxy-auth"
+
+networks:
+  app-network:
+    driver: bridge
+  traefik-network:
+    external: true
+```
+
+## การตรวจสอบสถานะ
+
+```bash
+# ดู logs
+docker logs oauth2-proxy
+
+# ดู logs แบบ real-time
+docker logs -f oauth2-proxy
+
+# ตรวจสอบว่า container ทำงานอยู่
+docker ps | grep oauth2-proxy
+```
+
+## ปัญหาที่พบบ่อย
+
+### 502 Bad Gateway
+```
+upstream timed out
+```
+- ตรวจสอบว่า backend service ทำงานอยู่และ port ถูกต้อง
+- ดูว่า network ถูกตั้งค่าถูกต้อง
+
+### 401 Unauthorized
+```
+Invalid account
+```
+- ตรวจสอบ htpasswd file ว่าถูก mount ถูกต้อง
+- ตรวจสอบ path ใน `OAUTH2_PROXY_HTPASSWD_FILE` ว่าตรงกับ volume mount
+
+### Cookie issues
+```
+cookie is not valid
+```
+- ลองลบ cookies ของเว็บ
+- ตรวจสอบว่า `OAUTH2_PROXY_COOKIE_SECRET` มีความยาว 32 ตัวอักษร
+
+## Generate Cookie Secret
+
+```bash
+# สุ่ม 32 ตัวอักษร
+openssl rand -base64 32 | tr -d '=' | head -c 32
+
+# หรือใช้ Python
+python3 -c "import secrets; print(secrets.token_hex(16))"
+```
+
+## Useful Links
+
+- [OAuth2 Proxy Official Docs](https://oauth2-proxy.github.io/oauth2-proxy/)
+- [Configuration Overview](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview)
+- [Environment Variables](https://oauth2-proxy.github.io/oauth2-proxy/configuration/environment)
+- [Auth Routes](https://oauth2-proxy.github.io/oauth2-proxy/configuration/routes)
+- [htpasswd Generator](https://htpasswdgenerator.com/)
