@@ -1,0 +1,185 @@
+---
+title: Grist
+description: A cheatsheet of Grist - open-source spreadsheet with database powers
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+[Grist](https://www.getgrist.com) คือ open-source spreadsheet ที่ผสมผสานความง่ายของ spreadsheet กับพลังของ database แบบ relational เข้าด้วยกัน รองรับ formula ขั้นสูง, automation, และ สามารถเชื่อมต่อกับ external database ได้
+
+## จุดเด่นของ Grist
+- **Spreadsheet + Database** — ตารางแบบ spreadsheet ที่มี relational data, references, และ lookup
+- **Formula engine** ขั้นสูง — ใช้ Python expressions ได้เต็มรูปแบบ
+- **Automation** — สร้าง rules และ triggers ได้แบบ no-code
+- **Self-hosted** — รองรับ Docker, มี SSO/Auth ผ่าน OAuth2 Proxy
+- **Import/Export** — รองรับ CSV, Excel, PostgreSQL, MySQL
+
+## Docker Compose (แบบ Simple - localhost + port expose)
+
+สำหรับ local หรือ internal network ที่ไม่ต้องการ reverse proxy:
+
+```yaml
+services:
+  grist:
+    image: gristlabs/grist
+    container_name: grist
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Bangkok
+      GRIST_SINGLE_ORG: my-org
+      GRIST_DEFAULT_EMAIL: admin@example.com
+      APP_HOME_URL: http://localhost:8484
+    volumes:
+      - ./grist:/persist
+    ports:
+      - "8484:8484"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+> `APP_HOME_URL` ต้องตรงกับ URL ที่เข้าถึงจริง ถ้าเป็น localhost ก็ใช้ localhost
+
+## Docker Compose (แบบ OAuth2 Proxy)
+
+ใช้ oauth2-proxy ทำ authentication ก่อนเข้า Grist:
+
+```yaml
+services:
+  grist:
+    image: gristlabs/grist
+    container_name: grist
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Bangkok
+      GRIST_FORWARD_AUTH_HEADER: X-Forwarded-User
+      GRIST_FORWARD_AUTH_LOGOUT_PATH: /oauth2/sign_out
+      GRIST_SINGLE_ORG: my-org
+      GRIST_DEFAULT_EMAIL: admin@example.com
+      APP_HOME_URL: https://grist.example.com
+    volumes:
+      - ./grist:/persist
+    networks:
+      - app-network
+
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:latest
+    container_name: oauth2-proxy-sheet
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Bangkok
+      OAUTH2_PROXY_CLIENT_ID: your-client-id
+      OAUTH2_PROXY_CLIENT_SECRET: your-client-secret
+      OAUTH2_PROXY_REDIRECT_URL: https://grist.example.com/oauth2/callback
+      OAUTH2_PROXY_HTPASSWD_FILE: /etc/oauth2-proxy/htpasswd
+      OAUTH2_PROXY_COOKIE_SECRET: your-32-char-secret
+      OAUTH2_PROXY_COOKIE_SECURE: "true"
+      OAUTH2_PROXY_UPSTREAMS: http://grist:8484
+      OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:4180"
+      OAUTH2_PROXY_EMAIL_DOMAINS: "*"
+      OAUTH2_PROXY_CUSTOM_SIGN_IN_LOGO: https://www.getgrist.com/wp-content/uploads/2023/03/Grist-Logo.png
+    volumes:
+      - ./proxy/htpasswd:/etc/oauth2-proxy/htpasswd:ro
+    networks:
+      - app-network
+    ports:
+      - "4180:4180"
+
+networks:
+  app-network:
+    driver: bridge
+```
+
+### สร้าง htpasswd file
+
+```bash
+# ติดตั้ง apache2-utils ก่อน (macOS: brew install httpd)
+htpasswd -c ./proxy/htpasswd admin
+# พิมพ์ password ที่ต้องการ
+```
+
+## Grist Environment Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `GRIST_SINGLE_ORG` | บังคับใช้ organization เดียว | `my-org` |
+| `GRIST_DEFAULT_EMAIL` | default email สำหรับ admin | `admin@example.com` |
+| `APP_HOME_URL` | URL หลักที่เข้าถึง Grist | `https://grist.example.com` |
+| `GRIST_FORWARD_AUTH_HEADER` | header ที่ OAuth proxy ส่งมา | `X-Forwarded-User` |
+| `GRIST_FORWARD_AUTH_LOGOUT_PATH` | logout path ของ OAuth | `/oauth2/sign_out` |
+| `GRIST_ORG_IN_PATH` | ใส่ org ใน URL path แทน subdomain | `true` |
+| `GRIST_SESSION_SECRET` | secret สำหรับ encrypt session | `random-string` |
+| `GRIST_DATA_DIR` | ที่อยู่ data files | `/persist/data` |
+| `GRIST_BACKUP_DIR` | ที่อยู่ backup files | `/persist/backups` |
+| `GRIST_IMPORT_DIR` | directory สำหรับ import | `/persist/imports` |
+
+<ChatMessage message="ถ้าใช้ GRIST_SINGLE_ORG จะไม่ต้องเลือก org ตอนเข้าใช้ เหมาะสำหรับ self-hosted แบบ single tenant" avatarKey="blackCat" />
+
+## OAuth2 Proxy Environment Variables
+
+### Authentication Settings
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OAUTH2_PROXY_CLIENT_ID` | OAuth app client ID | `dummy` |
+| `OAUTH2_PROXY_CLIENT_SECRET` | OAuth app client secret | `dummy` |
+| `OAUTH2_PROXY_REDIRECT_URL` | callback URL ที่ OAuth provider | `https://grist.example.com/oauth2/callback` |
+| `OAUTH2_PROXY_HTPASSWD_FILE` | path สำหรับ htpasswd file | `/etc/oauth2-proxy/htpasswd` |
+| `OAUTH2_PROXY_COOKIE_SECRET` | secret สำหรับ encrypt cookie (32 chars) | `12345678901234567890123456789012` |
+| `OAUTH2_PROXY_EMAIL_DOMAINS` | อนุญาต email domains | `*` (all) หรือ `example.com` |
+| `OAUTH2_PROXY_COOKIE_SECURE` | set cookie secure flag | `true` ถ้า HTTPS |
+
+### Upstream & Routing
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OAUTH2_PROXY_UPSTREAMS` | backend service | `http://grist:8484` |
+| `OAUTH2_PROXY_HTTP_ADDRESS` | listen address | `0.0.0.0:4180` |
+| `OAUTH2_PROXY_SKIP_AUTH_ROUTES` | routes ที่ข้าม auth | `^/api(/.*)?$` |
+
+<ChatMessage message="OAUTH2_PROXY_SKIP_AUTH_ROUTES ใช้ regex ถ้าต้องการให้ API routes ของ Grist เข้าถึงได้โดยไม่ต้อง login" avatarKey="blackCat" />
+
+### Provider-specific Configuration
+
+#### Google OAuth
+```bash
+OAUTH2_PROXY_PROVIDER=google
+OAUTH2_PROXY_CLIENT_ID=your-google-client-id
+OAUTH2_PROXY_CLIENT_SECRET=your-google-client-secret
+OAUTH2_PROXY_EMAIL_DOMAINS=example.com
+```
+
+#### GitHub OAuth
+```bash
+OAUTH2_PROXY_PROVIDER=github
+OAUTH2_PROXY_CLIENT_ID=your-github-client-id
+OAUTH2_PROXY_CLIENT_SECRET=your-github-client-secret
+OAUTH2_PROXY_EMAIL_DOMAINS=example.com
+```
+
+### Logging & Debug
+
+| Variable | Description |
+|----------|-------------|
+| `OAUTH2_PROXY_LOG_LEVEL` | log level: `debug`, `info`, `warn`, `error` |
+| `OAUTH2_PROXY_DISPLAY_HTPASSWD_FORM` | แสดง htpasswd login form ด้วย |
+
+## การเข้าถึง
+
+| Method | URL |
+|--------|-----|
+| Local (direct) | `http://localhost:8484` |
+| OAuth2 Proxy | `http://your-server:4180` |
+| With domain | `https://grist.example.com` |
+
+## Useful Links
+
+- [Grist Official Documentation](https://docs.getgrist.com)
+- [Grist Self-Hosting Guide](https://support.getgrist.com/self-hosting/)
+- [Grist GitHub](https://github.com/gristlabs/grist)
+- [OAuth2 Proxy Configuration](https://oauth2-proxy.github.io/oauth2-proxy/configuration/overview)
+- [OAuth2 Proxy Environment Variables](https://oauth2-proxy.github.io/oauth2-proxy/configuration/environment)
+- [OAuth2 Proxy Auth Routes](https://oauth2-proxy.github.io/oauth2-proxy/configuration/routes)
