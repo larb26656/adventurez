@@ -1,0 +1,248 @@
+---
+title: OAuth2
+description: ภาพรวม OAuth2 — ทำงานอย่างไร มีอะไรเกี่ยวข้องบ้าง และเลือกใช้แบบไหนเมื่อไหร่
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+[OAuth2](https://oauth.net/2/) คือ **authorization framework** ที่ช่วยให้ application เข้าถึง resource ของ user ได้โดยไม่ต้องจ่าย password ให้กับ application โดยตรง ตัว specification หลักคือ [RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749) ซึ่งเป็นมาตรฐานที่ Google, GitHub, Facebook และอีกมากมายใช้กัน
+
+## ปัญหาที่ OAuth2 มาแก้
+
+สมัยก่อนถ้าอยากให้ app อ่านอีเมล Gmail ของเรา ต้องเอา password Gmail ไปให้มัน — แปลว่า app นั้นเข้าถึง account เราได้**ทุกอย่าง** เปลี่ยน password ได้ ลบอีเมลได้ แถมถอนสิทธิ์ไม่ได้นอกจากเปลี่ยน password
+
+OAuth2 แก้ด้วยการแยกสิ่งที่ app "ขอ" ออกจากสิ่งที่ app "ทำได้":
+
+1. **ไม่แจก password** — user login กับ Authorization Server โดยตรง app ไม่เห็น password เลย
+2. **จำกัดสิทธิ์ด้วย scope** — ขอได้เฉพาะ "อ่านอีเมล" ไม่ใช่ทั้ง account
+3. **เพิกถอนได้ตลอดเวลา** — ไปที่หน้า "Connected apps" แล้ว revoke ได้ทันที
+
+> เหมือน **valet key** ของรถ — กุญแจที่สตาร์ทรถได้แต่เปิดกระโปรง/กล่องเก็บของไม่ได้ ไม่ใช่กุญแจดอกหลักที่เปิดได้ทุกอย่าง
+
+![กุญแจจุดรถพร้อม keyfob (ดอกหลัก) วางเคียง valet key ที่หัวสั้นกว่าของ Jaguar X300](/cheatsheet/oauth2/valet-key.jpg)
+
+<sub>ภาพกุญแจจุดรถและ valet key ของ Jaguar X300 — โดย Magnus Bäck, [CC BY 3.0](https://commons.wikimedia.org/wiki/File:Jaguar_X300_ignition_key,_keyfob,_and_valet_key.jpg)</sub>
+
+## ภาพรวมการทำงาน
+
+เส้นเรื่องหลักของ OAuth2 มีแค่ 3 ขั้น ไม่ว่าจะใช้แบบไหน:
+
+```mermaid
+sequenceDiagram
+    participant C as Client (App)
+    participant A as Authorization Server
+    participant R as Resource Server (API)
+
+    Note over C,A: 1. ขออนุญาต — user login + consent ผ่าน Authorization Server
+    A->>C: 2. ออก access_token ให้ (แทนการแจก password)
+    C->>R: 3. เรียก API พร้อม access_token
+    R-->>C: ส่ง data กลับ
+```
+
+ทุกอย่างใน OAuth2 เป็น variation ของเรื่องนี้ — ต่างกันแค่ว่า **ขั้นที่ 1-2 ทำยังไง** (ผ่าน browser? มี secret ไหม?) ซึ่งเรียกว่า **grant types**
+
+## Roles ทั้ง 4
+
+| Role | คือใคร | ตัวอย่าง |
+|------|--------|---------|
+| **Resource Owner** | เจ้าของ data | User ที่ login |
+| **Client** | Application ที่ขอเข้าถึง data | Web app, mobile app |
+| **Authorization Server** | ตรวจตัวตนแล้วออก token | Google, Keycloak, Auth0 |
+| **Resource Server** | API ที่เก็บ data จริง | GitHub API, Google Drive API |
+
+> บางที่ Authorization Server กับ Resource Server เป็นบริษัทเดียวกัน (เช่น Google) แต่แยก concept ไว้เพื่อให้ต่อยอดเป็นสถาปัตยกรรม microservices ได้
+
+## Tokens
+
+OAuth2 ใช้ token แทน password โดย token หลัก ๆ มี 3 แบบ:
+
+| Token | หน้าที่ | อายุ | เก็บไว้ที่ไหน |
+|-------|--------|------|--------------|
+| **access_token** | ใช้เป็นตัวแทนการยืนยันตน โดยแนบไปกับ API call (`Authorization: Bearer ...`) | สั้น (~1 ชม.) | Memory (SPA) / httpOnly cookie |
+| **refresh_token** | แลก access_token ใบใหม่เมื่อหมดอายุ | ยาว (วัน-สัปดาห์) | ที่ปลอดภัยที่สุดที่มี |
+| **ID token** | พิสูจน์ตัวตน user เป็น **JWT** มี claims (ของ OIDC) | สั้น | ใช้แล้ว verify ที่ client |
+
+ทำไม access_token ต้องอายุสั้น?
+
+- **access_token** ส่งออกไปกับทุก API request → โอกาสถูกขโมยสูงสุด เลยตั้งให้หมดอายุเร็วเพื่อจำกัดความเสียหาย
+- **refresh_token** ส่งถึง Authorization Server เฉพาะตอนแลก token เท่านั้น ไม่ใช้กับ API request ปกติ → ปลอดภัยกว่า จึงใช้ต่ออายุ access_token แทน
+
+```bash
+# ตัวอย่างการเรียก API ด้วย access_token
+curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
+  https://resource-server.com/api/userinfo
+```
+
+## Scopes
+
+**scope** คือวิธีบอกว่าขอเข้าถึงอะไรบ้าง — เป็น string คั่นด้วย space ที่แต่ละ provider นิยามเอง:
+
+```
+scope=openid%20email%20profile
+```
+
+- **ขอน้อยกว่าที่ API ต้องใช้** — ตอนเรียก API จะโดน `403 insufficient_scope`
+- **ขอเยอะกว่าที่ใช้จริง** — user อาจกดปฏิเสธ consent และถ้า token หลุดไป คนขโมยก็ได้สิทธิ์เกินจำเป็น
+
+<ChatMessage message="ขอแค่เท่าที่ feature ใช้จริงก็พอ (least privilege) — จะอ่านอย่าขอ write ไว้เผื่อนะ เดี๋ยวมีเรื่องแล้วจะหาว่าไม่เตือน" avatarKey="blackCat" />
+
+## Grant Types
+
+**grant type** คือ "วิธีขอ token" ซึ่งเลือกตามว่า client เป็นตัวอะไร — มี browser ไหม เก็บ secret ได้ไหม มี user ไหม
+
+### Authorization Code
+
+Flow มาตรฐานสำหรับ **server-side web application** — redirect ผ่าน browser แล้วแลก token ที่ backend (secret ไม่โดน expose)
+
+```mermaid
+sequenceDiagram
+    participant U as User (Browser)
+    participant C as Client (Web App)
+    participant A as Authorization Server
+
+    U->>C: 1. กดปุ่ม Login
+    C->>U: 2. Redirect ไป /authorize พร้อม client_id, redirect_uri, state
+    U->>A: 3. Login + ยืนยัน consent
+    A->>C: 4. Redirect กลับมาพร้อม ?code=xxx&state=yyy
+    C->>A: 5. POST /token (code + client_secret)
+    A->>C: 6. access_token + refresh_token
+```
+
+ขั้นตอนจริงเป็น HTTP requests แบบนี้:
+
+```bash
+# ขั้น 2: authorize URL ที่ redirect user ไป
+https://authorization-server.com/authorize?
+  response_type=code
+  &client_id=your-client-id
+  &redirect_uri=https://your-app.com/callback
+  &scope=openid%20email%20profile
+  &state=random-string-กัน-CSRF
+
+# ขั้น 5: แลก code เป็น token (ทำที่ backend)
+curl -X POST https://authorization-server.com/token \
+  -d client_id=your-client-id \
+  -d client_secret=your-client-secret \
+  -d code=SplxlOBeZQQYbYS6WxSbIA \
+  -d grant_type=authorization_code \
+  -d redirect_uri=https://your-app.com/callback
+```
+
+```json
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIs...",
+  "expires_in": 3599,
+  "refresh_token": "def50200e9c1b4a7...",
+  "token_type": "Bearer"
+}
+```
+
+<ChatMessage message="ต้องเช็ค state ที่ redirect กลับมาด้วยนะ ถ้าไม่ตรงกับที่ส่งไปตอนแรกให้ reject ทันที เพราะนั่นอาจเป็น CSRF attack" avatarKey="blackCat" />
+
+### Authorization Code + PKCE
+
+**PKCE** (อ่านว่า "pixy" — [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636)) สำหรับ **SPA และ mobile app** ที่เก็บ `client_secret` ไม่ได้ (เพราะใครก็ decompile/ดู source ได้)
+
+แทนที่จะใช้ secret ก็ใช้ **code_verifier** (random string) ที่ hash เป็น **code_challenge** ส่งไปกับ authorize request แล้วตอนแลก token ส่ง verifier ตัวจริงไปให้ server เช็คว่า hash ตรงกัน
+
+```mermaid
+sequenceDiagram
+    participant U as User (SPA/Mobile)
+    participant A as Authorization Server
+
+    Note over U: สร้าง code_verifier + code_challenge ก่อน
+    U->>A: 1. GET /authorize?code_challenge=xxx&code_challenge_method=S256
+    U->>A: 2. Login + consent
+    A->>U: 3. Redirect กลับพร้อม ?code=xxx
+    U->>A: 4. POST /token (code + code_verifier)
+    Note over A: ตรวจว่า hash(code_verifier) == code_challenge
+    A->>U: 5. access_token
+```
+
+```bash
+# สร้าง code_verifier (random 43-128 chars)
+openssl rand -base64 32 | tr -d '=+/' | head -c 43
+
+# สร้าง code_challenge (S256 = SHA-256 แล้ว base64url ไม่มี padding)
+echo -n "your-code-verifier" | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '='
+
+# ตอนแลก token ส่ง code_verifier แทน client_secret
+curl -X POST https://authorization-server.com/token \
+  -d client_id=your-client-id \
+  -d grant_type=authorization_code \
+  -d code=received-code \
+  -d code_verifier=your-code-verifier \
+  -d redirect_uri=https://your-spa.com/callback
+```
+
+<ChatMessage message="ทุกวันนี้แนะนำใช้ PKCE กับทุก client แม้จะเก็บ secret ได้ก็ตาม เพราะมันกัน authorization code ถูกขโมยไปใช้ด้วย" avatarKey="blackCat" />
+
+### Client Credentials
+
+สำหรับ **machine-to-machine (M2M)** — application เรียก API ด้วยสิทธิ์ตัวเอง ไม่มี user นู้นที่นี่ ไม่มี browser ไม่มี redirect
+
+```mermaid
+sequenceDiagram
+    participant C as Client (Backend/Cron Job)
+    participant A as Authorization Server
+    participant R as Resource Server
+
+    C->>A: 1. POST /token (client_id + client_secret)
+    A->>C: 2. access_token (ไม่มี refresh_token)
+    C->>R: 3. GET /api/data (Bearer token)
+```
+
+```bash
+curl -X POST https://authorization-server.com/token \
+  -d grant_type=client_credentials \
+  -d client_id=your-client-id \
+  -d client_secret=your-client-secret \
+  -d scope=api:read
+```
+
+> ไม่มี **Resource Owner** ใน flow นี้ client คือ resource owner เอง จึงไม่ได้ refresh_token กลับมา — หมดอายุก็ขอใหม่ได้เลย
+
+### Refresh Token
+
+access_token อายุสั้น พอหมดอายุไม่ต้องไล่ user login ใหม่ ใช้ **refresh_token** แลก access_token ใบใหม่แทน
+
+```bash
+curl -X POST https://authorization-server.com/token \
+  -d grant_type=refresh_token \
+  -d refresh_token=def50200e9c1b4a7... \
+  -d client_id=your-client-id \
+  -d client_secret=your-client-secret
+```
+
+<ChatMessage message="refresh_token ควรเก็บแบบ long-lived และ secure ที่สุดในระบบ ถ้ารั่วไหลถือว่าแฮ็กเกอร์ impersonate user ได้ตลอดไป บาง server จะหมุน (rotate) refresh_token ใหม่ทุกครั้งที่ใช้ แล้วตัวเก่าจะใช้ไม่ได้ทันที" avatarKey="blackCat" />
+
+### เลือก Grant ไหน?
+
+| Grant | ใช้เมื่อ | มี user | ต้องมี client_secret |
+|-------|---------|--------|---------------------|
+| **Authorization Code** | Server-side web app (มี backend) | ✅ | ✅ |
+| **Auth Code + PKCE** | SPA, mobile, desktop app | ✅ | ❌ |
+| **Client Credentials** | M2M, cron job, microservice | ❌ | ✅ |
+| **Refresh Token** | ต่ออายุ token ที่เพิ่งหมดอายุ | แล้วแต่ grant เดิม | ตาม grant เดิม |
+
+> **Implicit Grant** (ตอบ token ตรง ๆ ผ่าน URL fragment) เคยใช้กับ SPA แต่ถูก **deprecate แล้ว** ใน [OAuth 2.1](https://oauth.net/2.1/) — ใช้ PKCE แทน
+
+## OAuth2 vs OpenID Connect
+
+OAuth2 ตอบคำถามเดียว: **"ขอเข้า data นี้ได้ไหม"** (authorization) แต่ไม่ได้นิยามว่า user นี้คือใคร ไม่มีมาตรฐาน profile หรือ logout
+
+**OpenID Connect (OIDC)** คือ identity layer ที่สร้างมาบน OAuth2 — เพิ่ม:
+
+1. **ID token** — JWT ที่บอกว่า user เป็นใคร (claims: `sub`, `email`, `name`)
+2. **scope `openid`** — สัญญาณว่าขอ authentication ไม่ใช่แค่ authorization
+3. **`/userinfo` endpoint** — ดึง profile ได้มาตรฐานเดียวกันทุก provider
+
+> ใช้ OIDC ตอนไหนก็ตามที่เว็บคุณมีปุ่ม "Login with Google/GitHub" — ตัวที่ทำงานอยู่หลัง scenes คือ OAuth2 + ส่วนขยายของ OIDC
+
+## Useful Links
+
+- [oauth.com — OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/)
+- [RFC 6749 — OAuth 2.0 Framework](https://datatracker.ietf.org/doc/html/rfc6749)
+- [RFC 7636 — PKCE Extension](https://datatracker.ietf.org/doc/html/rfc7636)
+- [OAuth 2.1 Draft](https://oauth.net/2.1/)
+- [OpenID Connect](https://openid.net/developers/how-connect-works/)

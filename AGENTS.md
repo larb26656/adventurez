@@ -21,51 +21,8 @@ npm run build-storybook
 - `src/content/docs/{name}-adventure/` - Course modules
 - `src/components/` - React & Astro components
 
-## Cheatsheet Format
-When asked to write "cheatcode" or "cheatsheet", create the file in `src/content/docs/cheatsheet/`
-
-New cheatsheets go in `src/content/docs/cheatsheet/` with frontmatter:
-```mdx
----
-title: Tool Name
-description: A brief description
----
-```
-Use `<ChatMessage>` component for conversational notes.
-
-## Cheatsheet Style Guidelines
-Follow this pattern for cheatsheets:
-- **Frontmatter**: `title` and `description`
-- **Intro**: Brief explanation of the tool at the top (1-2 sentences + feature list)
-- **Structure**: `##` for main sections, `###` for subsections
-- **Code blocks**: Use ```bash for commands, ```json for JSON examples
-- **Emphasis**: Use **bold** for important terms, `code` for command names
-- **Lists**: Use numbered lists for multi-item concepts (e.g., permission types)
-- **Blockquotes**: Use `>` for simple analogies or notes
-- **ChatMessage**: Use `<ChatMessage>` for conversational Q&A between "me" (isFromMe="true") and "blackCat" (avatarKey="blackCat")
-
-Example structure:
-```mdx
----
-title: Tool Name
-description: A brief description
----
-
-import ChatMessage from '../../../components/ChatMessage.astro';
-
-Brief intro explaining what the tool is...
-
-## Main Section
-
-### Subsection
-
-```bash
-# comment describing command
-command
-```
-
-<ChatMessage message="explanatory note" avatarKey="blackCat" />
-```
+## Cheatsheets
+When asked to write a "cheatsheet" or "cheatcode", load and follow the `write-cheatsheet` skill (`.opencode/skills/write-cheatsheet/SKILL.md`) — it contains the full template, style rules, and `<ChatMessage>` usage guide.
 
 ## Sidebar Configuration
 Sidebar is configured in `astro.config.mjs` via `starlightSidebarTopics` plugin. Course directories are auto-discovered.
