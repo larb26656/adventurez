@@ -46,6 +46,9 @@ docker tag <image> <new_name:tag>
 # Login เข้า Docker Hub
 docker login
 
+# Build image จาก Dockerfile (ต้อง build ก่อนจึงจะ tag ได้)
+docker build -t <name>:<tag> .
+
 # Tag image ให้พร้อม push (ต้องมีชื่อ username นำหน้า)
 docker tag <image> <username>/<repo>:<tag>
 
@@ -57,6 +60,10 @@ docker logout
 ```
 
 <ChatMessage message="ชื่อ image ต้องขึ้นต้นด้วย `username/` เท่านั้นถึงจะ push ขึ้น Docker Hub ได้ เช่น `luckytime1996/myapp:1.0`" avatarKey="blackCat" />
+
+<ChatMessage message="สั้นกว่า: build รวม tag ได้เลย ไม่ต้องมานั่ง tag ทีหลังใช่ไหม?" avatarKey="me" isFromMe="true" />
+
+<ChatMessage message="จริงๆ ใช้ `docker build -t <username>/<repo>:<tag> .` ตั้งชื่อตอน build เลยก็ได้ จะได้ข้ามขั้นตอน `docker tag` ไปเลย" avatarKey="blackCat" />
 
 <ChatMessage message="ถ้าไม่ระบุ tag จะเป็น `latest` โดย default" isFromMe="true" />
 

@@ -64,8 +64,77 @@ spec:
       containers:
         - name: nginx
           image: nginx:1.27
+          env:
+            - name: APP_ENV
+              value: production
+            - name: API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: api-url
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: database-password
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
           ports:
             - containerPort: 80
+```
+
+โครงสร้าง `spec` ของ Deployment มีส่วนสำคัญดังนี้:
+
+- `spec.replicas` และ `spec.selector` — กำหนดจำนวน replicas และบอกว่า Deployment จะดูแล Pod ไหน
+- `spec.template` — template สำหรับสร้าง Pod ใหม่ โดย label ต้องตรงกับ `selector.matchLabels`
+- `spec.template.spec` — กำหนดรายละเอียดของ Pod เช่น `containers`, `volumes` และ `serviceAccountName`
+- `spec.template.spec.containers[].env` — กำหนด environment variables ให้ container แต่ละตัว
+- `spec.template.spec.containers[].resources` — กำหนด resource ที่ container ขอใช้และใช้ได้สูงสุด
+
+`requests` ใช้ให้ Kubernetes เลือก Node ที่มี resource เพียงพอ ส่วน `limits` ใช้จำกัดการใช้งานสูงสุดของ container หากใช้ memory เกิน limit อาจถูก OOMKilled และถ้าใช้ CPU เกิน limit จะถูก throttle
+
+ค่าใน `env` มีได้หลายรูปแบบ:
+
+```yaml
+env:
+  # ค่าแบบเขียนตรง ๆ เหมาะกับค่าที่ไม่ sensitive
+  - name: APP_ENV
+    value: production
+
+  # อ่านค่าจาก ConfigMap
+  - name: API_URL
+    valueFrom:
+      configMapKeyRef:
+        name: app-config
+        key: api-url
+
+  # อ่านค่าจาก Secret ห้ามใส่ password ตรง ๆ ใน Deployment YAML
+  - name: DATABASE_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: app-secret
+        key: database-password
+```
+
+ถ้าต้องการโหลดทุก key จาก ConfigMap หรือ Secret เป็น environment variables ให้ใช้ `envFrom` แทน `env`:
+
+```yaml
+spec:
+  template:
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secret
 ```
 
 ```bash
@@ -116,7 +185,80 @@ kubectl port-forward svc/nginx 8080:80
 kubectl delete -f service.yaml
 ```
 
-เปลี่ยน `type` เป็น `NodePort` สำหรับเปิดผ่าน port ของ Node หรือ `LoadBalancer` สำหรับ cloud provider ที่รองรับ
+**NodePort** — เปิดผ่าน port ของ Node (ช่วง 30000-32767) เหมาะกับ cluster ที่ยังไม่มี LoadBalancer
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-nodeport
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080
+```
+
+```bash
+# เข้าถึงผ่าน IP ของ Node ใด Node หนึ่ง
+curl http://<node-ip>:30080
+```
+
+**LoadBalancer** — ให้ cloud provider สร้าง external load balancer ให้อัตโนมัติ เหมาะกับการเปิด traffic จากภายนอก cluster
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-lb
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+```
+
+```bash
+# รอจนได้ external IP
+kubectl get svc nginx-lb -w
+
+# ทดสอบจากภายนอก
+curl http://<external-ip>
+```
+
+**Headless** — ตั้ง `clusterIP: None` เพื่อไม่สร้าง virtual IP และไม่ทำ load balancing แต่จะ return IP ของ Pod ทุกตัวผ่าน DNS แทน เหมาะกับ StatefulSet ที่ต้องติดต่อ Pod ตรง ๆ เช่น database cluster
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless
+spec:
+  clusterIP: None
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+```
+
+```bash
+# DNS จะ resolve เป็น IP ของ Pod ทุกตัว ไม่ใช่ IP เดียว
+nslookup postgres-headless
+
+# เข้าถึง Pod เฉพาะตัวของ StatefulSet ผ่าน pattern <pod-name>.<service-name>
+nslookup postgres-0.postgres-headless
+```
+
+<ChatMessage message="Headless Service มักใช้คู่กับ StatefulSet เพราะ Pod แต่ละตัวมี identity ชัดเจน (เช่น `postgres-0`, `postgres-1`) ทำให้ client เลือกติดต่อ Pod ใด Pod หนึ่งได้โดยตรง ไม่ผ่าน load balancing" avatarKey="whiteCat" />
 
 ### ConfigMap
 
@@ -416,7 +558,7 @@ kubectl exec deploy/app -- ls -la /etc/my-app
 kubectl describe pod -l app=app
 ```
 
-<ChatMessage message="ถ้าเป็นข้อมูลชั่วคราวใช้ emptyDir, ถ้าต้องการเก็บข้ามการสร้าง Pod ใหม่ให้ใช้ PVC และถ้าเป็น configuration ให้เลือก ConfigMap หรือ Secret ตามความ sensitive" avatarKey="blackCat" />
+<ChatMessage message="ถ้าเป็นข้อมูลชั่วคราวใช้ emptyDir, ถ้าต้องการเก็บข้ามการสร้าง Pod ใหม่ให้ใช้ PVC และถ้าเป็น configuration ให้เลือก ConfigMap หรือ Secret ตามความ sensitive" avatarKey="whiteCat" />
 
 ## Pod
 
@@ -448,7 +590,7 @@ kubectl exec -it <pod-name> -- /bin/sh
 kubectl delete pod <pod-name>
 ```
 
-<ChatMessage message="ถ้าต้องการ exec เข้า container ที่มีหลายตัว ให้ระบุ -c <container-name> ด้วย" avatarKey="blackCat" />
+<ChatMessage message="ถ้าต้องการ exec เข้า container ที่มีหลายตัว ให้ระบุ -c <container-name> ด้วย" avatarKey="whiteCat" />
 
 ## Deployment
 
@@ -474,7 +616,50 @@ kubectl rollout undo deployment/<deployment-name>
 kubectl rollout history deployment/<deployment-name>
 ```
 
-<ChatMessage message="Deployment เป็นตัวที่ทำให้ Pod มี self-healing อัตโนมัติ ถ้า Pod ตายมันจะสร้างใหม่ให้ทันที" avatarKey="blackCat" />
+<ChatMessage message="Deployment เป็นตัวที่ทำให้ Pod มี self-healing อัตโนมัติ ถ้า Pod ตายมันจะสร้างใหม่ให้ทันที" avatarKey="whiteCat" />
+
+## Health Probes
+
+สำหรับ PostgreSQL ให้ใช้ `pg_isready` ตรวจสอบว่า database พร้อมรับ connection หรือยัง โดยวาง probes ไว้ภายใน `containers[]` ของ Pod หรือ Deployment template
+
+```yaml
+containers:
+  - name: postgres
+    image: postgres:17
+    env:
+      - name: POSTGRES_USER
+        valueFrom:
+          secretKeyRef:
+            name: postgres-secret
+            key: username
+      - name: POSTGRES_DB
+        value: app
+    livenessProbe:
+      exec:
+        command:
+          - sh
+          - -c
+          - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 6
+    readinessProbe:
+      exec:
+        command:
+          - sh
+          - -c
+          - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 5
+      failureThreshold: 3
+```
+
+- `livenessProbe` ใช้ตรวจว่า PostgreSQL ยังทำงานอยู่หรือไม่ ถ้าล้มเหลวต่อเนื่อง Kubernetes จะ restart container
+- `readinessProbe` ใช้ตรวจว่า PostgreSQL พร้อมรับ traffic หรือไม่ ถ้ายังไม่พร้อม Pod จะไม่ถูกส่ง traffic จาก Service
+
+<ChatMessage message="ค่า `POSTGRES_USER` และ `POSTGRES_DB` ต้องมีอยู่ใน environment ของ container ก่อน จึงจะใช้ในคำสั่ง `pg_isready` ได้" avatarKey="blackCat" />
 
 ## Scaling
 
@@ -518,7 +703,7 @@ kubectl expose deployment <deployment-name> --port=80 --type=ClusterIP
 kubectl expose deployment <deployment-name> --port=80 --type=NodePort
 ```
 
-<ChatMessage message="Service types มี 3 แบบ: ClusterIP (internal), NodePort (expose ผ่าน port ของ node), LoadBalancer (external cloud provider)" avatarKey="blackCat" />
+<ChatMessage message="Service types มี 3 แบบ: ClusterIP (internal), NodePort (expose ผ่าน port ของ node), LoadBalancer (external cloud provider)" avatarKey="whiteCat" />
 
 ### Port Forwarding
 
@@ -549,7 +734,7 @@ kubectl get configmaps
 kubectl describe configmap <configmap-name>
 ```
 
-<ChatMessage message="ConfigMap เหมาะสำหรับ config ที่ไม่ sensitive ถ้าเป็น secret ต้องใช้ Secret แทน" avatarKey="blackCat" />
+<ChatMessage message="ConfigMap เหมาะสำหรับ config ที่ไม่ sensitive ถ้าเป็น secret ต้องใช้ Secret แทน" avatarKey="whiteCat" />
 
 ## Secrets
 
@@ -593,7 +778,7 @@ kubectl config set-context --current --namespace=<namespace-name>
 kubectl get pods -n <namespace-name>
 ```
 
-<ChatMessage message="ถ้าไม่ระบุ namespace คำสั่งจะใช้ namespace ปัจจุบัน (default) ตลอด" avatarKey="blackCat" />
+<ChatMessage message="ถ้าไม่ระบุ namespace คำสั่งจะใช้ namespace ปัจจุบัน (default) ตลอด" avatarKey="whiteCat" />
 
 ## Ingress
 
@@ -634,7 +819,7 @@ kubectl get events -n <namespace-name>
 kubectl get events --watch
 ```
 
-<ChatMessage message="Events เป็นตัวช่วยสำคัญในการ troubleshoot ปัญหา เพราะมันจะบอกว่าเกิดอะไรใน cluster" avatarKey="blackCat" />
+<ChatMessage message="Events เป็นตัวช่วยสำคัญในการ troubleshoot ปัญหา เพราะมันจะบอกว่าเกิดอะไรใน cluster" avatarKey="whiteCat" />
 
 ## Logging & Debugging
 
@@ -736,7 +921,7 @@ kubectl apply -f deployment.yaml --dry-run
 kubectl get pods -w
 ```
 
-<ChatMessage message="kubectl มี shorthand หลายตัว เช่น: pods=po, services=svc, deployments=deploy, namespaces=ns" avatarKey="blackCat" />
+<ChatMessage message="kubectl มี shorthand หลายตัว เช่น: pods=po, services=svc, deployments=deploy, namespaces=ns" avatarKey="whiteCat" />
 
 ## Cheat Sheet Quick Reference
 

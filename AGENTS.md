@@ -23,6 +23,7 @@ npm run build-storybook
 
 ## Cheatsheets
 When asked to write a "cheatsheet" or "cheatcode", load and follow the `write-cheatsheet` skill (`.opencode/skills/write-cheatsheet/SKILL.md`) — it contains the full template, style rules, and `<ChatMessage>` usage guide.
+- Use `avatarKey="blackCat"` for warnings and `avatarKey="whiteCat"` for recommendations or tips in `<ChatMessage>`.
 
 ## Sidebar Configuration
 Sidebar is configured in `astro.config.mjs` via `starlightSidebarTopics` plugin. Course directories are auto-discovered.
