@@ -1,11 +1,422 @@
 ---
 title: Kubernetes
-description: A cheatsheet of kubectl commands
+description: A cheatsheet of Kubernetes resources and kubectl commands
 ---
 
 import ChatMessage from '../../../components/ChatMessage.astro';
 
 ระบบจัดการ container orchestration ที่ช่วยให้จัดการ container หลายตัวใน cluster ได้อย่างมีประสิทธิภาพ รองรับการ scale, deploy, และ manage applications อัตโนมัติ
+
+## Resource Creation Snippets
+
+สร้าง resource จาก YAML ด้วย `kubectl apply` โดยแต่ละ snippet สามารถแยกเป็นไฟล์แล้วนำไปใช้ได้ทันที
+
+### Pod
+
+Pod เหมาะสำหรับการทดลองหรือ workload ที่ไม่ต้องการ rolling update และ self-healing แบบ Deployment
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  labels:
+    app: nginx
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27
+      ports:
+        - containerPort: 80
+```
+
+```bash
+# สร้าง Pod
+kubectl apply -f pod.yaml
+
+# ตรวจสอบ Pod และดูรายละเอียด
+kubectl get pod nginx-pod
+kubectl describe pod nginx-pod
+
+# ลบ Pod
+kubectl delete -f pod.yaml
+```
+
+### Deployment
+
+Deployment เหมาะสำหรับ application ที่ต้องการ replicas, rolling update และ self-healing
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+```
+
+```bash
+# สร้างหรืออัปเดต Deployment
+kubectl apply -f deployment.yaml
+
+# รอให้ rollout เสร็จ
+kubectl rollout status deployment/nginx
+
+# ตรวจสอบ Pods ที่ Deployment ดูแล
+kubectl get deployment,pods -l app=nginx
+
+# ลบ Deployment
+kubectl delete -f deployment.yaml
+```
+
+### Service
+
+Service ใช้เปิด endpoint ให้ Pod อื่นหรือผู้ใช้งานเข้าถึง โดย `selector` ต้องตรงกับ label ของ Pod
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+```
+
+```bash
+# สร้าง Service
+kubectl apply -f service.yaml
+
+# ตรวจสอบ Service และ endpoints
+kubectl get svc nginx
+kubectl get endpoints nginx
+
+# ทดสอบจากเครื่อง local
+kubectl port-forward svc/nginx 8080:80
+
+# ลบ Service
+kubectl delete -f service.yaml
+```
+
+เปลี่ยน `type` เป็น `NodePort` สำหรับเปิดผ่าน port ของ Node หรือ `LoadBalancer` สำหรับ cloud provider ที่รองรับ
+
+### ConfigMap
+
+ใช้เก็บ configuration ที่ไม่เป็นความลับ และนำไปใช้เป็น environment variables หรือ file ได้
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  APP_ENV: production
+  LOG_LEVEL: info
+  app.properties: |
+    feature.new-ui=true
+    http.timeout=30s
+```
+
+```bash
+# สร้าง ConfigMap
+kubectl apply -f configmap.yaml
+
+# ตรวจสอบค่าใน ConfigMap
+kubectl get configmap app-config -o yaml
+
+# ลบ ConfigMap
+kubectl delete -f configmap.yaml
+```
+
+### Secret
+
+ใช้เก็บข้อมูล sensitive เช่น password, token หรือ API key โดยใช้ `stringData` เพื่อให้เขียนค่า plain text ใน manifest ได้ง่าย
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+type: Opaque
+stringData:
+  DATABASE_USER: app
+  DATABASE_PASSWORD: change-me
+  API_TOKEN: replace-me
+```
+
+```bash
+# สร้าง Secret
+kubectl apply -f secret.yaml
+
+# ตรวจสอบ metadata โดยไม่แสดงค่า secret
+kubectl get secret app-secret
+
+# อ่านค่าและ decode เฉพาะ key ที่ต้องการ
+kubectl get secret app-secret -o jsonpath='{.data.DATABASE_PASSWORD}' | base64 -d
+
+# ลบ Secret
+kubectl delete -f secret.yaml
+```
+
+> `Secret` ที่เก็บใน Kubernetes เป็น Base64 encoding ไม่ใช่ encryption โดยอัตโนมัติ หลีกเลี่ยงการ commit ค่า secret จริงลง Git
+
+### Volume ใน Pod
+
+ตัวอย่างด้านล่างเป็น snippets ที่พบบ่อยสำหรับเพิ่ม `volume` และ `volumeMounts` ใน `spec` ของ Pod หรือ Deployment template
+
+#### `emptyDir` สำหรับ temporary storage
+
+ข้อมูลอยู่ตลอดอายุของ Pod และจะหายเมื่อ Pod ถูกลบหรือย้ายไป Node ใหม่
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: emptydir-demo
+spec:
+  containers:
+    - name: app
+      image: nginx:1.27
+      volumeMounts:
+        - name: cache
+          mountPath: /var/cache/app
+  volumes:
+    - name: cache
+      emptyDir: {}
+```
+
+#### `emptyDir` แบบใช้ memory
+
+เหมาะกับ cache ชั่วคราวที่ต้องการความเร็ว แต่ใช้ RAM ของ Node และควรกำหนดขนาดจำกัด
+
+```yaml
+volumes:
+  - name: memory-cache
+    emptyDir:
+      medium: Memory
+      sizeLimit: 256Mi
+```
+
+#### `hostPath` สำหรับ mount directory จาก Node
+
+ใช้เฉพาะกรณีที่จำเป็นจริง ๆ เพราะ Pod จะผูกกับ filesystem ของ Node และอาจมีปัญหาเมื่อย้าย Node
+
+```yaml
+volumes:
+  - name: node-data
+    hostPath:
+      path: /var/lib/my-app
+      type: DirectoryOrCreate
+```
+
+#### Mount ConfigMap เป็น file
+
+```yaml
+volumes:
+  - name: app-config
+    configMap:
+      name: app-config
+      items:
+        - key: app.properties
+          path: app.properties
+```
+
+```yaml
+volumeMounts:
+  - name: app-config
+    mountPath: /etc/my-app/app.properties
+    subPath: app.properties
+    readOnly: true
+```
+
+#### Mount Secret เป็น file
+
+```yaml
+volumes:
+  - name: app-secret
+    secret:
+      secretName: app-secret
+      defaultMode: 0400
+```
+
+```yaml
+volumeMounts:
+  - name: app-secret
+    mountPath: /etc/my-app/secrets
+    readOnly: true
+```
+
+#### ใช้ PVC เป็น persistent storage
+
+PVC เป็นวิธีมาตรฐานสำหรับขอ storage ที่ยังอยู่แม้ Pod ถูกสร้างใหม่ โดย `storageClassName` ต้องตรงกับ StorageClass ใน cluster
+
+แบบทั่วไปให้ใช้ PVC ขอ storage จาก StorageClass ที่มีอยู่ใน cluster:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+ถ้า cluster ไม่มี dynamic provisioning สามารถสร้าง PV เองแล้วให้ PVC bind ด้วย `storageClassName` และขนาดที่ตรงกันได้:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: app-data-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /mnt/data/app
+```
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+> `hostPath` เหมาะกับ local cluster หรือ lab เท่านั้น สำหรับ production ควรใช้ StorageClass และ CSI driver ของ cloud หรือ storage platform
+
+```yaml
+volumeMounts:
+  - name: app-data
+    mountPath: /var/lib/my-app
+
+volumes:
+  - name: app-data
+    persistentVolumeClaim:
+      claimName: app-data
+```
+
+```bash
+# สร้าง PVC
+kubectl apply -f pvc.yaml
+
+# ตรวจสอบสถานะ PVC และ PV ที่ถูก bind
+kubectl get pvc,pv
+
+# ลบ PVC เมื่อไม่ต้องการใช้แล้ว
+kubectl delete -f pvc.yaml
+```
+
+#### Mount เฉพาะ file ด้วย `subPath`
+
+ใช้เมื่อต้องการ mount key เดียวจาก ConfigMap หรือ Secret โดยไม่ทับทั้ง directory
+
+```yaml
+volumeMounts:
+  - name: app-config
+    mountPath: /etc/my-app/app.properties
+    subPath: app.properties
+    readOnly: true
+```
+
+> File ที่ mount ด้วย `subPath` จะไม่รับการ update จาก ConfigMap หรือ Secret โดยอัตโนมัติ ต้อง restart Pod หลังแก้ค่า
+
+#### รวมหลาย source ด้วย `projected`
+
+รวม ConfigMap, Secret และ Downward API ไว้ใน directory เดียว
+
+```yaml
+volumes:
+  - name: runtime-config
+    projected:
+      sources:
+        - configMap:
+            name: app-config
+        - secret:
+            name: app-secret
+        - downwardAPI:
+            items:
+              - path: pod-name
+                fieldRef:
+                  fieldPath: metadata.name
+```
+
+ตัวอย่างการนำ volume ไปใช้ใน Deployment:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.27
+          volumeMounts:
+            - name: runtime-config
+              mountPath: /etc/my-app
+              readOnly: true
+      volumes:
+        - name: runtime-config
+          projected:
+            sources:
+              - configMap:
+                  name: app-config
+              - secret:
+                  name: app-secret
+```
+
+```bash
+# ตรวจสอบ volume mount จากใน container
+kubectl exec deploy/app -- ls -la /etc/my-app
+
+# ดูรายละเอียด volume และ mount configuration
+kubectl describe pod -l app=app
+```
+
+<ChatMessage message="ถ้าเป็นข้อมูลชั่วคราวใช้ emptyDir, ถ้าต้องการเก็บข้ามการสร้าง Pod ใหม่ให้ใช้ PVC และถ้าเป็น configuration ให้เลือก ConfigMap หรือ Secret ตามความ sensitive" avatarKey="blackCat" />
 
 ## Pod
 
