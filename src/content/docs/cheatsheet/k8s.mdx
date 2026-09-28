@@ -897,6 +897,141 @@ kubectl config get-clusters
 kubectl config view
 ```
 
+## Kubernetes Environment Isolation
+
+แยก kubeconfig ของแต่ละ environment และบังคับให้เข้า shell ของ environment ก่อนใช้ `kubectl` ช่วยลดโอกาสส่งคำสั่งไปผิด cluster โดยจะแสดง label และสีของ environment ไว้ใน prompt
+
+### แยกที่เก็บ kubeconfig
+
+```bash
+# สร้าง directory สำหรับเก็บ kubeconfig แยกตาม environment
+mkdir -p ~/.kube/envs
+
+# จำกัดสิทธิ์ให้มีเฉพาะ user เจ้าของ directory
+chmod 700 ~/.kube/envs
+
+# สร้างหรือนำ kubeconfig ของแต่ละ environment มาเก็บไว้ในไฟล์ที่เกี่ยวข้อง
+nano ~/.kube/envs/prod.yaml
+
+# จำกัดสิทธิ์ของ kubeconfig ไม่ให้ user อื่นอ่านได้
+chmod 600 ~/.kube/envs/prod.yaml
+```
+
+โครงสร้างไฟล์ที่แนะนำ:
+
+```text
+~/.kube/envs/
+├── dev.yaml
+├── uat.yaml
+└── prod.yaml
+```
+
+ทดสอบ kubeconfig โดยระบุไฟล์โดยตรงก่อนนำไปใช้กับ shell function:
+
+```bash
+# ตรวจสอบว่า kubeconfig ของ production เชื่อมต่อ cluster ได้
+kubectl --kubeconfig ~/.kube/envs/prod.yaml get nodes
+```
+
+ถ้าแสดงรายการ nodes ได้ แสดงว่า kubeconfig ใช้งานได้
+
+### สร้าง Environment Shell
+
+เพิ่ม function เหล่านี้ใน `~/.zshrc` เพื่อเปิด subshell ที่กำหนด kubeconfig และ label ให้ตรงกับ environment:
+
+```zsh
+# เปิด subshell สำหรับ Development
+function kube-dev() {
+  KUBECONFIG="$HOME/.kube/envs/dev.yaml" \
+  KUBE_ENV="DEV" \
+  KUBE_LABEL="DEVELOPMENT" \
+  zsh
+}
+
+# เปิด subshell สำหรับ UAT
+function kube-uat() {
+  KUBECONFIG="$HOME/.kube/envs/uat.yaml" \
+  KUBE_ENV="UAT" \
+  KUBE_LABEL="UAT" \
+  zsh
+}
+
+# เปิด subshell สำหรับ Production
+function kube-prod() {
+  KUBECONFIG="$HOME/.kube/envs/prod.yaml" \
+  KUBE_ENV="PROD" \
+  KUBE_LABEL="PRODUCTION" \
+  zsh
+}
+```
+
+เพิ่ม prompt สำหรับแยก environment:
+
+```zsh
+# แสดงสีและ label ของ environment ใน prompt
+if [[ "$KUBE_ENV" == "PROD" ]]; then
+  PROMPT='%F{red}[PRODUCTION]%f %~ %# '
+elif [[ "$KUBE_ENV" == "UAT" ]]; then
+  PROMPT='%F{yellow}[UAT]%f %~ %# '
+elif [[ "$KUBE_ENV" == "DEV" ]]; then
+  PROMPT='%F{green}[DEVELOPMENT]%f %~ %# '
+fi
+```
+
+ตรวจ syntax และโหลด configuration ใหม่:
+
+```bash
+# ตรวจสอบ syntax ของ zsh configuration โดยไม่ execute
+zsh -n ~/.zshrc
+
+# โหลด zsh configuration ใหม่
+source ~/.zshrc
+```
+
+### เข้าและออกจาก Environment
+
+เปิด shell ของ environment ที่ต้องการก่อนใช้คำสั่ง Kubernetes:
+
+```bash
+# เข้า Development environment
+kube-dev
+
+# หรือเข้า UAT / Production environment
+kube-uat
+kube-prod
+```
+
+เมื่อเข้า `kube-prod` แล้ว prompt จะแสดง label สีแดง เช่น `[PRODUCTION] ~ %` คำสั่งต่อไปนี้จะใช้ `~/.kube/envs/prod.yaml`:
+
+```bash
+# ตรวจสอบ nodes ใน production cluster
+kubectl get nodes
+
+# ตรวจสอบ pods ทุก namespace
+kubectl get pods -A
+
+# แสดง Helm releases ทุก namespace
+helm list -A
+
+# เปิด k9s ด้วย kubeconfig ของ environment นี้
+k9s
+
+# ตรวจสอบ kubeconfig และ context ที่กำลังใช้งาน
+echo $KUBECONFIG
+kubectl config current-context
+```
+
+ออกจาก environment shell เพื่อกลับไปยัง shell ปกติ:
+
+```bash
+# ปิด subshell และคืนสู่ shell เดิม
+exit
+```
+
+หลัง `exit` ค่า `KUBECONFIG`, `KUBE_ENV` และ `KUBE_LABEL` ที่กำหนดให้ subshell จะไม่ติดกลับไปยัง shell ปกติ
+
+<ChatMessage message="อย่าใส่ production kubeconfig หรือ production context ไว้ใน default `~/.kube/config` หากไม่จำเป็น เพราะการแยกไฟล์ช่วยลดโอกาสยิงคำสั่งผิด cluster ได้มากขึ้น" avatarKey="blackCat" />
+
 ## Common Options
 
 ```bash

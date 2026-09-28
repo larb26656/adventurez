@@ -1,0 +1,256 @@
+---
+title: Helm
+description: A cheatsheet of Helm charts and commands for Kubernetes deployments
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+[Helm](https://helm.sh/) คือ package manager สำหรับ Kubernetes ช่วยรวม Kubernetes manifests ที่เกี่ยวข้องเป็น **Chart** และติดตั้งเป็น **Release** ได้ รองรับการกำหนดค่าแยกตาม environment, upgrade และ rollback application ได้ง่ายขึ้น
+
+## จุดเด่นของ Helm
+- **Chart** — แพ็กเกจที่รวม templates, ค่าเริ่มต้น และ metadata ของ application
+- **Release** — instance ของ Chart ที่ติดตั้งอยู่ใน Kubernetes cluster
+- **Values** — ค่าที่ใช้ปรับแต่ง Chart โดยไม่ต้องแก้ template
+- **Upgrade และ rollback** — เปลี่ยน version หรือย้อนกลับไป revision ก่อนหน้าได้
+
+<ChatMessage message="Chart คือ package ส่วน Release คือ instance ที่ถูกติดตั้งจริงใน cluster เดียวกันจึงติดตั้ง Chart เดิมหลายครั้งด้วยชื่อ Release ต่างกันได้" avatarKey="blackCat" />
+
+## ติดตั้งและตรวจสอบ Helm
+
+```bash
+# ตรวจสอบว่า Helm ติดตั้งแล้วและดู version
+helm version
+
+# แสดง environment ที่ Helm ใช้งาน
+helm env
+
+# แสดง repository ที่เพิ่มไว้ในเครื่อง
+helm repo list
+```
+
+## Repository
+
+Repository เป็นแหล่งเก็บ Chart ที่ใช้ค้นหาและติดตั้ง Chart จากภายนอก
+
+```bash
+# เพิ่ม Helm repository
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+# อัปเดต index ของทุก repository
+helm repo update
+
+# ค้นหา Chart ใน repository ที่เพิ่มไว้
+helm search repo nginx
+
+# ค้นหา Chart จาก Artifact Hub
+helm search hub nginx
+
+# ลบ repository ที่ไม่ต้องการใช้
+helm repo remove bitnami
+```
+
+## ติดตั้ง Chart
+
+```bash
+# ดูค่า default values ของ Chart
+helm show values bitnami/nginx
+
+# ดู metadata และรายละเอียดของ Chart
+helm show chart bitnami/nginx
+
+# ติดตั้ง Chart ด้วยชื่อ Release ที่กำหนด
+helm install web bitnami/nginx --namespace demo --create-namespace
+
+# ติดตั้งพร้อมกำหนดค่าแบบ inline
+helm install web bitnami/nginx \
+  --namespace demo \
+  --set service.type=ClusterIP
+
+# ติดตั้งพร้อมอ่านค่าจากไฟล์ values
+helm install web bitnami/nginx \
+  --namespace demo \
+  --values values.yaml
+```
+
+<ChatMessage message={'ใช้ `--values` กับไฟล์ที่เก็บใน Git และใช้ `--set` สำหรับค่าที่ต้อง override เฉพาะครั้งนั้น เช่น image tag หรือ replica count'} avatarKey="blackCat" />
+
+## Release
+
+```bash
+# แสดง Release ใน namespace ปัจจุบัน
+helm list
+
+# แสดง Release ในทุก namespace
+helm list --all-namespaces
+
+# แสดงรายละเอียดของ Release รวมถึง values ที่ใช้
+helm get all web --namespace demo
+
+# แสดง manifest ที่ Helm ส่งเข้า Kubernetes
+helm get manifest web --namespace demo
+
+# แสดง history ของ Release
+helm history web --namespace demo
+
+# ถอนการติดตั้ง Release
+helm uninstall web --namespace demo
+```
+
+## Upgrade และ Rollback
+
+```bash
+# อัปเดต repository ก่อนเลือก Chart version ใหม่
+helm repo update
+
+# Upgrade Release ด้วย values ไฟล์ใหม่
+helm upgrade web bitnami/nginx \
+  --namespace demo \
+  --values values.yaml
+
+# ติดตั้งถ้ายังไม่มี Release หรือ upgrade ถ้ามีแล้ว
+helm upgrade --install web bitnami/nginx \
+  --namespace demo \
+  --create-namespace \
+  --values values.yaml
+
+# ดู revision ที่เคย deploy
+helm history web --namespace demo
+
+# rollback กลับไป revision ที่ระบุ
+helm rollback web 1 --namespace demo
+```
+
+<ChatMessage message={'ก่อน rollback ให้ดู `helm history` ก่อนเสมอ เพราะ revision อาจไม่ตรงกับ version ของ application หรือ image tag ที่ทีมคาดไว้'} avatarKey="whiteCat" />
+
+## สร้าง Chart ใหม่
+
+```bash
+# สร้างโครงสร้าง Chart มาตรฐาน
+helm create my-app
+
+# แสดงไฟล์ใน Chart ที่สร้างขึ้น
+find my-app -maxdepth 2 -type f
+
+# ตรวจสอบ syntax และโครงสร้างของ Chart
+helm lint my-app
+```
+
+โครงสร้างหลักของ Chart มีหน้าที่ดังนี้:
+
+- `Chart.yaml` — metadata เช่น ชื่อและ version ของ Chart
+- `values.yaml` — ค่า default ที่ templates นำไปใช้
+- `templates/` — Kubernetes manifests ที่เขียนด้วย Go template
+- `templates/_helpers.tpl` — named templates และ helper สำหรับใช้ซ้ำ
+- `charts/` — dependency ของ Chart อื่น
+- `crds/` — CustomResourceDefinition ที่ต้องติดตั้งร่วมกับ Chart
+
+## Values และ Templates
+
+ตัวอย่าง `values.yaml`:
+
+```yaml
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: "1.27"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+```
+
+ตัวอย่างการอ่านค่าใน template:
+
+```yaml
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+```
+
+```bash
+# Render templates เป็น YAML โดยยังไม่ติดตั้งลง cluster
+helm template web ./my-app
+
+# Render โดยใช้ values file
+helm template web ./my-app --values values.yaml
+
+# Render และตรวจสอบผลลัพธ์ตาม namespace ที่ต้องการ
+helm template web ./my-app --namespace demo --values values.yaml
+
+# แสดง diff ก่อน upgrade (ต้องติดตั้ง helm-diff plugin)
+helm diff upgrade web ./my-app --namespace demo --values values.yaml
+```
+
+<ChatMessage message={'ใช้ `helm template` ตรวจ YAML ที่ render แล้วก่อน deploy จริง จะช่วยเจอปัญหา indentation, value path และ resource name ได้เร็ว'} avatarKey="whiteCat" />
+
+## ตรวจสอบและ Debug
+
+```bash
+# ตรวจสอบ Chart และ dependency
+helm lint ./my-app
+
+# แสดง dependency ที่ประกาศไว้
+helm dependency list ./my-app
+
+# ดาวน์โหลดและอัปเดต dependency ลงใน charts/
+helm dependency update ./my-app
+
+# แสดง values ที่ Release ใช้งานอยู่
+helm get values web --namespace demo
+
+# แสดง values ทั้งหมด รวม default values
+helm get values web --namespace demo --all
+
+# ดูสถานะ Release
+helm status web --namespace demo
+
+# แสดง resource ที่ Helm สร้างให้ Release
+helm get manifest web --namespace demo
+```
+
+ถ้า deploy แล้วพบปัญหา ให้ตรวจทั้ง output จาก Helm และ resource ใน Kubernetes:
+
+```bash
+# ตรวจสอบ Pod และ event ใน namespace
+kubectl get pods -n demo
+kubectl get events -n demo --sort-by='.lastTimestamp'
+
+# ดูรายละเอียด resource ที่มีปัญหา
+kubectl describe pod <pod-name> -n demo
+
+# ดู logs ของ container
+kubectl logs <pod-name> -n demo
+```
+
+## Dependency
+
+ประกาศ dependency ใน `Chart.yaml` แล้วให้ Helm จัดการ download:
+
+```yaml
+dependencies:
+  - name: postgresql
+    version: 16.x.x
+    repository: https://charts.bitnami.com/bitnami
+```
+
+```bash
+# ดาวน์โหลด dependency ตาม Chart.yaml
+helm dependency update ./my-app
+
+# ตรวจสอบว่า dependency ครบและ version ตรงกัน
+helm dependency build ./my-app
+```
+
+## Useful Links
+
+- [Official Documentation](https://helm.sh/docs/)
+- [Helm Commands](https://helm.sh/docs/helm/)
+- [Chart Best Practices](https://helm.sh/docs/chart_best_practices/)
+- [Artifact Hub](https://artifacthub.io/)
