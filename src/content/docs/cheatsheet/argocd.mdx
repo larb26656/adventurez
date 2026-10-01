@@ -1,0 +1,275 @@
+---
+title: Argo CD
+description: A cheatsheet of Argo CD - GitOps continuous delivery for Kubernetes
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+[Argo CD](https://argo-cd.readthedocs.io/) คือเครื่องมือ GitOps continuous delivery สำหรับ Kubernetes ที่คอยเปรียบเทียบ desired state ใน Git กับ resources ที่อยู่ใน cluster แล้ว sync ให้ตรงกัน รองรับ Helm, Kustomize, plain YAML และ Jsonnet
+
+## จุดเด่นของ Argo CD
+
+- **GitOps** — Git เป็น source of truth สำหรับ Kubernetes manifests และ deployment history
+- **Continuous reconciliation** — ตรวจจับ configuration drift และ sync กลับสู่ desired state ได้อัตโนมัติ
+- **Multi-cluster** — จัดการ application บนหลาย Kubernetes clusters จาก Argo CD instance เดียว
+- **Access control** — กำหนดสิทธิ์ด้วย Project, RBAC และ SSO/OIDC
+
+## Concepts
+
+### Application
+
+Application คือ resource ที่บอก Argo CD ว่า manifests อยู่ Git repository ใด, deploy ไป cluster/namespace ใด และจะ sync ด้วยวิธีใด
+
+### Project
+
+Project ใช้กำหนดขอบเขตของ Application เช่น repository ที่อนุญาต, destination cluster/namespace และ resource kinds ที่ deploy ได้
+
+### Sync status
+
+- **Synced** — resources ใน cluster ตรงกับ manifests ใน Git
+- **OutOfSync** — resources ต่างจาก desired state หรือยังไม่เคย deploy
+- **Unknown** — Argo CD อ่านสถานะ resource ไม่ได้
+
+### Health status
+
+- **Healthy** — application พร้อมใช้งาน
+- **Progressing** — กำลัง rollout หรือรอ resource พร้อม
+- **Degraded** — resource ทำงานผิดปกติ เช่น Deployment มี replica ไม่พร้อม
+
+<ChatMessage message="Argo CD ไม่ได้สร้าง pipeline เอง แต่ทำหน้าที่ deploy state ที่อยู่ใน Git ไปยัง Kubernetes. CI สามารถ build image แล้ว commit tag ใหม่กลับเข้า Git เพื่อให้ Argo CD sync ต่อได้" avatarKey="whiteCat" />
+
+## ติดตั้ง Argo CD
+
+### Install ด้วย manifests
+
+```bash
+# สร้าง namespace สำหรับ Argo CD
+kubectl create namespace argocd
+
+# ติดตั้ง Argo CD แบบ stable
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# รอให้ pods พร้อมใช้งาน
+kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
+```
+
+### Install Argo CD CLI
+
+```bash
+# ติดตั้ง Argo CD CLI บน macOS ด้วย Homebrew
+brew install argocd
+
+# ตรวจสอบ version ของ CLI
+argocd version --client
+```
+
+### เข้า Argo CD server
+
+```bash
+# เปิด Argo CD API server ผ่าน local port 8080
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+# อ่าน password เริ่มต้นของ admin
+argocd admin initial-password -n argocd
+
+# login ผ่าน CLI โดยไม่ตรวจสอบ TLS สำหรับ port-forward
+argocd login localhost:8080 --username admin --insecure
+```
+
+เปิด UI ที่ `https://localhost:8080` แล้ว login ด้วย user `admin` และ password ที่อ่านได้จากคำสั่งข้างต้น
+
+<ChatMessage message="เปลี่ยน password ของ admin หลัง login ครั้งแรก และตั้งค่า Ingress พร้อม TLS ก่อนเปิดให้ใช้งานนอก cluster" avatarKey="blackCat" />
+
+## Application Commands
+
+### ดูและสร้าง Application
+
+```bash
+# แสดง applications ทั้งหมด
+argocd app list
+
+# ดูรายละเอียดและสถานะของ application
+argocd app get my-app
+
+# สร้าง application จาก manifests ใน Git
+argocd app create my-app \
+  --repo https://github.com/example/platform-config.git \
+  --path apps/my-app \
+  --dest-server https://kubernetes.default.svc \
+  --dest-namespace production
+```
+
+### Sync และ rollback
+
+```bash
+# sync application ให้ state ใน cluster ตรงกับ Git
+argocd app sync my-app
+
+# ดู resource tree และ health แบบต่อเนื่อง
+argocd app wait my-app --health --sync --timeout 300
+
+# ดู deployment history
+argocd app history my-app
+
+# rollback ไปยัง history ID ที่ต้องการ
+argocd app rollback my-app <history-id>
+
+# ลบ application และ resources ที่ Argo CD จัดการ
+argocd app delete my-app --cascade
+```
+
+### Refresh และ diff
+
+```bash
+# refresh ข้อมูล application จาก Git และ cluster
+argocd app get my-app --refresh
+
+# เปรียบเทียบ desired state ใน Git กับ resources ใน cluster
+argocd app diff my-app
+
+# ดู logs ของ resource ใน application
+argocd app logs my-app
+```
+
+## Application Manifest
+
+เก็บ Application manifest ไว้ใน Git เพื่อให้การตั้งค่า Argo CD เองเป็น GitOps ด้วย:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/example/platform-config.git
+    targetRevision: main
+    path: apps/my-app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+```
+
+| Field | Description |
+|-------|-------------|
+| `source.repoURL` | Git repository ที่เก็บ manifests หรือ Helm chart |
+| `source.targetRevision` | branch, tag หรือ commit SHA ที่ต้องการ deploy |
+| `source.path` | directory ของ manifests ภายใน repository |
+| `destination.server` | Kubernetes API endpoint, ใน cluster ใช้ `https://kubernetes.default.svc` |
+| `destination.namespace` | namespace ปลายทางของ resources |
+| `automated.prune` | ลบ resources ที่เอาออกจาก Git |
+| `automated.selfHeal` | sync กลับเมื่อมีการแก้ resources โดยตรงใน cluster |
+
+<ChatMessage message={'เปิด `prune` เมื่อมั่นใจว่า Git เก็บ resources ครบ เพราะ resource ที่ลบออกจาก Git อาจถูก Argo CD ลบออกจาก cluster ด้วย'} avatarKey="blackCat" />
+
+## Helm และ Kustomize
+
+### Helm chart
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: nginx
+    targetRevision: 22.0.0
+    helm:
+      parameters:
+        - name: service.type
+          value: ClusterIP
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nginx
+```
+
+### Kustomize overlay
+
+```yaml
+source:
+  repoURL: https://github.com/example/platform-config.git
+  targetRevision: main
+  path: apps/my-app/overlays/production
+  kustomize:
+    images:
+      - ghcr.io/example/my-app:1.2.3
+```
+
+## Repository และ Cluster
+
+```bash
+# เพิ่ม private Git repository ด้วย HTTPS credentials
+argocd repo add https://github.com/example/private-config.git \
+  --username <git-username> \
+  --password <access-token>
+
+# แสดง repositories ที่ Argo CD เชื่อมต่ออยู่
+argocd repo list
+
+# เพิ่ม Kubernetes context ปัจจุบันให้ Argo CD จัดการ
+argocd cluster add <kube-context>
+
+# แสดง clusters ที่เชื่อมต่ออยู่
+argocd cluster list
+```
+
+> สำหรับ Git provider ควรใช้ deploy key หรือ access token แบบ read-only และเก็บ credentials ใน secret manager เมื่อใช้งานจริง
+
+## AppProject และ RBAC
+
+ตัวอย่าง Project สำหรับจำกัดทีม `payments` ให้ deploy ได้เฉพาะ repository และ namespace ที่ระบุ:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: payments
+  namespace: argocd
+spec:
+  description: Applications owned by the payments team
+  sourceRepos:
+    - https://github.com/example/payments-config.git
+  destinations:
+    - namespace: payments-*
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+```
+
+```bash
+# แสดง projects ทั้งหมด
+argocd proj list
+
+# ดู policy และขอบเขตของ project
+argocd proj get payments
+
+# สร้าง role ใน project สำหรับผู้ที่ sync application ได้
+argocd proj role create payments deployer
+
+# เพิ่ม policy ให้ role sync applications ใน project
+argocd proj role add-policy payments deployer \
+  --action sync \
+  --object 'payments/*' \
+  --permission allow
+```
+
+## Useful Links
+
+- [Argo CD Documentation](https://argo-cd.readthedocs.io/)
+- [Argo CD Getting Started](https://argo-cd.readthedocs.io/en/stable/getting_started/)
+- [Argo CD CLI Reference](https://argo-cd.readthedocs.io/en/stable/user-guide/commands/argocd/)
+- [Application Specification](https://argo-cd.readthedocs.io/en/stable/user-guide/application-specification/)
+- [Projects](https://argo-cd.readthedocs.io/en/stable/user-guide/projects/)

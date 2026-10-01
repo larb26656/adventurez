@@ -1,0 +1,283 @@
+---
+title: Kustomize
+description: A cheatsheet of Kustomize - customize Kubernetes manifests without templates
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+[Kustomize](https://kustomize.io/) คือเครื่องมือสำหรับปรับแต่ง Kubernetes manifests โดยไม่ต้องใช้ template language และถูกรวมอยู่ใน `kubectl` แล้ว ใช้จัดการความต่างของ environment เช่น dev, staging และ production จาก YAML ชุดเดียวกันได้
+
+## จุดเด่นของ Kustomize
+
+- **Template-free** — ใช้ YAML ปกติ ไม่ต้องแทรกตัวแปรแบบ `{{ ... }}`
+- **Base และ overlays** — แยก configuration ที่ใช้ร่วมกันออกจากค่าของแต่ละ environment
+- **Built in kubectl** — ใช้ `kubectl kustomize` และ `kubectl apply -k` ได้ทันที
+- **Patch resources** — แก้เฉพาะ field ที่ต่างโดยไม่ต้อง copy manifest ทั้งไฟล์
+- **Generators** — สร้าง ConfigMap และ Secret จาก file หรือ literal ได้
+
+## โครงสร้างที่แนะนำ
+
+```text
+k8s/
+├── base/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── kustomization.yaml
+└── overlays/
+    ├── dev/
+    │   ├── kustomization.yaml
+    │   └── deployment-patch.yaml
+    └── production/
+        ├── kustomization.yaml
+        └── deployment-patch.yaml
+```
+
+`base` เก็บ resource ที่ทุก environment ใช้ร่วมกัน ส่วน `overlays` เก็บค่าที่ต่างกัน เช่น replicas, image tag, namespace หรือ resource limits
+
+## เริ่มต้นใช้งาน
+
+Kustomize จะอ่านไฟล์ชื่อ `kustomization.yaml`, `kustomization.yml` หรือ `Kustomization` ใน directory ที่ระบุ
+
+```bash
+# render manifests จาก directory โดยยังไม่ส่งไปที่ cluster
+kubectl kustomize ./k8s/overlays/dev
+
+# preview ความเปลี่ยนแปลงก่อน apply
+kubectl diff -k ./k8s/overlays/dev
+
+# apply manifests ไปยัง cluster
+kubectl apply -k ./k8s/overlays/dev
+
+# ลบ resources ที่สร้างจาก Kustomize
+kubectl delete -k ./k8s/overlays/dev
+```
+
+<ChatMessage message={'ตรวจ current context ด้วย `kubectl config current-context` ก่อนใช้ `kubectl apply -k` โดยเฉพาะ overlay ของ production'} avatarKey="blackCat" />
+
+## Base
+
+ตัวอย่าง `base/deployment.yaml`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/example/api:latest
+          ports:
+            - containerPort: 8080
+```
+
+ตัวอย่าง `base/service.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+spec:
+  selector:
+    app: api
+  ports:
+    - port: 80
+      targetPort: 8080
+```
+
+ตัวอย่าง `base/kustomization.yaml`:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+  - service.yaml
+commonLabels:
+  app.kubernetes.io/name: api
+```
+
+`resources` ระบุ manifest ที่ต้องรวม ส่วน `commonLabels` จะเพิ่ม label ให้ resource และ Pod selector ที่ Kustomize รองรับโดยอัตโนมัติ
+
+## Overlays
+
+ตัวอย่าง `overlays/dev/kustomization.yaml`:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+namespace: app-dev
+namePrefix: dev-
+images:
+  - name: ghcr.io/example/api
+    newTag: dev-2026-10-01
+patches:
+  - path: deployment-patch.yaml
+```
+
+ตัวอย่าง `overlays/dev/deployment-patch.yaml`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: api
+          env:
+            - name: APP_ENV
+              value: development
+```
+
+ตัวอย่าง `overlays/production/kustomization.yaml`:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+namespace: app-production
+images:
+  - name: ghcr.io/example/api
+    newTag: v1.4.0
+patches:
+  - path: deployment-patch.yaml
+```
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: api
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+```
+
+<ChatMessage message="ใส่ `metadata.name` ของ resource เดิมใน patch เสมอ แม้ overlay จะใช้ `namePrefix` เพราะ Kustomize จะจับคู่ resource ก่อนเติม prefix" avatarKey="whiteCat" />
+
+## Patches
+
+`patches` แบบข้างต้นเป็น Strategic Merge Patch เหมาะกับการแก้ field ที่มีอยู่หรือเพิ่ม item เข้า list เช่น `containers[].env`
+
+### JSON 6902 Patch
+
+ใช้ JSON patch เมื่อต้องการลบหรือแก้ item ใน list แบบระบุตำแหน่งชัดเจน:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: LOG_LEVEL
+          value: info
+```
+
+## ConfigMap และ Secret Generators
+
+สร้าง ConfigMap จาก file และ Secret จาก environment file:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+configMapGenerator:
+  - name: api-config
+    literals:
+      - LOG_LEVEL=info
+    files:
+      - application.yaml
+secretGenerator:
+  - name: api-secret
+    envs:
+      - .env.production
+generatorOptions:
+  disableNameSuffixHash: false
+```
+
+Kustomize จะเติม hash ต่อท้ายชื่อที่ generator สร้าง เช่น `api-config-6m5d8c7t5b` เพื่อให้ Deployment rollout เมื่อ config เปลี่ยน
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/example/api:latest
+          envFrom:
+            - configMapRef:
+                name: api-config
+            - secretRef:
+                name: api-secret
+```
+
+> อ้างชื่อ `api-config` และ `api-secret` แบบไม่มี hash ใน manifest ได้ เพราะ Kustomize จะเปลี่ยน reference ให้ตรงกับชื่อที่ generate แล้ว
+
+<ChatMessage message="อย่า commit ไฟล์ `.env.production` ที่มี secret จริง ให้ส่งผ่าน CI/CD, Secret Manager หรือใช้ External Secrets แทน" avatarKey="blackCat" />
+
+## คำสั่งที่ใช้บ่อย
+
+```bash
+# แสดง YAML สุดท้ายเพื่อ review หรือส่งให้ tool อื่น
+kubectl kustomize ./k8s/overlays/production
+
+# ตรวจว่าค่าใน manifest ถูกต้องตาม schema ของ cluster
+kubectl apply -k ./k8s/overlays/production --dry-run=server
+
+# apply พร้อมรอ Deployment rollout
+kubectl apply -k ./k8s/overlays/production
+kubectl rollout status deployment/api -n app-production
+
+# ดู resources ที่ถูก apply ใน namespace
+kubectl get deployment,service,configmap -n app-production
+```
+
+## Useful Links
+
+- [Kustomize Documentation](https://kubectl.docs.kubernetes.io/references/kustomize/)
+- [Kubernetes: Declarative Management Using Kustomize](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/)
+- [Kustomize GitHub](https://github.com/kubernetes-sigs/kustomize)
