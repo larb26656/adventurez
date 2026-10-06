@@ -46,8 +46,8 @@ Project ใช้กำหนดขอบเขตของ Application เช�
 # สร้าง namespace สำหรับ Argo CD
 kubectl create namespace argocd
 
-# ติดตั้ง Argo CD แบบ stable
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+# ติดตั้ง Argo CD แบบ stable ด้วย server-side apply
+kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 # รอให้ pods พร้อมใช้งาน
 kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
@@ -226,6 +226,32 @@ argocd cluster list
 ```
 
 > สำหรับ Git provider ควรใช้ deploy key หรือ access token แบบ read-only และเก็บ credentials ใน secret manager เมื่อใช้งานจริง
+
+### เชื่อม Git repository ด้วย SSH
+
+```bash
+# สร้าง SSH key เฉพาะสำหรับ Argo CD (ไม่มี passphrase)
+ssh-keygen -t ed25519 -b 4096 -C "argocd-repo" -f argocd-key -N ""
+
+# เพิ่ม public key เป็น deploy key (read-only) ใน GitHub:
+# Settings > Deploy keys > Add deploy key แล้ววาง argocd-key.pub
+
+# เพิ่ม private Git repository ด้วย SSH private key
+argocd repo add git@github.com:example/private-config.git \
+  --ssh-private-key-path ./argocd-key
+
+# แสดง repositories ที่เชื่อมต่ออยู่ พร้อมตรวจสอบ connection status
+argocd repo list
+```
+
+ถ้าต้องใช้ SSH ผ่าน port 443 (กรณี network บล็อก port 22) ให้เขียน known hosts ทับแล้วระบุ URL แบบ `ssh://`:
+
+```bash
+# override known_hosts ด้วย host key ของ ssh.github.com port 443
+argocd repo add ssh://git@ssh.github.com:443/example/private-config.git \
+  --ssh-private-key-path ./argocd-key \
+  --insecure-ignore-host-key
+```
 
 ## AppProject และ RBAC
 
