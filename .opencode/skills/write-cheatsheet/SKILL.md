@@ -49,6 +49,20 @@ the-command
 
 Sections are optional and reordered freely per tool — see reference files below for real shapes.
 
+## Cheatsheet vs. Workaround Sections
+
+- Keep reusable commands grouped under their normal cheatsheet topics (for example, `User`, `Role`, `Grant / Revoke`, and `Default Privileges`).
+- When documenting a specific end-to-end use case or workaround, add a separate `## Workaround: <use case>` section rather than mixing the walkthrough into the general command reference.
+- Write workaround content as ordered, step-by-step instructions. Split alternative paths (for example, full access and read-only) into clear subsections, and order commands by when the reader should run them.
+
+## Command Parameters
+
+- In command examples, mark every value the reader must supply with angle-bracket placeholders, following patterns like `mc alias set <alias> <url> <username> <password>`.
+- Use descriptive placeholder names, such as `<database>`, `<username>`, `<table_name>`, `<app_full_role>`, and `<app_password>`; avoid bare generic sample values like `dbname`, `username`, or `password` when they represent user-supplied input.
+- Keep fixed keywords and values (such as SQL privileges `SELECT`, `INSERT`, and the schema `public`) unwrapped.
+- Tell readers to replace placeholders with actual values before running commands. Angle-bracket placeholders are documentation notation, not literal shell or SQL syntax.
+- In prose, format placeholders as inline code (for example, `<database>`) so MDX does not interpret them as JSX.
+
 ## Style Rules
 
 - **Language**: Thai is primary. Keep commonly-used technical terms in English (Pod, Deployment, kubectl, API, SDK, bucket, policy). Avoid translating long complex terms (use "container orchestration", not "การจัดการ container orchestration").
@@ -98,5 +112,7 @@ Read these before writing if you need a concrete shape:
 3. ChatMessage import present: `import ChatMessage from '../../../components/ChatMessage.astro';`
 4. Every `<ChatMessage>` has `avatarKey`; `isFromMe="true"` only with `avatarKey="me"`
 5. Every code block declares a language and commands have Thai comments
-6. Page ends with `## Useful Links`
-7. Run `npm run build` — it must pass
+6. User-supplied command parameters use descriptive `<placeholder>` syntax and the page explains they must be replaced before execution
+7. Keep general cheatsheet commands grouped by topic; put end-to-end workarounds in a separate, ordered step-by-step section
+8. Page ends with `## Useful Links`
+9. Run `npm run build` — it must pass
