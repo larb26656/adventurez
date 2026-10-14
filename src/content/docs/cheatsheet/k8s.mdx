@@ -759,6 +759,61 @@ kubectl get secret <secret-name> -o jsonpath='{.data.key}' | base64 -d
 
 <ChatMessage message="Secret ใน k8s ไม่ได้ encrypted โดย default! ต้อง enable encryption หรือใช้ external secrets manager อย่าง Vault" avatarKey="blackCat" />
 
+### ใช้ `kubectl edit` แก้ Secret
+
+`kubectl edit` ใช้แก้ Secret ได้ เหมาะกับการแก้เร่งด่วน แต่ค่าที่เปิดขึ้นมาจะอยู่ใน `data` และต้องเป็น Base64 ไม่ใช่ plaintext:
+
+```bash
+# ตรวจสอบ cluster และเปิด Secret ใน editor
+kubectl config current-context
+kubectl edit secret one-id-secret -n production
+```
+
+ใน editor แก้ค่าของ key ใต้ `data:` หรือเอาบรรทัดของ key ออกเพื่อลบ key นั้น แล้ว save และปิด editor ควรหลีกเลี่ยงการคัดลอกหรือถ่ายภาพหน้าจอที่มีค่า Secret
+
+ถ้าต้องการใส่ plaintext โดยไม่ encode เอง ให้ใช้ `kubectl patch` กับไฟล์ชั่วคราวที่มี permission จำกัด:
+
+```bash
+# สร้างไฟล์โดยจำกัดสิทธิ์ให้อ่าน/เขียนได้เฉพาะเจ้าของ
+umask 077
+${EDITOR:-vi} secret-patch.yaml
+```
+
+```yaml
+# secret-patch.yaml — ระบุเฉพาะ key ที่ต้องการเปลี่ยน
+stringData:
+  DATABASE_URL: "postgresql://user:password@host:5432/db"
+```
+
+```bash
+# แก้เฉพาะ key ที่ระบุ โดยไม่กระทบ key อื่น
+kubectl patch secret one-id-secret -n production --type merge --patch-file secret-patch.yaml
+
+# ลบไฟล์ชั่วคราวหลังใช้งาน
+rm secret-patch.yaml
+```
+
+ลบ key ด้วย `kubectl patch` ได้เช่นกัน:
+
+```bash
+# ลบ key API_TOKEN ออกจาก Secret
+kubectl patch secret one-id-secret -n production --type merge -p '{"data":{"API_TOKEN":null}}'
+```
+
+ถ้า Deployment ใช้ Secret เป็น environment variable ให้ restart เพื่อให้ Pod ใหม่รับค่า และตรวจสอบ rollout กับ health check หลังแก้:
+
+```bash
+# Restart Deployment และรอให้ rollout เสร็จ
+kubectl rollout restart deployment/one-id-service -n production
+kubectl rollout status deployment/one-id-service -n production
+```
+
+> Secret ที่ mount เป็น volume ปกติจะทยอยอัปเดต แต่ `subPath` และ environment variables ไม่อัปเดตใน Pod เดิม ส่วน K9s เหมาะกับการตรวจสอบ Secret/Pod
+
+<ChatMessage message="ถ้า Secret ถูกจัดการโดย Argo CD หรือ GitOps controller การแก้ด้วย kubectl อาจถูก sync กลับเป็นค่าเดิม ให้ตรวจ ownership ก่อน และอย่าแก้ Secret ที่เป็น GitOps-managed โดยไม่อัปเดต source of truth" avatarKey="blackCat" />
+
+สำหรับการใช้งานระยะยาว ควรจัดการ Secret ผ่าน External Secrets หรือ Secret Manager แทนการแก้ใน cluster โดยตรง
+
 ## Namespaces
 
 Namespace ช่วยให้แบ่ง cluster ออกเป็นหลาย virtual clusters
