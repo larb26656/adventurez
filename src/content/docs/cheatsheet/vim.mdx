@@ -1,0 +1,213 @@
+---
+title: Vim
+description: Cheatsheet สำหรับ Vim - modes, movement, editing, search และคำสั่งที่ใช้บ่อย
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+[Vim](https://www.vim.org) คือ text editor ที่ทำงานบน terminal มีจุดเด่นเรื่องความเร็วในการแก้ไขไฟล์ด้วย keyboard ล้วน ๆ ไม่ต้องใช้ mouse เพราะทุกอย่างมี shortcut ของตัวเอง แถมติดมากับเครื่อง server ส่วนใหญ่ให้ใช้งานได้ทันที
+
+## จุดเด่นของ Vim
+- **Modal editing** — แยกโหมดพิมพ์กับโหมดสั่งงาน ทำให้ปุ่มบน keyboard กลายเป็น shortcut ได้ทั้งหมด
+- **อยู่ทุกที่** — ติดตั้งมากับ Linux/macOS server ส่วนใหญ่ แก้ config ระยะไกลผ่าน SSH ได้เลย
+- **คำสั่งประกอบกันได้ (composable)** — เช่น `d` (delete) + `w` (word) = `dw` ลบทั้งคำ
+
+## Modes
+
+หัวใจของ Vim คือการมีหลาย mode ต้องเข้าใจก่อนถึงจะใช้ได้
+
+| Mode | ชื่อเรียก | ไว้ทำอะไร | วิธีเข้า |
+| --- | --- | --- | --- |
+| Normal | command mode | สั่งงาน เคลื่อน cursor ตัดคำ (default ตอนเปิดมา) | กด `Esc` |
+| Insert | insert mode | พิมพ์ข้อความเหมือน editor ปกติ | `i` `a` `o` |
+| Visual | visual mode | ลากเลือกข้อความ | `v` `V` `Ctrl+v` |
+| Command-line | command mode | พิมพ์คำสั่งหลัง `:` เช่น save, search | `:` `/` |
+
+<ChatMessage message={'ติดค้างและไม่รู้ว่าทำอะไรอยู่? กด `Esc` กลับ Normal mode ก่อนเสมอ แล้วค่อยคิดว่าจะทำอะไรต่อ'} avatarKey="blackCat" />
+
+## การเปิด/ปิด Vim
+
+```bash
+# เปิดไฟล์ด้วย vim
+vim <filename>
+
+# เปิดไฟล์และกระโดดไปบรรทัดที่ต้องการเลย
+vim <filename> +<line_number>
+
+# เปิดหลายไฟล์พร้อมกัน (สลับด้วย :n)
+vim <file1> <file2>
+```
+
+### Save และ Quit (ใช้ใน Normal mode)
+
+```vim
+" บันทึกไฟล์
+:w
+
+" ออกจาก vim
+:q
+
+" บันทึกแล้วออก
+:wq
+
+" ออกแบบทิ้งการแก้ไขทั้งหมด (ระวัง! ข้อมูลที่แก้ไว้หายทันที)
+:q!
+
+" บันทึกแบบ force เขียนทับแม้จะเปิดแบบ read-only (ต้องมีสิทธิ์)
+:w!
+```
+
+<ChatMessage message={'มือใหม่ติดอยู่ใน vim หลุดไม่ได้ ให้พิมพ์ `:q!` แล้วกด Enter เพื่อออกก่อนแล้วหาวิธีใช้ทีหลัง'} avatarKey="blackCat" />
+
+## Movement พื้นฐาน (Normal mode)
+
+| ปุ่ม | ความหมาย |
+| --- | --- |
+| `h` `j` `k` `l` | ซ้าย ลง ขึ้น ขวา |
+| `w` / `b` | ไปหน้า / ถอยหลัง ทีละคำ |
+| `0` / `$` | ไปต้นบรรทัด / ท้ายบรรทัด |
+| `^` | ไปที่ตัวอักษรแรกที่ไม่ใช่ช่องว่างของบรรทัด |
+| `gg` / `G` | ไปบรรทัดแรก / บรรทัดสุดท้ายของไฟล์ |
+| `<number>G` | กระโดดไปบรรทัดที่ต้องการ เช่น `42G` คือบรรทัด 42 |
+| `{` / `}` | กระโดดขึ้น / ลง ทีละ paragraph |
+| `Ctrl+d` / `Ctrl+u` | scroll ลงครึ่งจอ / ขึ้นครึ่งจอ |
+| `Ctrl+o` / `Ctrl+i` | ย้อนกลับ / ไปต่อ ตามตำแหน่งที่เคย cursor ผ่าน |
+
+<ChatMessage message={'แทนที่จะกด `j` กด 20 รอบ ให้ใส่ตัวเลขนำหน้าได้เลย เช่น `5j` คือลง 5 บรรทัด'} avatarKey="whiteCat" />
+
+## Insert Mode (การพิมพ์ข้อความ)
+
+```vim
+" แทรกข้อความก่อน / หลัง cursor
+i / a
+
+" แทรกที่ต้นบรรทัด / ท้ายบรรทัด
+I / A
+
+" เปิดบรรทัดใหม่ด้านล่าง / ด้านบน แล้วเข้า insert mode
+o / O
+
+" ลบตัวอักษรหน้า cursor แล้วเข้า insert mode
+cw หรือ cc ทั้งบรรทัด
+```
+
+> จำง่าย ๆ: `i` = insert, `a` = append, `o` = open new line
+
+## การแก้ไขข้อความ (Normal mode)
+
+| ปุ่ม | ความหมาย |
+| --- | --- |
+| `x` | ลบตัวอักษรที่ cursor อยู่ |
+| `dd` | ลบทั้งบรรทัด (cut) |
+| `dw` | ลบทั้งคำ |
+| `d$` / `D` | ลบจาก cursor ถึงท้ายบรรทัด |
+| `yy` | copy ทั้งบรรทัด (yank) |
+| `yw` | copy ทั้งคำ |
+| `p` / `P` | paste หลัง / ก่อน cursor |
+| `u` | undo |
+| `Ctrl+r` | redo |
+| `.` | ทำซ้ำคำสั่งล่าสุด 1 ครั้ง |
+
+<ChatMessage message={'ปุ่ม `.` คือพระเอกของ vim แก้อะไรซ้ำ ๆ ได้โดยไม่ต้องพิมพ์ซ้ำ เช่น ลบคำด้วย `dw` แล้วกด `.` ต่อได้เรื่อย ๆ'} avatarKey="whiteCat" />
+
+## Visual Mode (การเลือกข้อความ)
+
+```vim
+" เลือกทีละตัวอักษร
+v
+
+" เลือกทั้งบรรทัด
+V
+
+" เลือกแบบ block (เลือกแนวตั้งได้)
+Ctrl+v
+
+" หลังเลือกแล้ว สั่งงานต่อได้เลย
+d   " ลบที่เลือก
+y   " copy ที่เลือก
+>   " เยื้องขวา
+<   " เยื้องซ้าย
+```
+
+<ChatMessage message={'`Ctrl+v` แล้วกด `I` พิมพ์ข้อความแล้วกด `Esc` จะเป็นการแทรกข้อความพร้อมกันหลายบรรทัด (multi-cursor ของ vim)'} avatarKey="whiteCat" />
+
+## Search และ Replace
+
+```vim
+" ค้นหาคำ พิมพ์ต่อจาก / แล้วกด Enter
+/<keyword>
+
+" ค้นหาย้อนหลัง
+?<keyword>
+
+" ไปผลลัพธ์ถัดไป / ก่อนหน้า
+n / N
+
+" ค้นหาคำที่ cursor กำลังชี้อยู่ทันที
+* หรือ #
+
+" replace คำแรกที่เจอในบรรทัดปัจจุบัน
+:s/<old>/<new>
+
+" replace ทุกคำในบรรทัดปัจจุบัน
+:s/<old>/<new>/g
+
+" replace ทั้งไฟล์ และถามก่อนทุกครั้ง (แนะนำ)
+:%s/<old>/<new>/gc
+```
+
+<ChatMessage message={'ใช้ `:%s/<old>/<new>/gc` เสมอเวลา replace ทั้งไฟล์ เพราะมี `c` คือ confirm ทุกจุด ปลอดภัยกว่า replace หมดแบบเงียบ ๆ'} avatarKey="blackCat" />
+
+## จัดการหลายไฟล์ (Split และ Tab)
+
+```vim
+" เปิดไฟล์ใหม่แบบแบ่งจอแนวนอน / แนวตั้ง
+:split <filename> หรือ :vsplit <filename>
+
+" สลับหน้าจอ
+Ctrl+w w
+
+" ปิดหน้าต่างปัจจุบัน
+:close
+
+" เปิดเป็น tab ใหม่
+:tabnew <filename>
+
+" สลับ tab ถัดไป / ก่อนหน้า
+:tabn / :tabp
+```
+
+## .vimrc พื้นฐาน
+
+การตั้งค่าที่นิยมใส่ตอนเริ่มต้น ไฟล์อยู่ที่ `~/.vimrc`
+
+```vim
+" แสดงเลขบรรทัด
+set number
+
+" syntax highlight
+syntax on
+
+" กด Tab แทนด้วย space 4 ตัว
+set tabstop=4
+set shiftwidth=4
+set expandtab
+
+" ค้นหาแบบไม่สน case ตัวพิมพ์
+set ignorecase
+set smartcase
+
+" highlight ผลการค้นหา
+set hlsearch
+
+" เปิด auto indent ตาม syntax ของภาษา
+filetype plugin indent on
+```
+
+<ChatMessage message={'หลังแก้ `.vimrc` แล้วรัน `:source ~/.vimrc` เพื่อ reload ได้เลย ไม่ต้องปิดเปิด vim ใหม่'} avatarKey="whiteCat" />
+
+## Useful Links
+
+- [Official Documentation](https://www.vim.org/docs.php)
+- [Vim Adventures (เรียนแบบเกม)](https://vim-adventures.com/)
+- [OpenVim Interactive Tutorial](https://www.openvim.com/)
