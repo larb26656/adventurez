@@ -1,4 +1,6 @@
 ---
+import { tagHref } from '../data/workaround-tags';
+
 interface Workaround {
   id: string;
   title: string;
@@ -21,7 +23,7 @@ const { workarounds } = Astro.props;
         <h2 class="typo-card-title text-foreground mb-2"><a class="hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600" href={`/${item.id}/`}>{item.title}</a></h2>
         <p class="typo-body-sm text-muted mb-0">{item.description}</p>
         <div class="flex gap-1.5 flex-wrap mt-3">
-          {item.tags.map((tag) => <span class="typo-tag bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">{tag}</span>)}
+          {item.tags.map((tag) => <a href={tagHref(tag)} class="typo-tag bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600">{tag}</a>)}
         </div>
       </article>
     ))}

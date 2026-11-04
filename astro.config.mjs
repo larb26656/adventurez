@@ -25,6 +25,7 @@ export default defineConfig({
         replacesTitle: true,
       },
       customCss: ["./src/styles/starlight-theme.css"],
+      components: { PageTitle: "./src/components/WorkaroundPageTitle.astro" },
       social: [
         {
           icon: "github",

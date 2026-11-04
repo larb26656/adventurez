@@ -1,0 +1,18 @@
+---
+import PageTitle from '@astrojs/starlight/components/PageTitle.astro';
+import { tagHref } from '../data/workaround-tags';
+
+const { entry } = Astro.locals.starlightRoute;
+---
+
+<PageTitle />
+{entry.id.startsWith('workaround/') && (
+  <div class="workaround-tags" aria-label="Workaround tags">
+    {entry.data.tags?.map((tag) => <a href={tagHref(tag)}>{tag}</a>)}
+  </div>
+)}
+
+<style>
+  .workaround-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+  .workaround-tags a { border-radius: 9999px; padding: 0.15rem 0.65rem; background: var(--sl-color-accent-low); color: var(--sl-color-text-accent); font-size: var(--sl-text-sm); }
+</style>

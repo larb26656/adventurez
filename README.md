@@ -110,6 +110,10 @@ publishedAt: "2026-11-04"
 The static `/workarounds/` listing includes new articles automatically on the
 next build, ordered by first publication date (then URL for ties). Its browser
 search matches the title and description, not the article body.
+Each used tag also gets a static `/workarounds/tags/<tag>/` page with its own
+search. Tag URLs are lowercase, with runs of non-letter/digit characters
+replaced by hyphens; renaming a tag changes its URL without an alias. Distinct
+tag names that yield the same URL (or no URL) fail the build.
 
 Use a valid date in `YYYY-MM-DD` format and keep it unchanged when editing an
 existing article. Workaround metadata is checked during the build; other

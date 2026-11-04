@@ -1,16 +1,9 @@
 ---
-import { getCollection } from 'astro:content';
+import { getWorkarounds } from '../data/workarounds';
 import Layout from '../components/Layout.astro';
 import WorkaroundList from '../components/WorkaroundList.astro';
 
-const docs = await getCollection('docs', ({ id }) => id.startsWith('workaround/'));
-const workarounds = docs.map(({ id, data }) => ({
-  id,
-  title: data.title,
-  description: data.description!,
-  tags: data.tags!,
-  publishedAt: data.publishedAt as string,
-})).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+const workarounds = await getWorkarounds();
 ---
 
 <Layout title="Workarounds" active="Workarounds">
