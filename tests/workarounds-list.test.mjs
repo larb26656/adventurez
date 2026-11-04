@@ -37,6 +37,11 @@ test('built listing discovers, orders and searches workarounds and opens their d
     }
     browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH });
     const page = await browser.newPage();
+    const clickCardDescription = async (title, description) => {
+      const box = await cards.filter({ hasText: title }).getByText(description).boundingBox();
+      assert.ok(box);
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    };
     await page.goto(base);
     await page.getByRole('navigation').getByRole('link', { name: 'Workarounds' }).click();
     assert.match(page.url(), /\/workarounds\/$/);
@@ -64,19 +69,19 @@ test('built listing discovers, orders and searches workarounds and opens their d
     await search.fill('BodyOnlyNeedle');
     assert.ok(await page.getByText('ไม่พบ Workaround ที่ตรงกับคำค้น').isVisible());
     await search.fill('Alpha fixture');
-    await cards.filter({ hasText: 'Alpha fixture' }).getByText('Unique description needle').click();
-    assert.match(page.url(), /\/workaround\/aa-list-fixture\/$/);
+    await clickCardDescription('Alpha fixture', 'Unique description needle');
+    await page.waitForURL(/\/workaround\/aa-list-fixture\/$/);
     assert.ok(await page.getByRole('heading', { name: 'Alpha fixture' }).isVisible());
     await page.getByRole('link', { name: 'Shared Topic' }).click();
     assert.match(page.url(), /\/workarounds\/tags\/shared-topic\/$/);
     assert.deepEqual(await page.locator('main article h2').allTextContents(), ['Alpha fixture']);
     await page.goto(`${base}/workarounds/`);
-    await cards.filter({ hasText: 'Index fixture' }).getByText('Index description').click();
-    assert.match(page.url(), /\/workaround\/index-list-fixture\/$/);
+    await clickCardDescription('Index fixture', 'Index description');
+    await page.waitForURL(/\/workaround\/index-list-fixture\/$/);
     assert.ok(await page.getByRole('heading', { name: 'Index fixture' }).isVisible());
     await page.goto(`${base}/workarounds/`);
-    await cards.filter({ hasText: 'Custom fixture' }).getByText('Custom description').click();
-    assert.match(page.url(), /\/workaround\/custom-route\/$/);
+    await clickCardDescription('Custom fixture', 'Custom description');
+    await page.waitForURL(/\/workaround\/custom-route\/$/);
     assert.ok(await page.getByRole('heading', { name: 'Custom fixture' }).isVisible());
     await page.goto(`${base}/workaround/unrelated-fixture/`);
     assert.equal(await page.locator('[aria-label="Workaround tags"]').count(), 0);
