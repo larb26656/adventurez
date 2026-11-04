@@ -1,5 +1,6 @@
 import { getCollection } from 'astro:content';
 import { tagSlug } from './workaround-tags';
+import { isWorkaroundSource } from './workaround-source';
 
 export interface Workaround {
   id: string;
@@ -10,9 +11,9 @@ export interface Workaround {
 }
 
 export async function getWorkarounds(): Promise<Workaround[]> {
-  const docs = await getCollection('docs', ({ id }) => id.startsWith('workaround/'));
+  const docs = await getCollection('docs', ({ filePath }) => isWorkaroundSource(filePath));
   return docs.map(({ id, data }) => ({
-    id,
+    id: (id.endsWith('/index') ? id.slice(0, -6) : id).normalize(),
     title: data.title,
     description: data.description!,
     tags: data.tags!,

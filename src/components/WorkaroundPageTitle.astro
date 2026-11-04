@@ -1,12 +1,13 @@
 ---
 import PageTitle from '@astrojs/starlight/components/PageTitle.astro';
 import { tagHref } from '../data/workaround-tags';
+import { isWorkaroundSource } from '../data/workaround-source';
 
 const { entry } = Astro.locals.starlightRoute;
 ---
 
 <PageTitle />
-{entry.id.startsWith('workaround/') && (
+{isWorkaroundSource(entry.filePath) && (
   <div class="workaround-tags" aria-label="Workaround tags">
     {entry.data.tags?.map((tag) => <a href={tagHref(tag)}>{tag}</a>)}
   </div>

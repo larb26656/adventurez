@@ -1,6 +1,7 @@
 import { defineCollection, z } from 'astro:content';
 import { docsLoader } from '@astrojs/starlight/loaders';
 import { docsSchema } from '@astrojs/starlight/schema';
+import { isWorkaroundSource } from './data/workaround-source';
 
 const workaroundSchema = z.object({
 	title: z.string().trim().min(1),
@@ -20,10 +21,14 @@ const loader = {
 		await starlightLoader.load({
 			...context,
 			parseData: async (entry) => {
-				if (entry.id.startsWith('workaround/')) {
+				if (isWorkaroundSource(entry.filePath)) {
 					const result = workaroundSchema.safeParse(entry.data);
 					if (!result.success) {
 						throw new Error(`Invalid Workaround "${entry.id}": ${result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ')}`);
+					}
+					const route = entry.id.endsWith('/index') ? entry.id.slice(0, -6) : entry.id;
+					if (!route.startsWith('workaround/') || route === 'workaround/') {
+						throw new Error(`Invalid Workaround "${entry.filePath}": slug must resolve to /workaround/<slug>/`);
 					}
 				}
 				return context.parseData(entry);

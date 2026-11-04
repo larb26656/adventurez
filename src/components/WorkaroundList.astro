@@ -19,11 +19,11 @@ const { workarounds } = Astro.props;
   <p class="mt-6 text-muted" data-empty hidden role="status">ไม่พบ Workaround ที่ตรงกับคำค้น</p>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
     {workarounds.map((item) => (
-      <article class="bg-white border border-border rounded-xl p-5" data-workaround data-search={`${item.title} ${item.description}`.toLocaleLowerCase()}>
-        <h2 class="typo-card-title text-foreground mb-2"><a class="hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600" href={`/${item.id}/`}>{item.title}</a></h2>
+      <article class="relative bg-white border border-border rounded-xl p-5" data-workaround data-search={`${item.title} ${item.description}`.toLocaleLowerCase()}>
+        <h2 class="typo-card-title text-foreground mb-2"><a class="after:absolute after:inset-0 hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600" href={`/${item.id}/`}>{item.title}</a></h2>
         <p class="typo-body-sm text-muted mb-0">{item.description}</p>
         <div class="flex gap-1.5 flex-wrap mt-3">
-          {item.tags.map((tag) => <a href={tagHref(tag)} class="typo-tag bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600">{tag}</a>)}
+          {item.tags.map((tag) => <a href={tagHref(tag)} class="relative z-10 typo-tag bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full hover:underline focus-visible:outline-2 focus-visible:outline-emerald-600">{tag}</a>)}
         </div>
       </article>
     ))}

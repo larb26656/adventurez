@@ -93,8 +93,10 @@ categories: [Category]
 ### Adding a New Workaround
 
 Create one MDX file per article in `src/content/docs/workaround/`. Its filename
-becomes the URL `/workaround/<filename>/`. Include a non-empty title,
-description and list of non-empty tags, plus the original publication date:
+becomes the URL `/workaround/<filename>/`; an `index.mdx` uses its parent
+directory as the URL. A custom `slug` must resolve beneath `/workaround/`, for
+example `workaround/my-article`. Include a non-empty title, description and
+list of non-empty tags, plus the original publication date:
 
 ```mdx
 ---

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { writeFile, rm } from 'node:fs/promises';
+import { writeFile, rm, mkdir } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
 
@@ -14,9 +14,17 @@ const fixtures = [
 
 test('built listing discovers, orders and searches workarounds and opens their details', async () => {
   const files = fixtures.map(([slug]) => new URL(`../src/content/docs/workaround/${slug}.mdx`, import.meta.url));
+  const indexDir = new URL('../src/content/docs/workaround/index-list-fixture/', import.meta.url);
+  const indexFile = new URL('index.mdx', indexDir);
+  const customFile = new URL('../src/content/docs/workaround/custom-list-fixture.mdx', import.meta.url);
+  const otherFile = new URL('../src/content/docs/other-list-fixture.mdx', import.meta.url);
   let server;
   let browser;
   try {
+    await mkdir(indexDir, { recursive: true });
+    await writeFile(indexFile, '---\ntitle: Index fixture\ndescription: Index description\ntags: [IndexTag]\npublishedAt: "2025-01-01"\n---\n\nIndex content.\n');
+    await writeFile(customFile, '---\ntitle: Custom fixture\ndescription: Custom description\ntags: [CustomTag]\npublishedAt: "2025-01-01"\nslug: workaround/custom-route\n---\n\nCustom content.\n');
+    await writeFile(otherFile, '---\ntitle: Other fixture\nslug: workaround/unrelated-fixture\n---\n\nOther content.\n');
     for (const [i, [, title, description, date, tags]] of fixtures.entries()) {
       await writeFile(files[i], `---\ntitle: ${title}\ndescription: ${description}\ntags: ${tags}\npublishedAt: "${date}"\n---\n\nBodyOnlyNeedle\n`);
     }
@@ -36,6 +44,9 @@ test('built listing discovers, orders and searches workarounds and opens their d
     const titles = await cards.locator('h2').allTextContents();
     assert.deepEqual(titles.slice(0, 2), ['Alpha fixture', 'Beta fixture']);
     assert.ok(titles.indexOf('Older fixture') > titles.indexOf('Beta fixture'));
+    assert.ok(!titles.includes('Other fixture'));
+    assert.ok(titles.includes('Custom fixture'));
+    assert.ok(titles.includes('Index fixture'));
     assert.ok(await cards.filter({ hasText: 'Alpha fixture' }).getByText('FixtureTag').isVisible());
     await cards.filter({ hasText: 'Alpha fixture' }).getByRole('link', { name: 'FixtureTag' }).click();
     assert.match(page.url(), /\/workarounds\/tags\/fixturetag\/$/);
@@ -53,16 +64,29 @@ test('built listing discovers, orders and searches workarounds and opens their d
     await search.fill('BodyOnlyNeedle');
     assert.ok(await page.getByText('ไม่พบ Workaround ที่ตรงกับคำค้น').isVisible());
     await search.fill('Alpha fixture');
-    await page.getByRole('link', { name: 'Alpha fixture' }).click();
+    await cards.filter({ hasText: 'Alpha fixture' }).getByText('Unique description needle').click();
     assert.match(page.url(), /\/workaround\/aa-list-fixture\/$/);
     assert.ok(await page.getByRole('heading', { name: 'Alpha fixture' }).isVisible());
     await page.getByRole('link', { name: 'Shared Topic' }).click();
     assert.match(page.url(), /\/workarounds\/tags\/shared-topic\/$/);
     assert.deepEqual(await page.locator('main article h2').allTextContents(), ['Alpha fixture']);
+    await page.goto(`${base}/workarounds/`);
+    await cards.filter({ hasText: 'Index fixture' }).getByText('Index description').click();
+    assert.match(page.url(), /\/workaround\/index-list-fixture\/$/);
+    assert.ok(await page.getByRole('heading', { name: 'Index fixture' }).isVisible());
+    await page.goto(`${base}/workarounds/`);
+    await cards.filter({ hasText: 'Custom fixture' }).getByText('Custom description').click();
+    assert.match(page.url(), /\/workaround\/custom-route\/$/);
+    assert.ok(await page.getByRole('heading', { name: 'Custom fixture' }).isVisible());
+    await page.goto(`${base}/workaround/unrelated-fixture/`);
+    assert.equal(await page.locator('[aria-label="Workaround tags"]').count(), 0);
   } finally {
     await browser?.close();
     server?.kill();
     await Promise.all(files.map((file) => rm(file, { force: true })));
+    await rm(indexDir, { recursive: true, force: true });
+    await rm(customFile, { force: true });
+    await rm(otherFile, { force: true });
   }
 });
 
