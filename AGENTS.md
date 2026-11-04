@@ -37,3 +37,17 @@ Sidebar is configured in `astro.config.mjs` via `starlightSidebarTopics` plugin.
 - Site builds to `dist/` folder
 - Mermaid diagrams supported via `astro-mermaid`
 - Starlight custom CSS at `src/styles/starlight-theme.css`
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs are local Markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Use the five default triage roles as status strings. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Use the single-context layout. See `docs/agents/domain.md`.

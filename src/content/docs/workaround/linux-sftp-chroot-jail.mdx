@@ -1,0 +1,54 @@
+---
+title: จำกัดผู้ใช้ SFTP ด้วย chroot jail
+description: ตั้งค่า SSH chroot jail เพื่อจำกัดพื้นที่ไฟล์สำหรับผู้ใช้ SFTP
+tags: [Linux, SSH]
+publishedAt: "2026-11-04"
+---
+
+การ สร้าง Jail (chroot jail) คือการ “จำกัดขอบเขตการเข้าถึงของผู้ใช้” ให้อยู่ภายในพื้นที่เฉพาะของระบบไฟล์ (directory) เท่านั้น — เหมือน “ขังผู้ใช้ไว้ในกรง” ที่มองเห็นและเข้าถึงได้เฉพาะไฟล์และคำสั่งที่อนุญาตเท่านั้น
+
+สร้าง jail
+```bash
+mkdir -p <jail-path>
+chown root:root <jail-path>
+chmod 755 <jail-path>
+```
+
+สร้าง group
+```bash
+groupadd <group>
+```
+
+สร้าง user
+```bash
+useradd -M -g <group> <username>
+```
+
+ตั้งรหัสให้ user
+```bash
+passwd <username>
+```
+
+สร้าง home folder
+```bash
+mkdir -p <jail-path>/home/<username>
+chown <username>: <jail-path>/home/<username>
+chmod 750  <jail-path>/home/<username>
+usermod -d /home/<username> <username>
+```
+
+ตั้งค่า ssh โดยการเขียนไฟล์ `/etc/ssh/sshd_config` ให้เลื่อนมาด้านล่างสุดของไฟล์จากนั้นใส่ข้อความดังต่อไปนี้เพื่อกำหนด chroot
+```bash
+Match Group <group>
+    ChrootDirectory <jail-path>
+    ForceCommand internal-sftp
+    AllowTcpForwarding no
+    X11Forwarding no
+```
+
+การตั้งค่า `ForceCommand internal-sftp` จำกัดผู้ใช้ไว้ที่ SFTP และไม่เปิด shell
+
+ทำการ reload config ssh
+```bash
+systemctl reload ssh
+```

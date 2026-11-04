@@ -60,7 +60,8 @@ test('built listing discovers, orders and searches workarounds and opens their d
     assert.deepEqual(await page.locator('main article').filter({ visible: true }).locator('h2').allTextContents(), ['Alpha fixture']);
     await page.getByRole('searchbox').fill('Older fixture');
     assert.ok(await page.getByText('ไม่พบ Workaround ที่ตรงกับคำค้น').isVisible());
-    await page.goto(`${base}/workarounds/`);
+    await page.getByRole('link', { name: 'กลับไป Workarounds ทั้งหมด' }).click();
+    assert.match(page.url(), /\/workarounds\/$/);
     const search = page.getByRole('searchbox');
     await search.fill('beta FIXTURE');
     assert.deepEqual(await cards.filter({ visible: true }).locator('h2').allTextContents(), ['Beta fixture']);

@@ -125,7 +125,17 @@ export default defineConfig({
               },
             ],
           },
-        ], { exclude: ["/workaround/**"] }),
+          {
+            label: "Workarounds",
+            link: "/workarounds/",
+            items: [
+              {
+                label: "Workarounds",
+                autogenerate: { directory: "workaround" },
+              },
+            ],
+          },
+        ]),
       ],
     }),
   ],

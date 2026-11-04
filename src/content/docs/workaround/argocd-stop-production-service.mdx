@@ -1,0 +1,111 @@
+---
+title: หยุด Service บน Production ที่จัดการด้วย Argo CD
+description: วิธีหยุด service ชั่วคราว ระหว่าง maintenance หรือกรณีฉุกเฉิน พร้อมตรวจสอบและคืนค่า GitOps
+tags: [Argo CD, Kubernetes]
+publishedAt: "2026-11-04"
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+การ stop service ทำได้ด้วยการ scale Deployment เป็น `0` replicas แต่เมื่อใช้ร่วมกับ Argo CD ต้องระวังระบบ Auto Sync กับ `selfHeal` ที่อาจ scale กลับตามค่าใน Git รวมถึง HPA ที่คุม replicas อยู่
+
+### Scale เป็น 0 แบบชั่วคราว
+
+สมมติมี Deployment ชื่อ `one-id-service` ใน namespace `production`:
+
+```bash
+# scale deployment เป็น 0 replicas เพื่อ stop service
+kubectl scale deployment one-id-service --replicas=0 -n production
+
+# ตรวจสอบว่า pods ถูก terminate หมดแล้ว
+kubectl get pods -n production
+
+# ตรวจสอบ replicas ของ deployment (ควรเห็น 0/0)
+kubectl get deployment one-id-service -n production
+```
+
+<ChatMessage message={'ถ้า Argo CD เปิด `selfHeal: true` ไว้ จะตรวจพบว่า replicas ไม่ตรงกับ Git แล้วปรับกลับเป็นค่าเดิม และถ้ามี HPA คุม Deployment อยู่ก็อาจ scale กลับเช่นกัน ตรวจสอบด้วย `kubectl get hpa -n production`'} avatarKey="blackCat" />
+
+### Stop แบบ GitOps (แนะนำสำหรับ Maintenance)
+
+แก้ `replicas` ใน Git แล้วให้ Argo CD sync เอง เพื่อให้ Git ยังเป็น single source of truth:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: one-id-service
+spec:
+  # เดิมเป็น 3 เปลี่ยนเป็น 0 เพื่อ stop service
+  replicas: 0
+```
+
+```bash
+# commit และ push แล้ว Argo CD จะตรวจพบการเปลี่ยนแปลงและ terminate pods ทั้งหมด
+git commit -m "stop one-id-service for maintenance" && git push
+```
+
+เมื่อ maintenance เสร็จ เปลี่ยน `replicas` กลับเป็นค่าเดิมแล้ว push ได้เลย
+
+### Stop แบบฉุกเฉิน
+
+กรณี production มีปัญหาและต้องหยุด service ทันทีโดยไม่รอ Git:
+
+```bash
+# step 1: ปิด auto-sync ชั่วคราวกัน Argo CD แก้ค่ากลับ
+argocd app set one-id-service --sync-policy none
+
+# step 2: scale เป็น 0
+kubectl scale deployment one-id-service --replicas=0 -n production
+
+# step 3: ตรวจสอบผลลัพธ์
+kubectl get deployment one-id-service -n production
+```
+
+เมื่อแก้ปัญหาเสร็จ ให้ reconcile ค่าเข้า Git ก่อน แล้วค่อยเปิด auto-sync กลับ:
+
+```bash
+# แก้ replicas ใน Git ให้ตรงกับ state ที่ต้องการ แล้ว sync
+argocd app sync one-id-service
+
+# เปิด auto-sync กลับพร้อม self-heal
+argocd app set one-id-service --sync-policy automated --self-heal
+```
+
+<ChatMessage message={'ถ้า Application ถูกสร้างจาก ApplicationSet การปิด auto-sync อาจถูกคืนค่ากลับมา ต้องแก้นโยบายที่ template ต้นทางด้วย และการปิด auto-sync ไม่ได้หยุด HPA'} avatarKey="blackCat" />
+
+### Stop ผ่าน k9s
+
+```bash
+# เปิด k9s ที่ namespace production
+k9s -n production
+```
+
+จากนั้นพิมพ์ `:deploy` เลือก Deployment ที่ต้องการ กด `s` เพื่อ scale ใส่ `0` แล้ว confirm — ต้องระวัง selfHeal เหมือนกัน
+
+### สิ่งที่ไม่ควรทำ
+
+```bash
+# อย่าใช้ delete pod เพื่อ stop service เพราะ Deployment controller จะสร้าง pod ใหม่ทันที
+kubectl delete pod one-id-service-xxxxx
+```
+
+การ delete pod เหมาะกับการ restart หรือ replace pod มากกว่า สำหรับ restart ให้ใช้:
+
+```bash
+# rolling restart ทั้ง deployment
+kubectl rollout restart deployment/one-id-service -n production
+```
+
+### สรุปวิธีเลือกใช้
+
+| สถานการณ์ | วิธีแนะนำ |
+|-----------|-----------|
+| Restart pod | `kubectl rollout restart` |
+| Stop ชั่วคราว | Scale `replicas = 0` |
+| Stop แบบ GitOps | แก้ `replicas: 0` ใน Git |
+| Stop ฉุกเฉิน | ปิด auto-sync แล้ว scale `0` |
+| Stop ผ่าน k9s | Scale deployment เป็น `0` |
+| Stop ถาวร | ลบ Deployment จาก Git แล้ว sync |
+
+<ChatMessage message="สำหรับ production ควรกำหนดแนวทาง maintenance ไว้เลย: Planned Maintenance ทำผ่าน GitOps, Emergency Operation ใช้ kubectl/k9s แล้ว reconcile กลับเข้า Git, ส่วน restart ปกติใช้ rolling restart — เพราะในระยะยาวเราไม่ควรต้องปิด auto-sync ทุกครั้งที่ maintenance" avatarKey="whiteCat" />

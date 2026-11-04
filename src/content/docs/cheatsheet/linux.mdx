@@ -92,55 +92,5 @@ history
 ```
 
 ## Create jail
-การ สร้าง Jail (chroot jail) คือการ “จำกัดขอบเขตการเข้าถึงของผู้ใช้” ให้อยู่ภายในพื้นที่เฉพาะของระบบไฟล์ (directory) เท่านั้น — เหมือน “ขังผู้ใช้ไว้ในกรง” ที่มองเห็นและเข้าถึงได้เฉพาะไฟล์และคำสั่งที่อนุญาตเท่านั้น
 
-สร้าง jail
-```bash
-mkdir -p <jail-path>
-chown root:root <jail-path>
-chmod 755 <jail-path>
-```
-
-สร้าง group
-```bash
-groupadd <group>
-```
-
-สร้าง user
-```bash
-useradd -M -g <group> <username>
-```
-
-ตั้งรหัสให้ user
-```bash
-passwd <username>
-```
-
-สร้าง home folder
-```bash
-mkdir -p <jail-path>/home<username>
-chown <username>: <jail-path>/home<username>
-chmod 750  <jail-path>/home<username>
-usermod -d  <jail-path>/home<username> <username>
-```
-
-ตั้งค่า ssh โดยการเขียนไฟล์ `/etc/ssh/sshd_config` ให้เลื่อนมาด้านล่างสุดของไฟล์จากนั้นใส่ข้อความดังต่อไปนี้เพื่อกำหนด chroot
-```bash
-Match Group <group>
-    ChrootDirectory <jail-path>
-    ForceCommand internal-sftp
-    AllowTcpForwarding no
-    X11Forwarding no
-```
-
-ถ้าอยากให้ใช้ shell ได้ให้ทำการ copy sh กับ bash เข้าไปด้วย chroot ด้วย
-```bash
-sudo mkdir <jail-path>/bin/
-sudo cp /bin/bash <jail-path>/bin/
-sudo cp /bin/sh /jail/testuser/bin/s
-```
-
-ทำการ reload config ssh
-```bash
-systemctl reload ssh
-```
+ดูขั้นตอนใน [จำกัดผู้ใช้ SFTP ด้วย chroot jail](/workaround/linux-sftp-chroot-jail/)
