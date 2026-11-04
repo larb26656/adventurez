@@ -107,6 +107,10 @@ publishedAt: "2026-11-04"
 เขียนเนื้อหา MDX ได้อย่างอิสระ รวมทั้ง code block และ components
 ```
 
+The static `/workarounds/` listing includes new articles automatically on the
+next build, ordered by first publication date (then URL for ties). Its browser
+search matches the title and description, not the article body.
+
 Use a valid date in `YYYY-MM-DD` format and keep it unchanged when editing an
 existing article. Workaround metadata is checked during the build; other
 documentation does not need these fields.
