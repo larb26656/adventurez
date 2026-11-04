@@ -3,8 +3,6 @@ title: PostgreSQL
 description: A cheatsheet of PostgreSQL
 ---
 
-import ChatMessage from '../../../components/ChatMessage.astro';
-
 คำสั่งที่มีค่าในรูปแบบ `<...>` เป็น placeholder ให้แทนด้วยค่าจริงก่อนนำไปรัน
 
 ### User
@@ -152,90 +150,4 @@ ALTER DATABASE <database> OWNER TO <username>;
 
 ## Workaround: สร้าง User และกำหนดสิทธิ์ Database
 
-ตัวอย่างขั้นตอนสำหรับสร้าง user ให้ application ใช้งาน database โดยแทน placeholder ใน `<...>` ให้เป็นค่าจริงก่อนรัน SQL (เช่น `<database>` เป็น `my_database`) คำสั่งสร้าง user และ role ให้รันด้วย account ที่มีสิทธิ์จัดการ role
-
-### Full access (อ่าน/เขียน)
-
-#### 1. สร้าง role และ user แล้วอนุญาตให้เชื่อมต่อ database
-
-```sql
--- สร้าง role สำหรับสิทธิ์อ่านและเขียน
-CREATE ROLE <app_full_role> NOLOGIN;
-
--- สร้าง user สำหรับ application
-CREATE USER <app_user> WITH PASSWORD '<app_password>';
-
--- ให้ user รับสิทธิ์จาก role แบบ full access
-GRANT <app_full_role> TO <app_user>;
-
--- อนุญาตให้เชื่อมต่อ database
-GRANT CONNECT ON DATABASE <database> TO <app_full_role>;
-```
-
-#### 2. เชื่อมต่อเข้า database แล้วกำหนดสิทธิ์ใน schema `public`
-
-```sql
--- อนุญาตให้ใช้งาน schema
-GRANT USAGE ON SCHEMA public TO <app_full_role>;
-
--- ให้สิทธิ์อ่าน เพิ่ม แก้ไข และลบข้อมูลในตารางที่มีอยู่
-GRANT SELECT, INSERT, UPDATE, DELETE
-ON ALL TABLES IN SCHEMA public
-TO <app_full_role>;
-
--- ให้สิทธิ์ใช้งาน sequence ที่มีอยู่ เช่น sequence ของ SERIAL
-GRANT USAGE, SELECT
-ON ALL SEQUENCES IN SCHEMA public
-TO <app_full_role>;
-
--- ให้สิทธิ์กับตารางที่สร้างใหม่โดย object owner
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO <app_full_role>;
-
--- ให้สิทธิ์กับ sequence ที่สร้างใหม่โดย object owner
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
-GRANT USAGE, SELECT ON SEQUENCES TO <app_full_role>;
-```
-
-ถ้าต้องการให้ migration role สร้าง table หรือ object ใหม่ใน schema `public` ให้เพิ่มสิทธิ์นี้:
-
-```sql
--- อนุญาตให้ migration role ใช้งาน schema และสร้าง object ใหม่
-GRANT USAGE, CREATE ON SCHEMA public TO <migration_role>;
-```
-
-<ChatMessage message="สิทธิ์ CREATE บน schema ใช้สร้าง table ได้ แต่ PostgreSQL ไม่มี privilege แยกสำหรับ DROP table; การ DROP ต้องมี ownership ของ table นั้น หาก migration ต้องลบ table ที่สร้างโดย role อื่น ให้รัน migration ในฐานะ owner หรือ SET ROLE เป็น <table_owner> ก่อน" avatarKey="whiteCat" />
-
-### Read-only
-
-#### 1. สร้าง role และ user แล้วอนุญาตให้เชื่อมต่อ database
-
-```sql
--- สร้าง role สำหรับอ่านข้อมูลเท่านั้น
-CREATE ROLE <reader_role> NOLOGIN;
-
--- สร้าง user สำหรับการอ่านข้อมูล
-CREATE USER <reader_user> WITH PASSWORD '<reader_password>';
-
--- ให้ user รับสิทธิ์จาก role แบบ read-only
-GRANT <reader_role> TO <reader_user>;
-
--- อนุญาตให้เชื่อมต่อ database
-GRANT CONNECT ON DATABASE <database> TO <reader_role>;
-```
-
-#### 2. เชื่อมต่อเข้า database แล้วกำหนดสิทธิ์อ่านใน schema `public`
-
-```sql
--- อนุญาตให้ใช้งาน schema
-GRANT USAGE ON SCHEMA public TO <reader_role>;
-
--- ให้สิทธิ์อ่านตารางและ view ที่มีอยู่
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO <reader_role>;
-
--- ให้สิทธิ์อ่านตารางและ view ที่สร้างใหม่โดย object owner
-ALTER DEFAULT PRIVILEGES IN SCHEMA public
-GRANT SELECT ON TABLES TO <reader_role>;
-```
-
-<ChatMessage message="ALTER DEFAULT PRIVILEGES มีผลเฉพาะ object ที่สร้างโดย role ซึ่งรันคำสั่งนี้ หากมีหลาย role เป็นผู้สร้างตาราง ให้รันคำสั่ง ALTER DEFAULT PRIVILEGES FOR ROLE ... แยกตามแต่ละ owner" avatarKey="whiteCat" />
+ดูขั้นตอนใน [สร้าง User และกำหนดสิทธิ์ Database ใน PostgreSQL](/workaround/postgresql-user-database-permissions/)
