@@ -27,6 +27,7 @@ src/
 ├── content/
 │   └── docs/            # Documentation content (MDX)
 │       ├── cheatsheet/  # Cheatsheet articles
+│       ├── workaround/  # Standalone workaround articles
 │       └── *-adventure/ # Course modules
 ├── data/                # Data layer (courses, cheatsheets)
 ├── pages/               # Astro pages
@@ -88,6 +89,27 @@ categories: [Category]
 
 3. Write your cheatsheet content in MDX format
 4. The cheatsheet will automatically appear in the cheatsheet gallery
+
+### Adding a New Workaround
+
+Create one MDX file per article in `src/content/docs/workaround/`. Its filename
+becomes the URL `/workaround/<filename>/`. Include a non-empty title,
+description and list of non-empty tags, plus the original publication date:
+
+```mdx
+---
+title: วิธีแก้ปัญหาตัวอย่าง
+description: คำอธิบายสั้น ๆ ของวิธีแก้
+tags: [PostgreSQL]
+publishedAt: "2026-11-04"
+---
+
+เขียนเนื้อหา MDX ได้อย่างอิสระ รวมทั้ง code block และ components
+```
+
+Use a valid date in `YYYY-MM-DD` format and keep it unchanged when editing an
+existing article. Workaround metadata is checked during the build; other
+documentation does not need these fields.
 
 ### Development Commands
 
