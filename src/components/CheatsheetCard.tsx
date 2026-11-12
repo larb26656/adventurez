@@ -1,3 +1,5 @@
+import { Badge } from './ui/Badge';
+
 interface Props {
   title: string;
   description?: string;
@@ -27,12 +29,9 @@ export default function CheatsheetCard({
       {tags.length > 0 && (
         <div className="flex gap-1.5 flex-wrap mt-3">
           {tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="typo-tag bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full"
-            >
+            <Badge key={tag} variant="primary">
               {tag}
-            </span>
+            </Badge>
           ))}
         </div>
       )}

@@ -1,0 +1,146 @@
+---
+title: Copy ไฟล์เข้า Kubernetes Volume ด้วย BusyBox
+description: ทดลอง POC ด้วย BusyBox สองตัวเพื่อ mount PVC แล้ว copy ไฟล์เข้า volume โดยไม่แก้ Deployment ของแอป
+tags: [Kubernetes]
+publishedAt: "2026-11-12"
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+สมมติอยากใส่ไฟล์เข้า PVC — restore backup, seed data, หรือย้ายข้อมูล — แต่ไม่อยากแก้ image หรือ Deployment ของแอป แนวคิดง่าย ๆ คือหา “คนกลาง” มา mount volume ให้ แล้วเรา copy ไฟล์ผ่านคนนั้นแทน
+
+คนกลางในที่นี้คือ BusyBox สองตัว: ตัวหนึ่งยืนอยู่ที่ volume ต้นทาง อีกตัวยืนอยู่ที่ volume ปลายทาง พอทั้งคู่ Ready แล้วค่อยส่งไฟล์ข้ามกัน หรือถ้ามีไฟล์อยู่บนเครื่องก็โยนเข้าตัวปลายทางอย่างเดียวก็ได้
+
+แทนค่าใน `<...>` ให้เป็นค่าจริงก่อนรัน เช่น `<namespace>`, `<uid>`, `<gid>`
+
+<ChatMessage message="ถ้า PVC เป็น ReadWriteOnce (RWO) ต้อง scale แอปที่ใช้ volume นั้นลงก่อน ไม่งั้น BusyBox อาจค้างที่ Pending เพราะ volume ยังถูกแอปจับอยู่" avatarKey="blackCat" />
+
+## ขึ้น BusyBox สองตัว
+
+บันทึกเป็น `volume-copy-helper.yaml` แล้วแก้ `namespace` กับ `claimName` ให้ชี้ PVC ที่อยากเล่น — ตัว `a` กับ `b` ไม่ได้พิเศษอะไร แค่ชื่อให้แยกฝั่งชัด ๆ ตอน copy
+
+```yaml
+# volume-copy-helper.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox-a
+  namespace: <namespace>
+  labels:
+    app: volume-copy-helper
+spec:
+  restartPolicy: Never
+  containers:
+    - name: busybox
+      image: busybox:1.36
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: <pvc-a>
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox-b
+  namespace: <namespace>
+  labels:
+    app: volume-copy-helper
+spec:
+  restartPolicy: Never
+  containers:
+    - name: busybox
+      image: busybox:1.36
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: <pvc-b>
+```
+
+ถ้า POC นี้มีแค่ PVC เดียว (เช่น ใส่ backup จากเครื่องเข้า volume ของแอป) ให้เหลือแค่ `busybox-b` แล้วใส่ `claimName` ของ PVC นั้น — อย่าขึ้นสองตัวบน PVC แบบ RWO ตัวเดียวกันพร้อมกัน
+
+## เล่าขั้นตอนตามลำดับ
+
+### 1. เคลียร์เวทีให้ BusyBox
+
+```bash
+# scale แอปที่จับ PVC อยู่ลงก่อน (ถ้ามี และถ้า PVC เป็น RWO)
+kubectl -n <namespace> scale deploy/<deployment> --replicas=0
+```
+
+### 2. ปล่อย BusyBox เข้าเวที แล้วรอให้ยืนได้
+
+```bash
+# apply หลังแก้ namespace / claimName แล้ว
+kubectl apply -f volume-copy-helper.yaml
+
+# รอจน Ready — ถ้าขึ้นแค่ตัวเดียว ก็ wait ตัวนั้นพอ
+kubectl -n <namespace> wait --for=condition=Ready pod/busybox-a --timeout=60s
+kubectl -n <namespace> wait --for=condition=Ready pod/busybox-b --timeout=60s
+```
+
+ตอนนี้ `/data` ในแต่ละ Pod คือเนื้อใน PVC ที่ mount อยู่ — เปิดดูไฟล์เดิมก่อน copy ก็ได้:
+
+```bash
+# แอบดูว่าใน volume มีอะไรอยู่
+kubectl -n <namespace> exec busybox-b -- ls -la /data
+```
+
+### 3. ส่งไฟล์เข้า volume
+
+มีไฟล์อยู่บนเครื่อง อยากโยนเข้า PVC ของ `busybox-b`:
+
+```bash
+# copy จากเครื่อง local เข้า /data
+kubectl -n <namespace> cp <local-path>/. busybox-b:/data/
+```
+
+มีสอง PVC แล้วอยากย้ายจากฝั่ง `a` ไป `b`:
+
+```bash
+# ส่งทั้งโฟลเดอร์ผ่าน tar pipe — เหมาะกับไฟล์เยอะกว่า kubectl cp ระหว่าง Pod
+kubectl -n <namespace> exec busybox-a -- tar cf - -C /data . \
+  | kubectl -n <namespace> exec -i busybox-b -- tar xf - -C /data
+```
+
+### 4. จัด owner ให้แอปอ่านได้ (สำคัญ)
+
+`kubectl cp` มักวางไฟล์เป็น `root` ถ้าแอปใน Pod รันด้วย user อื่น (เช่น UID `1000`) พอ scale กลับขึ้นมาอาจเจอ permission denied ทันที
+
+```bash
+# เปลี่ยน owner ให้ตรงกับ user ของแอป — ดูจาก securityContext.runAsUser หรือเอกสาร image
+kubectl -n <namespace> exec busybox-b -- chown -R <uid>:<gid> /data
+
+# เช็กว่าไม่ใช่ root แล้ว
+kubectl -n <namespace> exec busybox-b -- ls -la /data
+```
+
+<ChatMessage message={'ตัวอย่างที่พบบ่อย: n8n / Node หลายตัวใช้ UID `1000` — ลืม `chown` หลัง copy แล้วแอปขึ้นมาเจอ EACCES เลย'} avatarKey="blackCat" />
+
+### 5. เก็บเวที แล้วเปิดแอปกลับ
+
+```bash
+# ลบ BusyBox ทั้งคู่
+kubectl -n <namespace> delete pod -l app=volume-copy-helper
+
+# เปิด Deployment กลับ
+kubectl -n <namespace> scale deploy/<deployment> --replicas=1
+```
+
+## สรุปสั้น ๆ
+
+| อยากทำอะไร | ใช้ Pod | คำสั่งหลัก |
+|------------|---------|------------|
+| ใส่ไฟล์จากเครื่องเข้า PVC | `busybox-b` | `kubectl cp` |
+| ย้ายไฟล์ระหว่างสอง PVC | `busybox-a` → `busybox-b` | `tar` pipe |
+
+หลัง copy แล้วอย่าลืม `chown -R <uid>:<gid> /data` บน Pod ที่รับไฟล์ก่อนเปิดแอปกลับ — ไม่งั้นแอปอาจอ่านไฟล์ไม่ได้
+
+<ChatMessage message="BusyBox พวกนี้เป็นแค่ POC helper — อย่าปล่อย sleep Pod ค้างใน production ทำเสร็จลบทันที และถ้า workload อยู่ใต้ GitOps ให้ scale กลับผ่าน Git หรือปิด selfHeal ชั่วคราวก่อน scale ด้วย kubectl" avatarKey="whiteCat" />

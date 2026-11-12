@@ -1,4 +1,5 @@
 import type { Course } from "../data/courses";
+import { Badge } from "./ui/Badge";
 
 interface Props {
   title: string;
@@ -40,12 +41,9 @@ export default function CourseCard({
         <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="flex gap-1.5 flex-wrap">
             {tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="typo-tag bg-primary/90 text-primary-foreground px-2 py-0.5 rounded-full backdrop-blur-sm"
-              >
+              <Badge key={tag} variant="overlay">
                 {tag}
-              </span>
+              </Badge>
             ))}
           </div>
         </div>

@@ -4,13 +4,16 @@ import Hero from "../components/Hero.astro";
 import Stats from "../components/Stats.astro";
 import CourseShowcase from "../components/CourseShowcase.astro";
 import CheatsheetShowcase from "../components/CheatsheetShowcase.astro";
+import WorkaroundShowcase from "../components/WorkaroundShowcase.astro";
 import LearningPath from "../components/LearningPath.astro";
 import Contribute from "../components/Contribute.astro";
 import { getCourses } from "../data/courses";
 import { getCheatsheets } from "../data/cheatsheets";
+import { getWorkarounds } from "../data/workarounds";
 
 const courses = await getCourses();
 const cheatsheets = await getCheatsheets();
+const workarounds = await getWorkarounds();
 ---
 
 <Layout title="Explore Courses" active="Home">
@@ -18,6 +21,7 @@ const cheatsheets = await getCheatsheets();
   <Stats />
   <CourseShowcase courses={courses} />
   <CheatsheetShowcase cheatsheets={cheatsheets} />
+  <WorkaroundShowcase workarounds={workarounds} />
   <LearningPath />
   <Contribute />
 </Layout>

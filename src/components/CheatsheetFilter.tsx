@@ -27,7 +27,7 @@ function FilterOption({
       <Checkbox
         checked={checked}
         onChange={onChange}
-        primaryColorClass={checked ? "text-emerald-500" : ""}
+        primaryColorClass={checked ? "text-primary" : ""}
       />
       <span>{label}</span>
       {count !== undefined && (
@@ -117,7 +117,7 @@ export default function CheatsheetFilter({ cheatsheets }: Props) {
           <div className="flex items-center justify-between mb-4 sm:mb-5 typo-h3 text-foreground">
             Filters
             <button
-              className="typo-label text-emerald-500 bg-none border-none cursor-pointer"
+              className="typo-label text-primary bg-none border-none cursor-pointer"
               onClick={resetFilters}
             >
               Reset
@@ -126,7 +126,7 @@ export default function CheatsheetFilter({ cheatsheets }: Props) {
 
           <input
             type="text"
-            className="w-full px-3 py-2.5 border border-border rounded-[8px] bg-bg typo-body text-foreground leading-none outline-none transition-colors mb-4 sm:mb-5 placeholder:text-muted focus:border-emerald-500"
+            className="w-full px-3 py-2.5 border border-border rounded-[8px] bg-bg typo-body text-foreground leading-none outline-none transition-colors mb-4 sm:mb-5 placeholder:text-muted focus:border-primary"
             placeholder="Search cheatsheets..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -141,7 +141,7 @@ export default function CheatsheetFilter({ cheatsheets }: Props) {
                 onChange={() => handleFilterChange("category", key)}
                 label={label}
                 count={count}
-                activeClass={filters.category === key ? "text-emerald-500" : ""}
+                activeClass={filters.category === key ? "text-primary" : ""}
               />
             ))}
           </div>
@@ -153,7 +153,7 @@ export default function CheatsheetFilter({ cheatsheets }: Props) {
               {activePills.map(({ key, value, label }) => (
                 <button
                   key={`${key}-${value}`}
-                  className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 typo-badge py-1.5 px-2.5 rounded-full border-none cursor-pointer hover:bg-emerald-500/20 transition-colors"
+                  className="inline-flex items-center gap-1.5 bg-primary-dim text-primary typo-badge py-1.5 px-2.5 rounded-full border-none cursor-pointer hover:bg-primary/20 transition-colors"
                   onClick={() => handleFilterChange(key, "all")}
                 >
                   {label} <span className="text-[14px] leading-none">×</span>

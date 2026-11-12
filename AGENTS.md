@@ -22,7 +22,7 @@ npm run build-storybook
 - `src/components/` - React & Astro components
 
 ## Cheatsheets
-When asked to write a "cheatsheet" or "cheatcode", load and follow the `write-cheatsheet` skill (`.opencode/skills/write-cheatsheet/SKILL.md`) — it contains the full template, style rules, and `<ChatMessage>` usage guide.
+When asked to write a "cheatsheet" or "cheatcode", load and follow the `write-cheatsheet` skill (`.opencode/skills/write-cheatsheet/SKILL.md`). It contains the full template, style rules, and `<ChatMessage>` usage guide.
 - Use `avatarKey="blackCat"` for warnings and `avatarKey="whiteCat"` for recommendations or tips in `<ChatMessage>`.
 
 ## Sidebar Configuration
@@ -32,6 +32,11 @@ Sidebar is configured in `astro.config.mjs` via `starlightSidebarTopics` plugin.
 - Use **Thai** as the primary language for content
 - Technical terms that are commonly used can be in English (e.g., Pod, Deployment, kubectl, API, SDK)
 - Avoid using Thai for long, complex terms (e.g., "container orchestration" instead of "การจัดการ container orchestration")
+
+## Content Voice
+Write like a human author, not like an LLM summary.
+- Prefer commas, periods, colons, parentheses, or " - " over em dashes (`—`) and en dashes used as separators
+- Prefer concrete, direct Thai; skip stock AI phrasing (e.g. "ในโลกของ…", "สิ่งสำคัญคือ…", "มาดูกันว่า…", "สรุปแล้ว…", "ไม่เพียงแต่…แต่ยัง…", filler transitions, and over-symmetrical list prose)
 
 ## Architecture Notes
 - Site builds to `dist/` folder

@@ -2,18 +2,16 @@
 import PageTitle from '@astrojs/starlight/components/PageTitle.astro';
 import { tagHref } from '../data/workaround-tags';
 import { isWorkaroundSource } from '../data/workaround-source';
+import Badge from './ui/Badge.astro';
 
 const { entry } = Astro.locals.starlightRoute;
 ---
 
 <PageTitle />
 {isWorkaroundSource(entry.filePath) && (
-  <div class="workaround-tags" aria-label="Workaround tags">
-    {entry.data.tags?.map((tag) => <a href={tagHref(tag)}>{tag}</a>)}
+  <div class="flex flex-wrap gap-2 mt-3" aria-label="Workaround tags">
+    {entry.data.tags?.map((tag) => (
+      <Badge variant="primary" href={tagHref(tag)}>{tag}</Badge>
+    ))}
   </div>
 )}
-
-<style>
-  .workaround-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
-  .workaround-tags a { border-radius: 9999px; padding: 0.15rem 0.65rem; background: var(--sl-color-accent-low); color: var(--sl-color-text-accent); font-size: var(--sl-text-sm); }
-</style>

@@ -1,24 +1,43 @@
 import type { ReactNode } from 'react';
 
 interface BadgeProps {
-  variant?: 'default' | 'outline';
+  variant?: 'default' | 'primary' | 'outline' | 'overlay';
+  href?: string;
   class?: string;
   children: ReactNode;
 }
 
 export function Badge({
   variant = 'default',
+  href,
   class: className = '',
   children,
 }: BadgeProps) {
-  const baseClasses = 'inline-flex items-center gap-2 text-[12px] font-semibold rounded-full no-underline';
+  const baseClasses =
+    'inline-flex items-center gap-1.5 typo-tag rounded-full no-underline px-2 py-0.5';
 
   const variantClasses = {
-    default: 'bg-stone-100 text-stone-700 px-3 py-1',
-    outline: 'border border-stone-300 text-stone-600 px-3 py-1',
+    default: 'bg-stone-100 text-stone-700',
+    primary: 'bg-primary-dim text-primary',
+    outline: 'border border-stone-300 text-stone-600',
+    overlay: 'bg-primary/90 text-primary-foreground backdrop-blur-sm',
   };
 
-  const classes = [baseClasses, variantClasses[variant], className].filter(Boolean).join(' ');
+  const linkClasses =
+    href &&
+    'hover:underline focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2';
+
+  const classes = [baseClasses, variantClasses[variant], linkClasses, className]
+    .filter(Boolean)
+    .join(' ');
+
+  if (href) {
+    return (
+      <a href={href} className={classes}>
+        {children}
+      </a>
+    );
+  }
 
   return <span className={classes}>{children}</span>;
 }
