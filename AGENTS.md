@@ -22,7 +22,7 @@ npm run build-storybook
 - `src/components/` - React & Astro components
 
 ## Cheatsheets
-When asked to write a "cheatsheet" or "cheatcode", load and follow the `write-cheatsheet` skill (`.opencode/skills/write-cheatsheet/SKILL.md`). It contains the full template, style rules, and `<ChatMessage>` usage guide.
+When asked to write a "cheatsheet" or "cheatcode", load and follow the `write-cheatsheet` skill (`.agents/skills/write-cheatsheet/SKILL.md`). It contains the full template, style rules, and `<ChatMessage>` usage guide.
 - Use `avatarKey="blackCat"` for warnings and `avatarKey="whiteCat"` for recommendations or tips in `<ChatMessage>`.
 
 ## Sidebar Configuration
