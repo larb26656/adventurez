@@ -103,7 +103,7 @@ list of non-empty tags, plus the original publication date:
 title: วิธีแก้ปัญหาตัวอย่าง
 description: คำอธิบายสั้น ๆ ของวิธีแก้
 tags: [PostgreSQL]
-publishedAt: "2026-11-04"
+publishedAt: "2026-11-04T14:30:00"
 ---
 
 เขียนเนื้อหา MDX ได้อย่างอิสระ รวมทั้ง code block และ components
@@ -117,8 +117,9 @@ search. Tag URLs are lowercase, with runs of non-letter/digit characters
 replaced by hyphens; renaming a tag changes its URL without an alias. Distinct
 tag names that yield the same URL (or no URL) fail the build.
 
-Use a valid date in `YYYY-MM-DD` format and keep it unchanged when editing an
-existing article. Workaround metadata is checked during the build; other
+Use a valid `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm[:ss]` value and keep it unchanged
+when editing an existing article. Optional time helps order articles published
+on the same day. Workaround metadata is checked during the build; other
 documentation does not need these fields.
 
 ### Development Commands

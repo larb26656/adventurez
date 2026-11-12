@@ -1,0 +1,112 @@
+---
+title: ดึง Invite Link ของ Passbolt เมื่อเมลไม่ทำงาน
+description: ดึงลิงก์เชิญตั้งค่าบัญชี Passbolt จาก database โดยตรง เมื่อระบบส่งเมล invite ไม่ได้
+tags: [Passbolt, PostgreSQL]
+publishedAt: "2026-11-13T01:44:26"
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+ตอนสร้าง user ใหม่ใน Passbolt ระบบจะสร้าง authentication token ประเภท `register` แล้วส่งลิงก์เชิญไปทางอีเมล ให้คนนั้นเปิดลิงก์เพื่อติดตั้ง extension และตั้ง passphrase
+
+ปัญหาคือถ้า SMTP พัง เมลค้างคิว หรือโดเมนโดนบล็อก ผู้ใช้จะไม่เคยเห็นลิงก์นั้น ทั้งที่บัญชีและ token ถูกสร้างใน database แล้ว บทความนี้เป็น workaround สำหรับดึง invite link ออกมาส่งให้คนนั้นเอง เช่น ผ่านแชทภายในทีม
+
+<ChatMessage message="วิธีนี้เหมาะกับกรณีเร่งด่วนเท่านั้น ไม่ใช่ทางแก้ระยะยาว ถ้าเมลพังบ่อยควรแก้ SMTP / DNS / spam policy ให้จบ ไม่พึ่งดึงลิงก์จาก DB เป็นประจำ" avatarKey="blackCat" />
+
+## สิ่งที่ต้องมีก่อน
+
+- สิทธิ์อ่าน database ของ Passbolt (ปกติเป็น PostgreSQL)
+- รู้ base URL ของ Passbolt instance เช่น `https://passbolt.example.com`
+- ผู้ใช้เป้าหมายยังไม่ได้ setup เสร็จ และ token ยังไม่หมดอายุหรือถูกใช้ไปแล้ว
+
+## ดึง Invite Link จาก Database
+
+เชื่อมต่อเข้า database ของ Passbolt แล้วรัน query นี้
+
+```sql
+SELECT
+    u.username,
+    CONCAT(
+        '<pass-bolt-base-path>/setup/install/',
+        u.id,
+        '/',
+        at.token
+    ) AS invite_link,
+    at.created,
+    at.active
+FROM authentication_tokens at
+JOIN users u ON u.id = at.user_id
+WHERE at.type = 'register'
+  AND at.active = TRUE
+  AND u.deleted = FALSE
+ORDER BY at.created DESC;
+```
+
+แทน `<pass-bolt-base-path>` ด้วย URL จริงของ instance เช่น `https://passbolt.example.com`
+
+ผลลัพธ์จะได้ประมาณนี้
+
+| username | invite_link | created | active |
+|----------|-------------|---------|--------|
+| alice@example.com | `https://passbolt.example.com/setup/install/<user-id>/<token>` | 2026-11-13 ... | `t` |
+
+ส่งค่าในคอลัมน์ `invite_link` ให้ผู้ใช้เปิดในเบราว์เซอร์ที่มี Passbolt browser extension ติดตั้งอยู่ แล้วทำ setup ตามขั้นตอนปกติ
+
+### ตารางที่เกี่ยวข้อง
+
+| ตาราง / คอลัมน์ | ความหมาย |
+|-----------------|----------|
+| `users` | บัญชีผู้ใช้ใน Passbolt เช่น `username` (มักเป็นอีเมล), `id`, `deleted` |
+| `authentication_tokens` | token ชั่วคราวหลายประเภท เช่น register, recover, login |
+| `at.type = 'register'` | เหลือเฉพาะ token ที่ใช้ตอนเชิญตั้งค่าบัญชีใหม่ |
+| `at.active = TRUE` | เอาเฉพาะ token ที่ยังใช้ได้ ยังไม่ถูก consume หรือ revoke |
+| `u.deleted = FALSE` | ไม่เอา user ที่ถูกลบ Soft Delete ไปแล้ว |
+| `at.created` | เรียงใหม่สุดขึ้นก่อน เพื่อเจอ invite ล่าสุดง่าย ๆ |
+
+### โครงสร้างของ Invite Link
+
+Passbolt สร้างลิงก์ setup ในรูปแบบ
+
+```text
+<pass-bolt-base-path>/setup/install/<user-id>/<token>
+```
+
+- `<user-id>` คือ UUID ของ user ในตาราง `users`
+- `<token>` คือค่าใน `authentication_tokens.token` ของแถวประเภท `register`
+
+ถ้า base path ใส่ผิด ลิงก์จะเปิดไม่ขึ้นแม้ token จะถูกต้อง เช่น ใส่ `http` ทั้งที่ instance บังคับ `https` หรือลืม path prefix ถ้าติดตั้งหลัง reverse proxy
+
+### กรองเฉพาะคนที่ต้องการ
+
+ถ้ามี invite ค้างหลายคน เพิ่มเงื่อนไข `username` จะสั้นลง
+
+```sql
+SELECT
+    u.username,
+    CONCAT(
+        '<pass-bolt-base-path>/setup/install/',
+        u.id,
+        '/',
+        at.token
+    ) AS invite_link,
+    at.created,
+    at.active
+FROM authentication_tokens at
+JOIN users u ON u.id = at.user_id
+WHERE at.type = 'register'
+  AND at.active = TRUE
+  AND u.deleted = FALSE
+  AND u.username = '<user-email>'
+ORDER BY at.created DESC;
+```
+
+## ตรวจก่อนส่งลิงก์
+
+ก่อนส่งให้ผู้ใช้ เช็กสั้น ๆ ดังนี้
+
+1. `active` ต้องเป็น `TRUE` / `t` — ถ้าเป็น `FALSE` แปลว่า token ถูกใช้หรือถูกปิดไปแล้ว
+2. `created` ไม่เก่าเกินไป — token อาจหมดอายุตามการตั้งค่าของ instance
+3. ผู้ใช้ยังไม่เคย setup สำเร็จ — ถ้า setup ไปแล้ว การเปิดลิงก์เดิมจะไม่ทำงาน
+4. ส่งผ่านช่องทางที่ทีมไว้ใจได้ และอย่าแปะลิงก์ลง ticket สาธารณะหรือ chat ที่คนนอกอ่านได้
+
+<ChatMessage message="Invite link มี user id และ token อยู่ใน URL ใครได้ลิงก์นี้สามารถเริ่ม setup บัญชีนั้นได้ ถือเป็น credential ชั่วคราว ส่งเฉพาะเจ้าของบัญชีและอย่า commit ลง repo หรือ log" avatarKey="blackCat" />

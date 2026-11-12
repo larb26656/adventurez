@@ -1,0 +1,222 @@
+---
+title: ลดขนาดรูปก่อนเอามาใช้ในเว็บด้วย CLI
+description: ใช้ ImageMagick, cwebp, jpegoptim และ pngquant ย่อขนาด เปลี่ยนเป็น WebP และบีบอัดรูปก่อนใส่เว็บ
+tags: [Web, CLI, Image]
+publishedAt: "2026-11-13T01:42:54"
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+รูปจากกล้องหรือ Design Tool มักใหญ่เกินจำเป็นสำหรับเว็บ ทั้งความละเอียดและขนาดไฟล์ ถ้าใส่ตรง ๆ หน้าจะโหลดช้า โดยเฉพาะบนมือถือ
+
+บทความนี้รวบรวมคำสั่ง CLI ที่ใช้บ่อยเพื่อย่อความละเอียด เปลี่ยนเป็น WebP และบีบอัด JPEG/PNG ก่อนนำไฟล์ไปใช้ในโปรเจกต์
+
+## ติดตั้งเครื่องมือ
+
+ตัวอย่างนี้ใช้เครื่องมือที่เรียกจาก Terminal ได้โดยตรง
+
+```bash
+# macOS (Homebrew)
+brew install imagemagick webp jpegoptim pngquant
+
+# Debian / Ubuntu
+sudo apt update
+sudo apt install imagemagick webp jpegoptim pngquant
+```
+
+| เครื่องมือ | ใช้ทำอะไร |
+|------------|-----------|
+| ImageMagick (`magick`) | ย่อความละเอียด แปลง format ปรับคุณภาพ |
+| `cwebp` | แปลงเป็น WebP |
+| `jpegoptim` | บีบอัด JPEG โดยไม่ต้องเปลี่ยนชื่อไฟล์ |
+| `pngquant` | ลดขนาด PNG แบบ lossy ที่ยังดูดีบนเว็บ |
+
+ตรวจสอบว่าติดตั้งแล้ว
+
+```bash
+magick -version
+cwebp -version
+jpegoptim --version
+pngquant --version
+```
+
+<ChatMessage message="ImageMagick รุ่นใหม่ใช้คำสั่ง magick แทน convert หากเครื่องยังมีแค่ convert ให้แทน magick ด้วย convert ได้ในตัวอย่างส่วนใหญ่" avatarKey="blackCat" />
+
+## ดูข้อมูลรูปก่อนแก้
+
+ก่อนย่อหรือบีบอัด ควรดูขนาดพิกเซลและขนาดไฟล์ของต้นฉบับ
+
+```bash
+# ขนาดพิกเซล ความละเอียด และขนาดไฟล์
+magick identify -format "%f %wx%h %b\n" <input-image>
+
+# ตัวอย่างผลลัพธ์: hero.jpg 4032x3024 4.2MB
+ls -lh <input-image>
+```
+
+ค่าที่ควรวางเป้าสำหรับเว็บโดยทั่วไป
+
+- Hero / Banner เต็มความกว้าง: กว้างประมาณ `1600`–`2400` px
+- รูปเนื้อหาทั่วไป: กว้างประมาณ `800`–`1200` px
+- Thumbnail / Avatar: กว้างประมาณ `200`–`400` px
+
+ไม่จำเป็นต้องเก็บพิกเซลจากกล้องไว้ถ้าแสดงบนจอเว็บแค่นั้น
+
+## ย่อความละเอียดด้วย ImageMagick
+
+ย่อให้ความกว้างไม่เกินค่าที่กำหนด โดยคงอัตราส่วนเดิม
+
+```bash
+# ย่อให้กว้างไม่เกิน 1600px ถ้าเล็กกว่านั้นไม่ขยาย
+magick <input-image> \
+  -resize '1600x>' \
+  -strip \
+  <output-image>
+```
+
+`-strip` ลบ metadata เช่น EXIF ที่ไม่จำเป็นสำหรับเว็บ ซึ่งช่วยลดขนาดไฟล์และลดการเผยข้อมูลที่ไม่ตั้งใจ
+
+ถ้าอยากได้ JPEG พร้อมปรับคุณภาพในคำสั่งเดียว
+
+```bash
+magick <input-image> \
+  -resize '1200x>' \
+  -strip \
+  -quality 82 \
+  <output>.jpg
+```
+
+<ChatMessage message={'ค่า `-quality` ประมาณ 75–85 มักพอสำหรับเว็บ ต่ำกว่านั้นไฟล์เล็กลงชัด แต่รายละเอียดและ banding อาจเริ่มเห็น'} avatarKey="whiteCat" />
+
+### ย่อทั้งโฟลเดอร์
+
+```bash
+mkdir -p optimized
+
+# ย่อ JPG ทั้งหมดในโฟลเดอร์ปัจจุบัน
+for f in *.jpg *.jpeg *.JPG *.JPEG; do
+  [ -f "$f" ] || continue
+  magick "$f" -resize '1600x>' -strip -quality 82 "optimized/${f%.*}.jpg"
+done
+```
+
+## แปลงเป็น WebP ด้วย cwebp
+
+WebP มักได้ไฟล์เล็กลว่า JPEG/PNG ที่คุณภาพใกล้เคียงกัน เหมาะกับเว็บสมัยใหม่
+
+```bash
+# แปลงเป็น WebP คุณภาพประมาณ 80
+cwebp -q 80 <input-image> -o <output>.webp
+```
+
+ถ้าต้องการย่อความกว้างพร้อมแปลง
+
+```bash
+# ย่อให้กว้างไม่เกิน 1600px แล้วแปลงเป็น WebP
+cwebp -q 80 -resize 1600 0 <input-image> -o <output>.webp
+```
+
+ค่า `0` ฝั่งความสูงให้ `cwebp` คงอัตราส่วนเอง
+
+แปลงทั้งโฟลเดอร์
+
+```bash
+mkdir -p webp
+
+for f in *.jpg *.jpeg *.png *.JPG *.JPEG *.PNG; do
+  [ -f "$f" ] || continue
+  cwebp -q 80 -resize 1600 0 "$f" -o "webp/${f%.*}.webp"
+done
+```
+
+<ChatMessage message={'ถ้าต้องรองรับเบราว์เซอร์เก่า ให้เก็บ JPEG/PNG เป็น fallback และเสิร์ฟ WebP ผ่าน `<picture>` หรือเครื่องมือ build ที่เลือก format ตาม browser'} avatarKey="blackCat" />
+
+## บีบอัด JPEG ด้วย jpegoptim
+
+ใช้เมื่ออยากเก็บนามสกุล `.jpg` เดิม แต่ลดขนาดไฟล์
+
+```bash
+# บีบอัดแบบไม่เกินคุณภาพ 82 และตัด metadata
+jpegoptim --max=82 --strip-all <input>.jpg
+
+# บีบอัดทั้งโฟลเดอร์ โดยเขียนทับไฟล์เดิม
+jpegoptim --max=82 --strip-all *.jpg
+```
+
+ถ้าไม่อยากเขียนทับต้นฉบับ
+
+```bash
+mkdir -p optimized
+jpegoptim --max=82 --strip-all --dest=optimized <input>.jpg
+```
+
+## บีบอัด PNG ด้วย pngquant
+
+PNG จาก Screenshot หรือ Export มักใหญ่เกิน ใช้ `pngquant` ลดสีแบบ lossy ได้ผลดี
+
+```bash
+# สร้างไฟล์ใหม่ลงท้าย -fs8.png
+pngquant --quality=65-80 <input>.png
+
+# กำหนดชื่อไฟล์ปลายทางเอง
+pngquant --quality=65-80 --output <output>.png <input>.png
+```
+
+บีบอัดทั้งโฟลเดอร์โดยไม่เขียนทับต้นฉบับ
+
+```bash
+mkdir -p optimized
+
+for f in *.png; do
+  [ -f "$f" ] || continue
+  pngquant --quality=65-80 --output "optimized/$f" "$f"
+done
+```
+
+ถ้าต้องการ PNG แบบ lossless จริง ๆ และยอมได้ไฟล์ใหญ่กว่า ใช้ ImageMagick หรือเครื่องมืออย่าง `optipng` แทน แต่สำหรับเว็บทั่วไป `pngquant` + WebP มักคุ้มกว่า
+
+## Flow ที่แนะนำก่อนใส่เว็บ
+
+ลำดับที่ใช้บ่อยและเข้าใจง่าย
+
+1. เก็บต้นฉบับไว้ที่อื่น อย่าทำงานทับไฟล์ต้นทาง
+2. ย่อความละเอียดให้พอดีกับขนาดที่แสดงจริง
+3. เลือก format ตามประเภทเนื้อหา
+4. เช็กขนาดไฟล์หลังแปลง แล้วค่อยใส่ใน repo หรือ CDN
+
+| ประเภท | แนวทาง |
+|--------|--------|
+| รูปถ่าย / Hero | ย่อพิกเซล → WebP (`cwebp`) หรือ JPEG (`jpegoptim`) |
+| Screenshot / UI | ย่อพิกเซล → WebP หรือ PNG (`pngquant`) |
+| ไอคอน / กราฟิกเรียบ | พิจารณา SVG ก่อน ถ้าเป็น raster ค่อยใช้ PNG/WebP |
+
+ตัวอย่างจบในคำสั่งเดียวสำหรับรูปถ่ายที่จะขึ้น Hero
+
+```bash
+# จากต้นฉบับกล้อง → WebP กว้างไม่เกิน 1920px
+cwebp -q 80 -resize 1920 0 <input-photo> -o hero.webp
+
+ls -lh hero.webp
+```
+
+## ข้อควรระวัง
+
+- อย่า commit ต้นฉบับความละเอียดสูงเข้า repo ถ้าไม่ได้ใช้จริง เก็บต้นฉบับนอก repo หรือใช้ Git LFS ตามนโยบายทีม
+- ย่อตามขนาดแสดงผลจริง ไม่ใช่ย่อเล็กสุดเสมอไป โดยเฉพาะจอ Retina ที่อาจต้องการความกว้างประมาณ 1.5–2 เท่าของ CSS width
+- Lossy compression ทำให้รายละเอียดหายไป ถ้าเป็นรูปสินค้าหรือ Artwork ที่ต้องซูม ควรเก็บต้นฉบับและเวอร์ชันคุณภาพสูงแยกไว้
+- หลังแปลงแล้วเปิดดูด้วยตา อย่าวัดแค่ขนาดไฟล์
+
+<ChatMessage message="เริ่มจากย่อความละเอียดก่อนค่อยบีบอัด มักได้ไฟล์เล็กลงชัดกว่าการบีบอัดรูป 4000px โดยไม่ย่อพิกเซล" avatarKey="whiteCat" />
+
+## สรุป
+
+ลดขนาดรูปสำหรับเว็บด้วย CLI ทำได้ครบใน Terminal โดยไม่ต้องเปิด GUI
+
+| เป้าหมาย | คำสั่งหลัก |
+|----------|------------|
+| ย่อความละเอียด | `magick ... -resize '1600x>' -strip` |
+| แปลงเป็น WebP | `cwebp -q 80 -resize 1600 0` |
+| บีบอัด JPEG | `jpegoptim --max=82 --strip-all` |
+| บีบอัด PNG | `pngquant --quality=65-80` |
+
+สำหรับงานเว็บทั่วไป Flow ที่ใช้บ่อยคือย่อพิกเซลให้พอดี → แปลงเป็น WebP → เก็บ JPEG/PNG เป็น fallback ถ้ายังต้องรองรับเบราว์เซอร์เก่า

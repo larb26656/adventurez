@@ -8,10 +8,34 @@ const workaroundSchema = z.object({
 	description: z.string().trim().min(1),
 	tags: z.array(z.string().trim().min(1)).min(1),
 	publishedAt: z.string().refine((value) => {
-		if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-		const date = new Date(`${value}T00:00:00Z`);
-		return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-	}, 'must be a valid publication date (YYYY-MM-DD)'),
+		const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/;
+		const dateTime = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/;
+		const dateMatch = value.match(dateOnly);
+		if (dateMatch) {
+			const date = new Date(`${value}T00:00:00Z`);
+			return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+		}
+		const dateTimeMatch = value.match(dateTime);
+		if (!dateTimeMatch) return false;
+		const [, year, month, day, hour, minute, second = '00'] = dateTimeMatch;
+		const y = Number(year);
+		const mo = Number(month);
+		const d = Number(day);
+		const h = Number(hour);
+		const mi = Number(minute);
+		const s = Number(second);
+		if (h > 23 || mi > 59 || s > 59) return false;
+		const date = new Date(Date.UTC(y, mo - 1, d, h, mi, s));
+		return (
+			!Number.isNaN(date.getTime()) &&
+			date.getUTCFullYear() === y &&
+			date.getUTCMonth() === mo - 1 &&
+			date.getUTCDate() === d &&
+			date.getUTCHours() === h &&
+			date.getUTCMinutes() === mi &&
+			date.getUTCSeconds() === s
+		);
+	}, 'must be a valid publication date (YYYY-MM-DD or YYYY-MM-DDTHH:mm[:ss])'),
 });
 
 const starlightLoader = docsLoader();

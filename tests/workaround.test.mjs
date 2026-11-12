@@ -42,6 +42,7 @@ test('build rejects incomplete and invalid workaround metadata', async () => {
     ['title: Fixture\ndescription: Example\ntags: [" "]\npublishedAt: "2026-11-04"', 'tags'],
     ['title: Fixture\ndescription: Example\ntags: [PostgreSQL]', 'publishedAt'],
     ['title: Fixture\ndescription: Example\ntags: [PostgreSQL]\npublishedAt: "2026-02-30"', 'publishedAt'],
+    ['title: Fixture\ndescription: Example\ntags: [PostgreSQL]\npublishedAt: "2026-11-04T25:00:00"', 'publishedAt'],
     ['title: Fixture\ntags: [PostgreSQL]\npublishedAt: "2026-11-04"', 'description'],
     ['description: Example\ntags: [PostgreSQL]\npublishedAt: "2026-11-04"', 'title'],
     ['title: Fixture\ndescription: Example\nslug: elsewhere\npublishedAt: "2026-11-04"', 'tags'],
