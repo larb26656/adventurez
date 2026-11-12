@@ -8,10 +8,10 @@ import ChatMessage from '../../../components/ChatMessage.astro';
 [Helm](https://helm.sh/) คือ package manager สำหรับ Kubernetes ช่วยรวม Kubernetes manifests ที่เกี่ยวข้องเป็น **Chart** และติดตั้งเป็น **Release** ได้ รองรับการกำหนดค่าแยกตาม environment, upgrade และ rollback application ได้ง่ายขึ้น
 
 ## จุดเด่นของ Helm
-- **Chart** — แพ็กเกจที่รวม templates, ค่าเริ่มต้น และ metadata ของ application
-- **Release** — instance ของ Chart ที่ติดตั้งอยู่ใน Kubernetes cluster
-- **Values** — ค่าที่ใช้ปรับแต่ง Chart โดยไม่ต้องแก้ template
-- **Upgrade และ rollback** — เปลี่ยน version หรือย้อนกลับไป revision ก่อนหน้าได้
+- **Chart** - แพ็กเกจที่รวม templates, ค่าเริ่มต้น และ metadata ของ application
+- **Release** - instance ของ Chart ที่ติดตั้งอยู่ใน Kubernetes cluster
+- **Values** - ค่าที่ใช้ปรับแต่ง Chart โดยไม่ต้องแก้ template
+- **Upgrade และ rollback** - เปลี่ยน version หรือย้อนกลับไป revision ก่อนหน้าได้
 
 <ChatMessage message="Chart คือ package ส่วน Release คือ instance ที่ถูกติดตั้งจริงใน cluster เดียวกันจึงติดตั้ง Chart เดิมหลายครั้งด้วยชื่อ Release ต่างกันได้" avatarKey="blackCat" />
 
@@ -137,12 +137,12 @@ helm lint my-app
 
 โครงสร้างหลักของ Chart มีหน้าที่ดังนี้:
 
-- `Chart.yaml` — metadata เช่น ชื่อและ version ของ Chart
-- `values.yaml` — ค่า default ที่ templates นำไปใช้
-- `templates/` — Kubernetes manifests ที่เขียนด้วย Go template
-- `templates/_helpers.tpl` — named templates และ helper สำหรับใช้ซ้ำ
-- `charts/` — dependency ของ Chart อื่น
-- `crds/` — CustomResourceDefinition ที่ต้องติดตั้งร่วมกับ Chart
+- `Chart.yaml` - metadata เช่น ชื่อและ version ของ Chart
+- `values.yaml` - ค่า default ที่ templates นำไปใช้
+- `templates/` - Kubernetes manifests ที่เขียนด้วย Go template
+- `templates/_helpers.tpl` - named templates และ helper สำหรับใช้ซ้ำ
+- `charts/` - dependency ของ Chart อื่น
+- `crds/` - CustomResourceDefinition ที่ต้องติดตั้งร่วมกับ Chart
 
 ## Values และ Templates
 

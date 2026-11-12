@@ -10,10 +10,10 @@ Cloudflare Tunnel (cloudflared) สร้างการเชื่อมต่
 ได้โดยตรงโดยไม่ต้องเปิดพอร์ตบนไฟร์วอลล์
 
 ## องค์ประกอบหลัก
-- cloudflared (client) — ตัวโปรแกรมที่รันบนเครื่องของคุณ สร้างการเชื่อมต่อออกไปยัง Cloudflare และอ่าน config.yml / credentials เพื่อกำหนด ingress rules
-- Cloudflare Edge — จุดรับทราฟฟิกจากอินเทอร์เน็ต (HTTPS) และส่งต่อผ่าน tunnel ไปยัง client
-- Tunnel Credentials — ไฟล์ JSON ที่ได้จาก cloudflared tunnel create หรือ cloudflared login เก็บไว้บนเครื่อง (~/.cloudflared หรือโฟลเดอร์ที่กำหนด)
-- Ingress rules / DNS route — นิยามว่า hostname ไหนจะถูกแมปไปที่ service ไหน (เช่น myapp.example.com → http://localhost:3000) และสามารถ map DNS ด้วย cloudflared tunnel route dns ได้
+- cloudflared (client) - ตัวโปรแกรมที่รันบนเครื่องของคุณ สร้างการเชื่อมต่อออกไปยัง Cloudflare และอ่าน config.yml / credentials เพื่อกำหนด ingress rules
+- Cloudflare Edge - จุดรับทราฟฟิกจากอินเทอร์เน็ต (HTTPS) และส่งต่อผ่าน tunnel ไปยัง client
+- Tunnel Credentials - ไฟล์ JSON ที่ได้จาก cloudflared tunnel create หรือ cloudflared login เก็บไว้บนเครื่อง (~/.cloudflared หรือโฟลเดอร์ที่กำหนด)
+- Ingress rules / DNS route - นิยามว่า hostname ไหนจะถูกแมปไปที่ service ไหน (เช่น myapp.example.com → http://localhost:3000) และสามารถ map DNS ด้วย cloudflared tunnel route dns ได้
 
 ## Install
 https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads

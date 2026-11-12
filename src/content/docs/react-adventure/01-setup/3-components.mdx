@@ -1,6 +1,6 @@
 ---
 title: "Components"
-description: เรียนรู้ Component พื้นฐาน — function ที่ return UI
+description: เรียนรู้ Component พื้นฐาน - function ที่ return UI
 sidebar:
   order: 2
   parent: 01-setup
@@ -9,7 +9,7 @@ import ChatMessage from "@/components/ChatMessage.astro"
 
 ## Component คืออะไร?
 
-Component คือ **function ที่ return JSX** — ลองนึกภาพมันเหมือนกล่องที่:
+Component คือ **function ที่ return JSX** - ลองนึกภาพมันเหมือนกล่องที่:
 - รับ **Input** → ข้อมูลที่ส่งเข้ามา (เรียกว่า **props**)
 - ประมวลผล → ทำอะไรสักอย่าง
 - ส่ง **Output** → JSX (UI ที่จะแสดงบนหน้าจอ)
@@ -64,7 +64,7 @@ function Mochi({ flavor }) {
 
 ### ทำไมต้องใช้ Component?
 
-ลองนึกภาพถ้าคุณต้องเขียนปุ่ม 10 ปุ่มที่หน้าตาเหมือนกัน — ถ้าเขียนทุกอย่างในไฟล์เดียว มันจะยาวมาก แต่ถ้าสร้าง component ชื่อ `Button` ขึ้นมา คุณก็แค่เรียก `<Button />` 10 ครั้ง เรียกว่า **reusability** นั่นเอง
+ลองนึกภาพถ้าคุณต้องเขียนปุ่ม 10 ปุ่มที่หน้าตาเหมือนกัน - ถ้าเขียนทุกอย่างในไฟล์เดียว มันจะยาวมาก แต่ถ้าสร้าง component ชื่อ `Button` ขึ้นมา คุณก็แค่เรียก `<Button />` 10 ครั้ง เรียกว่า **reusability** นั่นเอง
 
 เหตุการณ์สมมุติของคนที่ไม่ใช้ Component
 <ChatMessage message="เปลี่ยนสีปุ่มใหม่หมดเลย!" avatarKey="me" isFromMe/>
@@ -120,7 +120,7 @@ function AlsoValid() {
 }
 
 function Invalid() {
-  // ❌ ไม่ return อะไรเลย — Error!
+  // ❌ ไม่ return อะไรเลย - Error!
 }
 ```
 
@@ -129,7 +129,7 @@ function Invalid() {
 JSX ที่ return ต้องมี **element เดียว** เป็น parent:
 
 ```tsx
-// ❌ ผิด — มี 2 element หลัก
+// ❌ ผิด - มี 2 element หลัก
 function Wrong() {
   return (
     <h1>Title</h1>
@@ -137,7 +137,7 @@ function Wrong() {
   )
 }
 
-// ✅ ถูก — wrap ด้วย div
+// ✅ ถูก - wrap ด้วย div
 function Correct() {
   return (
     <div>
@@ -150,7 +150,7 @@ function Correct() {
 
 ---
 
-## Fragment — ไม่ต้อง Wrap ด้วย div
+## Fragment - ไม่ต้อง Wrap ด้วย div
 
 ถ้าไม่อยากใช้ `<div>` เป็น parent (เพราะอาจทำให้โครงสร้าง HTML มี div ล้นมาก) สามารถใช้ **Fragment** แทนได้:
 
@@ -165,7 +165,7 @@ function Article() {
 }
 ```
 
-`<>` เป็น shorthand ของ `<React.Fragment>` — มันจะไม่สร้าง element จริง ๆ ใน DOM (ช่วยลด DOM nodes ที่ไม่จำเป็น)
+`<>` เป็น shorthand ของ `<React.Fragment>` - มันจะไม่สร้าง element จริง ๆ ใน DOM (ช่วยลด DOM nodes ที่ไม่จำเป็น)
 
 ```tsx
 // เขียนแบบเต็มก็ได้
@@ -245,7 +245,7 @@ function App() {
 export default App;
 ```
 
-จะเห็นว่าใน `App` เราเรียก `<Header />`, `<Content />`, `<Footer />` ได้เลย — นี่คือพลังของ component: **เขียนครั้งเดียว ใช้ได้หลายที่**
+จะเห็นว่าใน `App` เราเรียก `<Header />`, `<Content />`, `<Footer />` ได้เลย - นี่คือพลังของ component: **เขียนครั้งเดียว ใช้ได้หลายที่**
 
 <ChatMessage message="ลองสร้าง component ของตัวเองขึ้นมาดูสิ" avatarKey="whiteCat" />
 

@@ -1,12 +1,12 @@
 ---
-title: "useState — เก็บ State ใน Component"
+title: "useState - เก็บ State ใน Component"
 description: เรียนรู้ useState ใน React พร้อมตัวอย่าง Counter และ Form
 ---
 import ChatMessage from "@/components/ChatMessage.astro"
 
-## useState — ยังจำค่าได้
+## useState - ยังจำค่าได้
 
-`useState` ใช้ **จำ** ค่าบางอย่างไว้ใน component — ค่านี้จะคงอยู่ตลอดการ render
+`useState` ใช้ **จำ** ค่าบางอย่างไว้ใน component - ค่านี้จะคงอยู่ตลอดการ render
 
 ถ้าไม่มี useState ทุกครั้งที่ re-render ค่าจะ reset กลับไปเหมือนเดิม!
 
@@ -16,9 +16,9 @@ import ChatMessage from "@/components/ChatMessage.astro"
 const [state, setState] = useState(initialValue)
 ```
 
-- **state** — ค่าปัจจุบัน (read-only)
-- **setState** — function สำหรับเปลี่ยนค่า
-- **initialValue** — ค่าเริ่มต้น
+- **state** - ค่าปัจจุบัน (read-only)
+- **setState** - function สำหรับเปลี่ยนค่า
+- **initialValue** - ค่าเริ่มต้น
 
 ```mermaid
 flowchart LR
@@ -59,9 +59,9 @@ function Counter() {
 
 ### อธิบาย
 
-1. `useState(0)` — เริ่มต้น count = 0
-2. `{count}` — แสดงค่าใน UI
-3. `setCount(count + 1)` — เมื่อคลิก เปลี่ยนค่าเป็น count + 1
+1. `useState(0)` - เริ่มต้น count = 0
+2. `{count}` - แสดงค่าใน UI
+3. `setCount(count + 1)` - เมื่อคลิก เปลี่ยนค่าเป็น count + 1
 4. React จะ **re-render** และแสดงค่าใหม่
 
 <ChatMessage message="สังเกตว่าเราใช้ setCount(count + 1) ไม่ใช่ count++ เพราะ state เปลี่ยนค่าไม่ได้โดยตรง!" avatarKey="whiteCat" />
@@ -91,7 +91,7 @@ function SimpleForm() {
 
 ---
 
-## การอัพเดท State — สำคัญ!
+## การอัพเดท State - สำคัญ!
 
 ### ❌ ไม่ถูกต้อง
 
@@ -165,7 +165,7 @@ function UserProfile() {
 
 ## 🎯 สรุป
 
-- **useState(initial)** — สร้าง state ที่ React จะจำ
-- **setState(newValue)** — อัพเดทค่า และ trigger re-render
-- **setState(prev => ...)** — ใช้ function form เมื่ออัพเดทค่าขึ้นกับค่าเดิม
-- **Spread operator (...)** — เมื่ออัพเดท object state
+- **useState(initial)** - สร้าง state ที่ React จะจำ
+- **setState(newValue)** - อัพเดทค่า และ trigger re-render
+- **setState(prev => ...)** - ใช้ function form เมื่ออัพเดทค่าขึ้นกับค่าเดิม
+- **Spread operator (...)** - เมื่ออัพเดท object state

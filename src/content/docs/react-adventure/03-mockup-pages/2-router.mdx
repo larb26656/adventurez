@@ -1,6 +1,6 @@
 ---
 title: "Router"
-description: File-based routing — ชื่อไฟล์คือ path ของหน้าเว็บ
+description: File-based routing - ชื่อไฟล์คือ path ของหน้าเว็บ
 ---
 
 ความจริงคือถ้าเราเขียน React แบบเดิม ๆ เรามักจะกองทุกอย่างไว้ที่ App.tsx แล้วใช้ useState เพื่อสลับหน้าไปมา ซึ่งมัน Scale ยากมาก และเนื่องจาก React เป็น Library ไม่ใช่ Framework (อย่าง Next.js) 
@@ -97,7 +97,7 @@ src/
 ## การตั้งค่า Route พื้นฐาน
 
 ```tsx
-// src/routes/__root.tsx — Root layout ของทุกหน้า
+// src/routes/__root.tsx - Root layout ของทุกหน้า
 import { createRootRoute, Link, Outlet } from "@tanstack/react-router"
 
 export const Route = createRootRoute({
@@ -128,7 +128,7 @@ export const Route = createRootRoute({
 ```
 
 ```tsx
-// src/routes/index.tsx — หน้าแรก
+// src/routes/index.tsx - หน้าแรก
 import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/")({

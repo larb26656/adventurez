@@ -81,7 +81,7 @@ argocd app set one-id-service --sync-policy automated --self-heal
 k9s -n production
 ```
 
-จากนั้นพิมพ์ `:deploy` เลือก Deployment ที่ต้องการ กด `s` เพื่อ scale ใส่ `0` แล้ว confirm — ต้องระวัง selfHeal เหมือนกัน
+จากนั้นพิมพ์ `:deploy` เลือก Deployment ที่ต้องการ กด `s` เพื่อ scale ใส่ `0` แล้ว confirm - ต้องระวัง selfHeal เหมือนกัน
 
 ### สิ่งที่ไม่ควรทำ
 
@@ -108,4 +108,4 @@ kubectl rollout restart deployment/one-id-service -n production
 | Stop ผ่าน k9s | Scale deployment เป็น `0` |
 | Stop ถาวร | ลบ Deployment จาก Git แล้ว sync |
 
-<ChatMessage message="สำหรับ production ควรกำหนดแนวทาง maintenance ไว้เลย: Planned Maintenance ทำผ่าน GitOps, Emergency Operation ใช้ kubectl/k9s แล้ว reconcile กลับเข้า Git, ส่วน restart ปกติใช้ rolling restart — เพราะในระยะยาวเราไม่ควรต้องปิด auto-sync ทุกครั้งที่ maintenance" avatarKey="whiteCat" />
+<ChatMessage message="สำหรับ production ควรกำหนดแนวทาง maintenance ไว้เลย: Planned Maintenance ทำผ่าน GitOps, Emergency Operation ใช้ kubectl/k9s แล้ว reconcile กลับเข้า Git, ส่วน restart ปกติใช้ rolling restart - เพราะในระยะยาวเราไม่ควรต้องปิด auto-sync ทุกครั้งที่ maintenance" avatarKey="whiteCat" />

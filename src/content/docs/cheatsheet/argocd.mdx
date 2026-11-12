@@ -9,10 +9,10 @@ import ChatMessage from '../../../components/ChatMessage.astro';
 
 ## จุดเด่นของ Argo CD
 
-- **GitOps** — Git เป็น source of truth สำหรับ Kubernetes manifests และ deployment history
-- **Continuous reconciliation** — ตรวจจับ configuration drift และ sync กลับสู่ desired state ได้อัตโนมัติ
-- **Multi-cluster** — จัดการ application บนหลาย Kubernetes clusters จาก Argo CD instance เดียว
-- **Access control** — กำหนดสิทธิ์ด้วย Project, RBAC และ SSO/OIDC
+- **GitOps** - Git เป็น source of truth สำหรับ Kubernetes manifests และ deployment history
+- **Continuous reconciliation** - ตรวจจับ configuration drift และ sync กลับสู่ desired state ได้อัตโนมัติ
+- **Multi-cluster** - จัดการ application บนหลาย Kubernetes clusters จาก Argo CD instance เดียว
+- **Access control** - กำหนดสิทธิ์ด้วย Project, RBAC และ SSO/OIDC
 
 ## Concepts
 
@@ -26,15 +26,15 @@ Project ใช้กำหนดขอบเขตของ Application เช�
 
 ### Sync status
 
-- **Synced** — resources ใน cluster ตรงกับ manifests ใน Git
-- **OutOfSync** — resources ต่างจาก desired state หรือยังไม่เคย deploy
-- **Unknown** — Argo CD อ่านสถานะ resource ไม่ได้
+- **Synced** - resources ใน cluster ตรงกับ manifests ใน Git
+- **OutOfSync** - resources ต่างจาก desired state หรือยังไม่เคย deploy
+- **Unknown** - Argo CD อ่านสถานะ resource ไม่ได้
 
 ### Health status
 
-- **Healthy** — application พร้อมใช้งาน
-- **Progressing** — กำลัง rollout หรือรอ resource พร้อม
-- **Degraded** — resource ทำงานผิดปกติ เช่น Deployment มี replica ไม่พร้อม
+- **Healthy** - application พร้อมใช้งาน
+- **Progressing** - กำลัง rollout หรือรอ resource พร้อม
+- **Degraded** - resource ทำงานผิดปกติ เช่น Deployment มี replica ไม่พร้อม
 
 <ChatMessage message="Argo CD ไม่ได้สร้าง pipeline เอง แต่ทำหน้าที่ deploy state ที่อยู่ใน Git ไปยัง Kubernetes. CI สามารถ build image แล้ว commit tag ใหม่กลับเข้า Git เพื่อให้ Argo CD sync ต่อได้" avatarKey="whiteCat" />
 

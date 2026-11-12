@@ -1,6 +1,6 @@
 ---
 title: "React Hooks เบื้องต้น - เตรียมพร้อมสำหรับ Dynamic UI"
-description: เรียน useState, useEffect, useRef, useMemo — เตรียมพร้อมสำหรับ Part ถัดไป
+description: เรียน useState, useEffect, useRef, useMemo - เตรียมพร้อมสำหรับ Part ถัดไป
 ---
 import ChatMessage from "@/components/ChatMessage.astro"
 
@@ -8,9 +8,9 @@ import ChatMessage from "@/components/ChatMessage.astro"
 
 ---
 
-## useState — เก็บข้อมูลที่เปลี่ยนแปลง
+## useState - เก็บข้อมูลที่เปลี่ยนแปลง
 
-`useState` ใช้เก็บ **state** ของ component — ข้อมูลที่เปลี่ยนได้เมื่อมี interaction
+`useState` ใช้เก็บ **state** ของ component - ข้อมูลที่เปลี่ยนได้เมื่อมี interaction
 
 ```tsx
 import { useState } from "react"
@@ -58,9 +58,9 @@ function Cart() {
 
 ---
 
-## useEffect — ทำงานเมื่อ Component โหลด/อัปเดต
+## useEffect - ทำงานเมื่อ Component โหลด/อัปเดต
 
-`useEffect` ใช้ทำ **side effects** — งานที่ต้องทำนอกเหนือจาก render เช่น fetch data, subscribe, set timeout
+`useEffect` ใช้ทำ **side effects** - งานที่ต้องทำนอกเหนือจาก render เช่น fetch data, subscribe, set timeout
 
 ```tsx
 import { useEffect, useState } from "react"
@@ -109,7 +109,7 @@ function Search() {
 
 ---
 
-## useRef — อ้างอิง Element ใน DOM
+## useRef - อ้างอิง Element ใน DOM
 
 `useRef` ใช้เก็บ **reference** ไปยัง element ใน DOM หรือค่าที่ไม่ต้องการให้ re-render
 
@@ -152,7 +152,7 @@ function Counter() {
 
 ---
 
-## useMemo — แคชค่าที่คำนวณแล้ว
+## useMemo - แคชค่าที่คำนวณแล้ว
 
 `useMemo` ใช้ **cache** ค่าที่คำนวณ เพื่อไม่ต้องคำนวณใหม่ทุกครั้งที่ render
 
@@ -179,9 +179,9 @@ function ProductFilter() {
 
 ---
 
-## สรุป Part 3 — Mockup Pages
+## สรุป Part 3 - Mockup Pages
 
-> **ต่อไป:** เราจะเปลี่ยน static UI ให้เป็น **dynamic** ด้วย state และ props — ใน Part 4: Props & State
+> **ต่อไป:** เราจะเปลี่ยน static UI ให้เป็น **dynamic** ด้วย state และ props - ใน Part 4: Props & State
 
 import { Quiz } from "@/components/quiz"
 

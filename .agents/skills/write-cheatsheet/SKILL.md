@@ -11,7 +11,7 @@ Create cheatsheet pages under `src/content/docs/cheatsheet/` in the Adventurez (
 
 - Path: `src/content/docs/cheatsheet/<tool-name>.mdx`
 - Naming: lowercase, kebab-case for multi-word tools (e.g. `oauth2-proxy.mdx`, `cloudflare-tunnel.mdx`)
-- Always `.mdx`, never `.md` — the page uses `<ChatMessage>` which requires an MDX import
+- Always `.mdx`, never `.md` - the page uses `<ChatMessage>` which requires an MDX import
 - One tool per file; the sidebar auto-discovers files in this directory (no config change needed)
 
 ## Page Template
@@ -27,8 +27,8 @@ import ChatMessage from '../../../components/ChatMessage.astro';
 [Tool](https://official-site) คือ <1-2 ประโยคภาษาไทยอธิบายว่า tool นี้คืออะไร> รองรับ <feature หลักๆ>
 
 ## จุดเด่นของ <Tool>
-- **Feature 1** — คำอธิบายสั้น
-- **Feature 2** — คำอธิบายสั้น
+- **Feature 1** - คำอธิบายสั้น
+- **Feature 2** - คำอธิบายสั้น
 
 ## <Main Section>
 
@@ -47,7 +47,7 @@ the-command
 - [GitHub](https://...)
 ````
 
-Sections are optional and reordered freely per tool — see reference files below for real shapes.
+Sections are optional and reordered freely per tool - see reference files below for real shapes.
 
 ## Cheatsheet vs. Workaround Sections
 
@@ -66,7 +66,7 @@ Sections are optional and reordered freely per tool — see reference files belo
 ## Style Rules
 
 - **Language**: Thai is primary. Keep commonly-used technical terms in English (Pod, Deployment, kubectl, API, SDK, bucket, policy). Avoid translating long complex terms (use "container orchestration", not "การจัดการ container orchestration").
-- **Headings**: `##` for main sections, `###` for subsections. Thai or English both fine — match what existing files do for the same concept.
+- **Headings**: `##` for main sections, `###` for subsections. Thai or English both fine - match what existing files do for the same concept.
 - **Code blocks**: always declare a language. ```bash for commands, ```yaml for docker-compose, ```json for policies/config. Every command gets a `# คอมเมนต์ไทย` line above or beside it.
 - **Env vars**: render as a table `| Variable | Description | Example |` with the variable name in backticks.
 - **Emphasis**: **bold** for important terms, `code` for command/flag names.
@@ -80,15 +80,15 @@ The `<ChatMessage>` component renders a chat bubble with an avatar. Available av
 
 Three patterns:
 
-1. **blackCat tip** — explanatory note from the cat assistant:
+1. **blackCat tip** - explanatory note from the cat assistant:
    ```mdx
    <ChatMessage message="ถ้าใช้ GRIST_SINGLE_ORG จะไม่ต้องเลือก org ตอนเข้าใช้" avatarKey="blackCat" />
    ```
-2. **me asks** — question from the author:
+2. **me asks** - question from the author:
    ```mdx
    <ChatMessage message="ก่อนจะเริ่มใช้งาน Minio client จะต้องสร้าง alias ก่อน" avatarKey="me" isFromMe="true" />
    ```
-3. **Dialogue** — consecutive bubbles, me asks then blackCat answers (one per line):
+3. **Dialogue** - consecutive bubbles, me asks then blackCat answers (one per line):
    ```mdx
    <ChatMessage message="ถ้าอยากให้ User ใน Group มีสิทธิ์เพิ่ม → แค่เพิ่ม Policy ให้ Group ใช่ไหม?" avatarKey="me" isFromMe="true" />
    <ChatMessage message="ใช่แล้ว~" avatarKey="blackCat" />
@@ -100,10 +100,10 @@ If the message contains backticks, use the JSX expression form: `message={'ข�
 
 Read these before writing if you need a concrete shape:
 
-- `src/content/docs/cheatsheet/grist.mdx` — env var tables, docker-compose variants, OAuth2 proxy setup
-- `src/content/docs/cheatsheet/minio.mdx` — concept sections, dialogue pattern
-- `src/content/docs/cheatsheet/fail2ban.mdx` — multi-line ChatMessage props
-- Do NOT copy `docker.md` / `k8s.md` — legacy `.md` files with a missing/broken ChatMessage import
+- `src/content/docs/cheatsheet/grist.mdx` - env var tables, docker-compose variants, OAuth2 proxy setup
+- `src/content/docs/cheatsheet/minio.mdx` - concept sections, dialogue pattern
+- `src/content/docs/cheatsheet/fail2ban.mdx` - multi-line ChatMessage props
+- Do NOT copy `docker.md` / `k8s.md` - legacy `.md` files with a missing/broken ChatMessage import
 
 ## Checklist Before Finishing
 
@@ -115,4 +115,4 @@ Read these before writing if you need a concrete shape:
 6. User-supplied command parameters use descriptive `<placeholder>` syntax and the page explains they must be replaced before execution
 7. Keep general cheatsheet commands grouped by topic; put end-to-end workarounds in a separate, ordered step-by-step section
 8. Page ends with `## Useful Links`
-9. Run `npm run build` — it must pass
+9. Run `npm run build` - it must pass

@@ -90,11 +90,11 @@ spec:
 
 โครงสร้าง `spec` ของ Deployment มีส่วนสำคัญดังนี้:
 
-- `spec.replicas` และ `spec.selector` — กำหนดจำนวน replicas และบอกว่า Deployment จะดูแล Pod ไหน
-- `spec.template` — template สำหรับสร้าง Pod ใหม่ โดย label ต้องตรงกับ `selector.matchLabels`
-- `spec.template.spec` — กำหนดรายละเอียดของ Pod เช่น `containers`, `volumes` และ `serviceAccountName`
-- `spec.template.spec.containers[].env` — กำหนด environment variables ให้ container แต่ละตัว
-- `spec.template.spec.containers[].resources` — กำหนด resource ที่ container ขอใช้และใช้ได้สูงสุด
+- `spec.replicas` และ `spec.selector` - กำหนดจำนวน replicas และบอกว่า Deployment จะดูแล Pod ไหน
+- `spec.template` - template สำหรับสร้าง Pod ใหม่ โดย label ต้องตรงกับ `selector.matchLabels`
+- `spec.template.spec` - กำหนดรายละเอียดของ Pod เช่น `containers`, `volumes` และ `serviceAccountName`
+- `spec.template.spec.containers[].env` - กำหนด environment variables ให้ container แต่ละตัว
+- `spec.template.spec.containers[].resources` - กำหนด resource ที่ container ขอใช้และใช้ได้สูงสุด
 
 `requests` ใช้ให้ Kubernetes เลือก Node ที่มี resource เพียงพอ ส่วน `limits` ใช้จำกัดการใช้งานสูงสุดของ container หากใช้ memory เกิน limit อาจถูก OOMKilled และถ้าใช้ CPU เกิน limit จะถูก throttle
 
@@ -185,7 +185,7 @@ kubectl port-forward svc/nginx 8080:80
 kubectl delete -f service.yaml
 ```
 
-**NodePort** — เปิดผ่าน port ของ Node (ช่วง 30000-32767) เหมาะกับ cluster ที่ยังไม่มี LoadBalancer
+**NodePort** - เปิดผ่าน port ของ Node (ช่วง 30000-32767) เหมาะกับ cluster ที่ยังไม่มี LoadBalancer
 
 ```yaml
 apiVersion: v1
@@ -208,7 +208,7 @@ spec:
 curl http://<node-ip>:30080
 ```
 
-**LoadBalancer** — ให้ cloud provider สร้าง external load balancer ให้อัตโนมัติ เหมาะกับการเปิด traffic จากภายนอก cluster
+**LoadBalancer** - ให้ cloud provider สร้าง external load balancer ให้อัตโนมัติ เหมาะกับการเปิด traffic จากภายนอก cluster
 
 ```yaml
 apiVersion: v1
@@ -233,7 +233,7 @@ kubectl get svc nginx-lb -w
 curl http://<external-ip>
 ```
 
-**Headless** — ตั้ง `clusterIP: None` เพื่อไม่สร้าง virtual IP และไม่ทำ load balancing แต่จะ return IP ของ Pod ทุกตัวผ่าน DNS แทน เหมาะกับ StatefulSet ที่ต้องติดต่อ Pod ตรง ๆ เช่น database cluster
+**Headless** - ตั้ง `clusterIP: None` เพื่อไม่สร้าง virtual IP และไม่ทำ load balancing แต่จะ return IP ของ Pod ทุกตัวผ่าน DNS แทน เหมาะกับ StatefulSet ที่ต้องติดต่อ Pod ตรง ๆ เช่น database cluster
 
 ```yaml
 apiVersion: v1

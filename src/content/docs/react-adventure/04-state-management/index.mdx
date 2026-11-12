@@ -7,7 +7,7 @@ sidebar:
 
 import ChatMessage from "@/components/ChatMessage.astro"
 
-## Part 4: State Management — จัดการ State อย่างมีประสิทธิภาพ
+## Part 4: State Management - จัดการ State อย่างมีประสิทธิภาพ
 
 พอมาถึง part นี้แล้วหลายคนอาจจะสงสัย ว่าทำไมต้องใช้ State Management ด้วย
 
@@ -39,12 +39,12 @@ function MainContent({ user }) {
 }
 ```
 
-<ChatMessage message="นี่คือสิ่งที่เราเรียกว่า 'Props Drilling' — ส่ง props ผ่าน component ที่ไม่ต้องการมันเลย แค่เพื่อให้ถึง component ที่ต้องการ" avatarKey="whiteCat" />
+<ChatMessage message="นี่คือสิ่งที่เราเรียกว่า 'Props Drilling' - ส่ง props ผ่าน component ที่ไม่ต้องการมันเลย แค่เพื่อให้ถึง component ที่ต้องการ" avatarKey="whiteCat" />
 
 สิ่งที่เกิดขึ้น:
-- **Code ยุ่งเหยิง** — ทุก component ต้องรับ props ที่ไม่ได้ใช้
-- **Hard to maintain** — ถ้าเปลี่ยน structure ต้องแก้ทุกที่
-- **Prop names ยาวมาก** — `user.profile.settings.theme.color`
+- **Code ยุ่งเหยิง** - ทุก component ต้องรับ props ที่ไม่ได้ใช้
+- **Hard to maintain** - ถ้าเปลี่ยน structure ต้องแก้ทุกที่
+- **Prop names ยาวมาก** - `user.profile.settings.theme.color`
 
 ### 🎉 เมื่อมี State Management
 
@@ -74,9 +74,9 @@ function UserCard() {
 
 ใน part นี้เราจะเรียนรู้การจัดการ state ขั้นสูงขึ้น:
 
-- **Context** — สำหรับ theme toggle (light/dark mode)
-- **Zustand** — สำหรับ cart store ที่ scalable กว่า
-- **เชื่อม UI กับ State** — ให้ component ต่าง ๆ สื่อสารกันได้
+- **Context** - สำหรับ theme toggle (light/dark mode)
+- **Zustand** - สำหรับ cart store ที่ scalable กว่า
+- **เชื่อม UI กับ State** - ให้ component ต่าง ๆ สื่อสารกันได้
 
 ```mermaid
 flowchart TB

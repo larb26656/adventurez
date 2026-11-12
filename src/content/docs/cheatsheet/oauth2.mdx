@@ -1,6 +1,6 @@
 ---
 title: OAuth2
-description: ภาพรวม OAuth2 — ทำงานอย่างไร มีอะไรเกี่ยวข้องบ้าง และเลือกใช้แบบไหนเมื่อไหร่
+description: ภาพรวม OAuth2 - ทำงานอย่างไร มีอะไรเกี่ยวข้องบ้าง และเลือกใช้แบบไหนเมื่อไหร่
 ---
 
 import ChatMessage from '../../../components/ChatMessage.astro';
@@ -9,19 +9,19 @@ import ChatMessage from '../../../components/ChatMessage.astro';
 
 ## ปัญหาที่ OAuth2 มาแก้
 
-สมัยก่อนถ้าอยากให้ app อ่านอีเมล Gmail ของเรา ต้องเอา password Gmail ไปให้มัน — แปลว่า app นั้นเข้าถึง account เราได้**ทุกอย่าง** เปลี่ยน password ได้ ลบอีเมลได้ แถมถอนสิทธิ์ไม่ได้นอกจากเปลี่ยน password
+สมัยก่อนถ้าอยากให้ app อ่านอีเมล Gmail ของเรา ต้องเอา password Gmail ไปให้มัน - แปลว่า app นั้นเข้าถึง account เราได้**ทุกอย่าง** เปลี่ยน password ได้ ลบอีเมลได้ แถมถอนสิทธิ์ไม่ได้นอกจากเปลี่ยน password
 
 OAuth2 แก้ด้วยการแยกสิ่งที่ app "ขอ" ออกจากสิ่งที่ app "ทำได้":
 
-1. **ไม่แจก password** — user login กับ Authorization Server โดยตรง app ไม่เห็น password เลย
-2. **จำกัดสิทธิ์ด้วย scope** — ขอได้เฉพาะ "อ่านอีเมล" ไม่ใช่ทั้ง account
-3. **เพิกถอนได้ตลอดเวลา** — ไปที่หน้า "Connected apps" แล้ว revoke ได้ทันที
+1. **ไม่แจก password** - user login กับ Authorization Server โดยตรง app ไม่เห็น password เลย
+2. **จำกัดสิทธิ์ด้วย scope** - ขอได้เฉพาะ "อ่านอีเมล" ไม่ใช่ทั้ง account
+3. **เพิกถอนได้ตลอดเวลา** - ไปที่หน้า "Connected apps" แล้ว revoke ได้ทันที
 
-> เหมือน **valet key** ของรถ — กุญแจที่สตาร์ทรถได้แต่เปิดกระโปรง/กล่องเก็บของไม่ได้ ไม่ใช่กุญแจดอกหลักที่เปิดได้ทุกอย่าง
+> เหมือน **valet key** ของรถ - กุญแจที่สตาร์ทรถได้แต่เปิดกระโปรง/กล่องเก็บของไม่ได้ ไม่ใช่กุญแจดอกหลักที่เปิดได้ทุกอย่าง
 
 ![กุญแจจุดรถพร้อม keyfob (ดอกหลัก) วางเคียง valet key ที่หัวสั้นกว่าของ Jaguar X300](/cheatsheet/oauth2/valet-key.jpg)
 
-<sub>ภาพกุญแจจุดรถและ valet key ของ Jaguar X300 — โดย Magnus Bäck, [CC BY 3.0](https://commons.wikimedia.org/wiki/File:Jaguar_X300_ignition_key,_keyfob,_and_valet_key.jpg)</sub>
+<sub>ภาพกุญแจจุดรถและ valet key ของ Jaguar X300 - โดย Magnus Bäck, [CC BY 3.0](https://commons.wikimedia.org/wiki/File:Jaguar_X300_ignition_key,_keyfob,_and_valet_key.jpg)</sub>
 
 ## ภาพรวมการทำงาน
 
@@ -33,13 +33,13 @@ sequenceDiagram
     participant A as Authorization Server
     participant R as Resource Server (API)
 
-    Note over C,A: 1. ขออนุญาต — user login + consent ผ่าน Authorization Server
+    Note over C,A: 1. ขออนุญาต - user login + consent ผ่าน Authorization Server
     A->>C: 2. ออก access_token ให้ (แทนการแจก password)
     C->>R: 3. เรียก API พร้อม access_token
     R-->>C: ส่ง data กลับ
 ```
 
-ทุกอย่างใน OAuth2 เป็น variation ของเรื่องนี้ — ต่างกันแค่ว่า **ขั้นที่ 1-2 ทำยังไง** (ผ่าน browser? มี secret ไหม?) ซึ่งเรียกว่า **grant types**
+ทุกอย่างใน OAuth2 เป็น variation ของเรื่องนี้ - ต่างกันแค่ว่า **ขั้นที่ 1-2 ทำยังไง** (ผ่าน browser? มี secret ไหม?) ซึ่งเรียกว่า **grant types**
 
 ## Roles ทั้ง 4
 
@@ -75,24 +75,24 @@ curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..." \
 
 ## Scopes
 
-**scope** คือวิธีบอกว่าขอเข้าถึงอะไรบ้าง — เป็น string คั่นด้วย space ที่แต่ละ provider นิยามเอง:
+**scope** คือวิธีบอกว่าขอเข้าถึงอะไรบ้าง - เป็น string คั่นด้วย space ที่แต่ละ provider นิยามเอง:
 
 ```
 scope=openid%20email%20profile
 ```
 
-- **ขอน้อยกว่าที่ API ต้องใช้** — ตอนเรียก API จะโดน `403 insufficient_scope`
-- **ขอเยอะกว่าที่ใช้จริง** — user อาจกดปฏิเสธ consent และถ้า token หลุดไป คนขโมยก็ได้สิทธิ์เกินจำเป็น
+- **ขอน้อยกว่าที่ API ต้องใช้** - ตอนเรียก API จะโดน `403 insufficient_scope`
+- **ขอเยอะกว่าที่ใช้จริง** - user อาจกดปฏิเสธ consent และถ้า token หลุดไป คนขโมยก็ได้สิทธิ์เกินจำเป็น
 
-<ChatMessage message="ขอแค่เท่าที่ feature ใช้จริงก็พอ (least privilege) — จะอ่านอย่าขอ write ไว้เผื่อนะ เดี๋ยวมีเรื่องแล้วจะหาว่าไม่เตือน" avatarKey="blackCat" />
+<ChatMessage message="ขอแค่เท่าที่ feature ใช้จริงก็พอ (least privilege) - จะอ่านอย่าขอ write ไว้เผื่อนะ เดี๋ยวมีเรื่องแล้วจะหาว่าไม่เตือน" avatarKey="blackCat" />
 
 ## Grant Types
 
-**grant type** คือ "วิธีขอ token" ซึ่งเลือกตามว่า client เป็นตัวอะไร — มี browser ไหม เก็บ secret ได้ไหม มี user ไหม
+**grant type** คือ "วิธีขอ token" ซึ่งเลือกตามว่า client เป็นตัวอะไร - มี browser ไหม เก็บ secret ได้ไหม มี user ไหม
 
 ### Authorization Code
 
-Flow มาตรฐานสำหรับ **server-side web application** — redirect ผ่าน browser แล้วแลก token ที่ backend (secret ไม่โดน expose)
+Flow มาตรฐานสำหรับ **server-side web application** - redirect ผ่าน browser แล้วแลก token ที่ backend (secret ไม่โดน expose)
 
 ```mermaid
 sequenceDiagram
@@ -141,7 +141,7 @@ curl -X POST https://authorization-server.com/token \
 
 ### Authorization Code + PKCE
 
-**PKCE** (อ่านว่า "pixy" — [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636)) สำหรับ **SPA และ mobile app** ที่เก็บ `client_secret` ไม่ได้ (เพราะใครก็ decompile/ดู source ได้)
+**PKCE** (อ่านว่า "pixy" - [RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636)) สำหรับ **SPA และ mobile app** ที่เก็บ `client_secret` ไม่ได้ (เพราะใครก็ decompile/ดู source ได้)
 
 แทนที่จะใช้ secret ก็ใช้ **code_verifier** (random string) ที่ hash เป็น **code_challenge** ส่งไปกับ authorize request แล้วตอนแลก token ส่ง verifier ตัวจริงไปให้ server เช็คว่า hash ตรงกัน
 
@@ -179,7 +179,7 @@ curl -X POST https://authorization-server.com/token \
 
 ### Client Credentials
 
-สำหรับ **machine-to-machine (M2M)** — application เรียก API ด้วยสิทธิ์ตัวเอง ไม่มี user นู้นที่นี่ ไม่มี browser ไม่มี redirect
+สำหรับ **machine-to-machine (M2M)** - application เรียก API ด้วยสิทธิ์ตัวเอง ไม่มี user นู้นที่นี่ ไม่มี browser ไม่มี redirect
 
 ```mermaid
 sequenceDiagram
@@ -200,7 +200,7 @@ curl -X POST https://authorization-server.com/token \
   -d scope=api:read
 ```
 
-> ไม่มี **Resource Owner** ใน flow นี้ client คือ resource owner เอง จึงไม่ได้ refresh_token กลับมา — หมดอายุก็ขอใหม่ได้เลย
+> ไม่มี **Resource Owner** ใน flow นี้ client คือ resource owner เอง จึงไม่ได้ refresh_token กลับมา - หมดอายุก็ขอใหม่ได้เลย
 
 ### Refresh Token
 
@@ -225,24 +225,24 @@ curl -X POST https://authorization-server.com/token \
 | **Client Credentials** | M2M, cron job, microservice | ❌ | ✅ |
 | **Refresh Token** | ต่ออายุ token ที่เพิ่งหมดอายุ | แล้วแต่ grant เดิม | ตาม grant เดิม |
 
-> **Implicit Grant** (ตอบ token ตรง ๆ ผ่าน URL fragment) เคยใช้กับ SPA แต่ถูก **deprecate แล้ว** ใน [OAuth 2.1](https://oauth.net/2.1/) — ใช้ PKCE แทน
+> **Implicit Grant** (ตอบ token ตรง ๆ ผ่าน URL fragment) เคยใช้กับ SPA แต่ถูก **deprecate แล้ว** ใน [OAuth 2.1](https://oauth.net/2.1/) - ใช้ PKCE แทน
 
 ## OAuth2 vs OpenID Connect
 
 OAuth2 ตอบคำถามเดียว: **"ขอเข้า data นี้ได้ไหม"** (authorization) แต่ไม่ได้นิยามว่า user นี้คือใคร ไม่มีมาตรฐาน profile หรือ logout
 
-**OpenID Connect (OIDC)** คือ identity layer ที่สร้างมาบน OAuth2 — เพิ่ม:
+**OpenID Connect (OIDC)** คือ identity layer ที่สร้างมาบน OAuth2 - เพิ่ม:
 
-1. **ID token** — JWT ที่บอกว่า user เป็นใคร (claims: `sub`, `email`, `name`)
-2. **scope `openid`** — สัญญาณว่าขอ authentication ไม่ใช่แค่ authorization
-3. **`/userinfo` endpoint** — ดึง profile ได้มาตรฐานเดียวกันทุก provider
+1. **ID token** - JWT ที่บอกว่า user เป็นใคร (claims: `sub`, `email`, `name`)
+2. **scope `openid`** - สัญญาณว่าขอ authentication ไม่ใช่แค่ authorization
+3. **`/userinfo` endpoint** - ดึง profile ได้มาตรฐานเดียวกันทุก provider
 
-> ใช้ OIDC ตอนไหนก็ตามที่เว็บคุณมีปุ่ม "Login with Google/GitHub" — ตัวที่ทำงานอยู่หลัง scenes คือ OAuth2 + ส่วนขยายของ OIDC
+> ใช้ OIDC ตอนไหนก็ตามที่เว็บคุณมีปุ่ม "Login with Google/GitHub" - ตัวที่ทำงานอยู่หลัง scenes คือ OAuth2 + ส่วนขยายของ OIDC
 
 ## Useful Links
 
-- [oauth.com — OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/)
-- [RFC 6749 — OAuth 2.0 Framework](https://datatracker.ietf.org/doc/html/rfc6749)
-- [RFC 7636 — PKCE Extension](https://datatracker.ietf.org/doc/html/rfc7636)
+- [oauth.com - OAuth 2.0 Simplified](https://www.oauth.com/oauth2-servers/)
+- [RFC 6749 - OAuth 2.0 Framework](https://datatracker.ietf.org/doc/html/rfc6749)
+- [RFC 7636 - PKCE Extension](https://datatracker.ietf.org/doc/html/rfc7636)
 - [OAuth 2.1 Draft](https://oauth.net/2.1/)
 - [OpenID Connect](https://openid.net/developers/how-connect-works/)

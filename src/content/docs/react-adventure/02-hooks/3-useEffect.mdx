@@ -1,12 +1,12 @@
 ---
-title: "useEffect — Timer & Cleanup"
+title: "useEffect - Timer & Cleanup"
 description: เรียนรู้ useEffect ใน React พร้อมตัวอย่าง Timer และ Cleanup
 ---
 import ChatMessage from "@/components/ChatMessage.astro"
 
-## useEffect — ทำงานเมื่อมีอะไรบางอย่างเกิดขึ้น
+## useEffect - ทำงานเมื่อมีอะไรบางอย่างเกิดขึ้น
 
-`useEffect` ใช้ทำ **side effects** — งานที่เกิดขึ้น "ข้างเคียง" การ render เช่น:
+`useEffect` ใช้ทำ **side effects** - งานที่เกิดขึ้น "ข้างเคียง" การ render เช่น:
 - เริ่มต้น timer
 - ดึงข้อมูลจาก API
 - แก้ไข DOM โดยตรง
@@ -23,7 +23,7 @@ useEffect(() => {
 }, [dependencies]) // array ของ dependency
 ```
 
-## Dependency Array — เมื่อไหร่ควร run?
+## Dependency Array - เมื่อไหร่ควร run?
 
 ```tsx
 useEffect(() => {
@@ -122,7 +122,7 @@ function TimerCounter() {
       setCount(c => c + 1)
     }, 1000)
     
-    // ❌ ถ้าไม่มี cleanup — timer จะทำงานต่อไปเรื่อย ๆ แม้ unmount แล้ว!
+    // ❌ ถ้าไม่มี cleanup - timer จะทำงานต่อไปเรื่อย ๆ แม้ unmount แล้ว!
     
     // ✅ cleanup: ลบ interval เมื่อ component ถูกทำลาย
     return () => clearInterval(timer)
@@ -135,7 +135,7 @@ function TimerCounter() {
 ### เปรียบเทียบ: มี vs ไม่มี cleanup
 
 ```tsx
-// ❌ ไม่มี cleanup — Memory Leak!
+// ❌ ไม่มี cleanup - Memory Leak!
 function BadTimer() {
   const [count, setCount] = useState(0)
   
@@ -149,7 +149,7 @@ function BadTimer() {
   return <div>{count}</div>
 }
 
-// ✅ มี cleanup — ปลอดภัย!
+// ✅ มี cleanup - ปลอดภัย!
 function GoodTimer() {
   const [count, setCount] = useState(0)
   
@@ -177,7 +177,7 @@ function GoodTimer() {
 ### สาเหตุ: ใส่ state ใน dependency แล้วเปลี่ยนมันใน effect
 
 ```tsx
-// ❌ Infinity Loop! — อย่าทำแบบนี้!
+// ❌ Infinity Loop! - อย่าทำแบบนี้!
 function BadCounter() {
   const [count, setCount] = useState(0)
   
@@ -211,7 +211,7 @@ flowchart TD
 ### แก้ไข: ใช้ functional update
 
 ```tsx
-// ✅ ปลอดภัย! — ใช้ functional update
+// ✅ ปลอดภัย! - ใช้ functional update
 function GoodCounter() {
   const [count, setCount] = useState(0)
   
