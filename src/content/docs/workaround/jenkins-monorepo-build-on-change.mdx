@@ -40,7 +40,7 @@ Monorepo ที่ใช้มีหลายโปรเจกต์อยู�
 
 ## Jenkinsfile
 
-ไฟล์นี้อยู่ที่ `<project>/Jenkinsfile`. แทน `<project>`, `<registry-url>` และ `<docker-credentials-id>` ให้ครบทั้งสามค่า. Job ใช้ credentials ชนิด Username with password. ส่วน `<registry-url>` เป็น host อย่าง `registry.example.com` ไม่ใส่ `https://`
+ไฟล์นี้อยู่ที่ `<project>/Jenkinsfile`. แทน `<project>` กับ `<registry-url>` ก่อนใช้. `<registry-url>` เป็น host เช่น `registry.example.com` ไม่ใส่ `https://`
 
 ```groovy
 // <project>/Jenkinsfile
@@ -48,119 +48,77 @@ pipeline {
     agent any
 
     parameters {
-        booleanParam(
-            name: 'FORCE_BUILD',
-            defaultValue: false,
-            description: 'Build แม้โฟลเดอร์ของโปรเจกต์นี้ไม่มีไฟล์เปลี่ยน'
-        )
+        booleanParam(name: 'FORCE_BUILD', defaultValue: false, description: 'Build แม้โฟลเดอร์ของโปรเจกต์นี้ไม่มีไฟล์เปลี่ยน')
     }
 
     environment {
         PROJECT = '<project>'
         REGISTRY = '<registry-url>'
-        DOCKER_CREDENTIALS = '<docker-credentials-id>'
     }
 
     stages {
         stage('Decide') {
             steps {
                 script {
+                    // มี TAG_NAME ใช้ค่านั้น ไม่งั้นถาม git
                     def ref = env.TAG_NAME?.trim()
                     if (!ref) {
-                        ref = (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').trim()
+                        ref = sh(
+                            script: 'git describe --exact-match --tags 2>/dev/null || git rev-parse --abbrev-ref HEAD',
+                            returnStdout: true
+                        ).trim()
                     }
-                    if (!ref) {
-                        ref = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
-                    }
-                    ref = ref.replaceFirst('^origin/', '')
-                    ref = ref.replaceFirst('^refs/tags/', '')
-                    ref = ref.replaceFirst('^refs/heads/', '')
 
                     // main -> tag main
                     // <project>/1.0.0 -> tag 1.0.0
                     // ref ของโปรเจกต์อื่น -> ไม่ build
                     def imageTag = null
-                    def reason = ''
                     if (ref == 'main') {
                         imageTag = 'main'
                     } else {
                         def slash = ref.indexOf('/')
-                        def singleSlash = slash > 0 && ref.indexOf('/', slash + 1) < 0
-                        if (!singleSlash) {
-                            reason = "ref ${ref} ไม่ใช่ main หรือ ${env.PROJECT}/<version>"
-                        } else {
-                            def refProject = ref.substring(0, slash)
-                            def refVersion = ref.substring(slash + 1)
-                            def validTag = java.util.regex.Pattern
-                                .compile('^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$')
-                                .matcher(refVersion)
-                                .matches()
-                            if (refProject != env.PROJECT) {
-                                reason = "ref ${ref} เป็นของ ${refProject} ไม่ใช่ ${env.PROJECT}"
-                            } else if (!validTag) {
-                                error "version '${refVersion}' ใช้เป็น Docker tag ไม่ได้"
-                            } else {
-                                imageTag = refVersion
-                            }
+                        if (slash > 0 && ref.substring(0, slash) == env.PROJECT) {
+                            imageTag = ref.substring(slash + 1)
                         }
                     }
 
-                    def force = params.FORCE_BUILD?.toString() == 'true'
                     def shouldBuild = false
                     if (imageTag) {
                         env.IMAGE_TAG = imageTag
                         env.IMAGE = "${env.REGISTRY}/${env.PROJECT}:${imageTag}"
-                        if (force) {
+                        if (params.FORCE_BUILD) {
                             shouldBuild = true
-                            reason = 'FORCE_BUILD=true'
                         } else {
                             def prev = env.GIT_PREVIOUS_SUCCESSFUL_COMMIT?.trim()
                             if (!prev) {
                                 shouldBuild = true
-                                reason = 'ยังไม่มี successful build ก่อนหน้า'
                             } else {
                                 def diff = sh(
                                     script: "git diff --name-only '${prev}' HEAD -- '${env.PROJECT}/'",
                                     returnStdout: true
                                 ).trim()
                                 shouldBuild = diff.length() > 0
-                                reason = shouldBuild
-                                    ? "มีไฟล์เปลี่ยนใต้ ${env.PROJECT}/"
-                                    : "ไม่มีไฟล์เปลี่ยนใต้ ${env.PROJECT}/"
                             }
                         }
                     }
-
                     env.SHOULD_BUILD = shouldBuild.toString()
-                    echo "ref=${ref} SHOULD_BUILD=${env.SHOULD_BUILD} IMAGE=${env.IMAGE ?: '(none)'} (${reason})"
                 }
             }
         }
 
         stage('Build and push') {
             when {
-                expression { return env.SHOULD_BUILD == 'true' }
+                expression { env.SHOULD_BUILD == 'true' }
             }
             steps {
-                sh 'docker build -t "$IMAGE" "$PROJECT"'
-                withCredentials([usernamePassword(
-                    credentialsId: env.DOCKER_CREDENTIALS,
-                    usernameVariable: 'REGISTRY_USER',
-                    passwordVariable: 'REGISTRY_PASSWORD'
-                )]) {
-                    sh '''
-                        echo "$REGISTRY_PASSWORD" | docker login "$REGISTRY" -u "$REGISTRY_USER" --password-stdin
-                        docker push "$IMAGE"
-                        docker logout "$REGISTRY"
-                    '''
-                }
+                // docker build -t $IMAGE $PROJECT
+                // login แล้ว push ขึ้น $REGISTRY ด้วย credentials ของคุณ
+                echo "placeholder ${env.IMAGE}"
             }
         }
     }
 }
 ```
-
-Agent ที่รัน job ต้องมี Docker CLI และคุยกับ Docker daemon ได้ `docker build` ใช้โฟลเดอร์ `<project>/` เป็น context จึงอ่าน `Dockerfile` ในโฟลเดอร์นั้น
 
 ## แต่ละส่วนทำอะไร
 
@@ -185,9 +143,8 @@ stage('Build and push') {
         }
     }
     steps {
-        // build และ push ตามด้านบน
-        // stage Decide ยังต้องอ่าน ref เพื่อตั้ง IMAGE
-        // แต่ไม่ต้องเป็นคนตัดสินว่ามีไฟล์เปลี่ยนหรือไม่
+        // docker build -t $IMAGE $PROJECT
+        // login แล้ว push ขึ้น $REGISTRY
     }
 }
 ```
@@ -206,7 +163,7 @@ Pattern เป็น Ant-style นับจาก root ของ repo เช่�
 
 ### เวอร์ชันจากชื่อ branch หรือ tag
 
-Docker tag ใส่ `/` ไม่ได้ จึงไม่ push ชื่อ `app/1.0.0` ทั้งก้อน แต่แยกที่ `/` ตัวแรก
+ชื่อ ref มาจาก `TAG_NAME` ถ้ามี ไม่งั้นถาม git: `git describe --exact-match --tags` เมื่อ HEAD เป็น tag หรือ `git rev-parse --abbrev-ref HEAD` สำหรับชื่อ branch. Docker tag ใส่ `/` ไม่ได้ จึงไม่ใช้ชื่อ `app/1.0.0` ทั้งก้อน แต่แยกที่ `/` ตัวแรก ถ้าชื่อโปรเจกต์ไม่ตรงกับ `<project>` จะไม่ตั้ง tag และไม่ build
 
 | ref ที่ job นี้กำลัง build | เงื่อนไข | image ที่ push |
 |---|---|---|
@@ -225,18 +182,11 @@ Tag `main` ถูกทับทุกครั้งที่ push สำเร
 
 ### Build และ push
 
-`docker build -t "$IMAGE" "$PROJECT"` สร้าง image จาก Dockerfile ในโฟลเดอร์โปรเจกต์ แล้ว `docker push` ขึ้น `<registry-url>` ด้วย credentials id ที่ใส่ไว้ รหัสไม่อยู่ใน Jenkinsfile
+Stage นี้ไม่มีคำสั่ง docker จริง. comment บอกให้ build จากโฟลเดอร์ `<project>/` เป็น `$IMAGE` แล้ว login และ push ขึ้น `<registry-url>` ด้วย credentials ที่ตั้งใน Jenkins. บรรทัด `echo` เป็นแค่ตัวยึดให้ stage มี step
 
-ตัวอย่างค่าหลังแทน placeholder ของโปรเจกต์ `app` บน `main`:
+ชื่อ image หลังแทน placeholder ของโปรเจกต์ `app`:
 
-```text
-registry.example.com/app:main
-```
+- branch `main` ได้ `registry.example.com/app:main`
+- ref `app/1.0.0` ได้ `registry.example.com/app:1.0.0`
 
-และเมื่อ build ref `app/1.0.0`:
-
-```text
-registry.example.com/app:1.0.0
-```
-
-`registry.example.com`, `app` และ credentials id ยังเป็นตัวอย่าง ต้องเปลี่ยนให้ตรงกับ registry และ job จริง
+`registry.example.com` กับ `app` เป็นตัวอย่าง
