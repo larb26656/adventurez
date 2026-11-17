@@ -1,0 +1,242 @@
+---
+title: Build เฉพาะโปรเจกต์ที่เปลี่ยนใน Monorepo ด้วย Jenkins
+description: แยก Jenkinsfile ต่อโปรเจกต์ แล้ว build และ push image เฉพาะเมื่อโฟลเดอร์นั้นเปลี่ยน หรือเมื่อติ๊ก FORCE_BUILD โดยตั้ง tag จากชื่อ branch หรือ tag
+tags: [Jenkins, Monorepo, CI/CD, Docker]
+publishedAt: "2026-11-18T01:20:00"
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+Monorepo ที่ใช้มีหลายโปรเจกต์อยู่ใน repo เดียวกัน. Jenkinsfile เดียวที่ root จะ build image ของทุกโปรเจกต์ทุกครั้งที่มีคน push ทั้งที่โฟลเดอร์ส่วนใหญ่ไม่ได้ถูกแก้
+
+## โครงโฟลเดอร์
+
+```text
+.
+├── <project-a>/
+│   ├── Dockerfile
+│   ├── Jenkinsfile
+│   └── src/
+├── <project-b>/
+│   ├── Dockerfile
+│   ├── Jenkinsfile
+│   └── src/
+└── <project-c>/
+    ├── Dockerfile
+    ├── Jenkinsfile
+    └── src/
+```
+
+ไม่มี Jenkinsfile ที่ root แต่ละโปรเจกต์ build จาก Dockerfile ในโฟลเดอร์ตัวเอง
+
+ในหน้า job ตั้งแบบนี้ทุกโปรเจกต์ เปลี่ยนเฉพาะชื่อโฟลเดอร์:
+
+- Pipeline script from SCM ชี้ repo เดียวกัน
+- Script Path เป็น `<project>/Jenkinsfile` เช่น `app/Jenkinsfile` ไม่ใช้ `Jenkinsfile` ที่ root
+- ให้ job นี้ build branch `main` และ ref ชื่อ `<project>/<version>` เช่น `app/1.0.0` (Multibranch Pipeline ที่ discover ทั้ง branch และ tag ใช้กับรูปแบบนี้ตรง ๆ)
+- ปิด Lightweight checkout และอย่า shallow clone ถ้าจะให้ `git diff` เห็น commit เก่า
+
+<ChatMessage message="Jenkins checkout ทั้ง repo มาที่ workspace root แม้ Jenkinsfile จะอยู่ในโฟลเดอร์ของโปรเจกต์. Path ในสคริปต์จึงนับจาก root เช่น `<project>/Dockerfile` ไม่ใช่ `Dockerfile` อย่างเดียว" avatarKey="blackCat" />
+
+## Jenkinsfile
+
+ไฟล์นี้อยู่ที่ `<project>/Jenkinsfile`. แทน `<project>`, `<registry-url>` และ `<docker-credentials-id>` ให้ครบทั้งสามค่า. Job ใช้ credentials ชนิด Username with password. ส่วน `<registry-url>` เป็น host อย่าง `registry.example.com` ไม่ใส่ `https://`
+
+```groovy
+// <project>/Jenkinsfile
+pipeline {
+    agent any
+
+    parameters {
+        booleanParam(
+            name: 'FORCE_BUILD',
+            defaultValue: false,
+            description: 'Build แม้โฟลเดอร์ของโปรเจกต์นี้ไม่มีไฟล์เปลี่ยน'
+        )
+    }
+
+    environment {
+        PROJECT = '<project>'
+        REGISTRY = '<registry-url>'
+        DOCKER_CREDENTIALS = '<docker-credentials-id>'
+    }
+
+    stages {
+        stage('Decide') {
+            steps {
+                script {
+                    def ref = env.TAG_NAME?.trim()
+                    if (!ref) {
+                        ref = (env.BRANCH_NAME ?: env.GIT_BRANCH ?: '').trim()
+                    }
+                    if (!ref) {
+                        ref = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    }
+                    ref = ref.replaceFirst('^origin/', '')
+                    ref = ref.replaceFirst('^refs/tags/', '')
+                    ref = ref.replaceFirst('^refs/heads/', '')
+
+                    // main -> tag main
+                    // <project>/1.0.0 -> tag 1.0.0
+                    // ref ของโปรเจกต์อื่น -> ไม่ build
+                    def imageTag = null
+                    def reason = ''
+                    if (ref == 'main') {
+                        imageTag = 'main'
+                    } else {
+                        def slash = ref.indexOf('/')
+                        def singleSlash = slash > 0 && ref.indexOf('/', slash + 1) < 0
+                        if (!singleSlash) {
+                            reason = "ref ${ref} ไม่ใช่ main หรือ ${env.PROJECT}/<version>"
+                        } else {
+                            def refProject = ref.substring(0, slash)
+                            def refVersion = ref.substring(slash + 1)
+                            def validTag = java.util.regex.Pattern
+                                .compile('^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$')
+                                .matcher(refVersion)
+                                .matches()
+                            if (refProject != env.PROJECT) {
+                                reason = "ref ${ref} เป็นของ ${refProject} ไม่ใช่ ${env.PROJECT}"
+                            } else if (!validTag) {
+                                error "version '${refVersion}' ใช้เป็น Docker tag ไม่ได้"
+                            } else {
+                                imageTag = refVersion
+                            }
+                        }
+                    }
+
+                    def force = params.FORCE_BUILD?.toString() == 'true'
+                    def shouldBuild = false
+                    if (imageTag) {
+                        env.IMAGE_TAG = imageTag
+                        env.IMAGE = "${env.REGISTRY}/${env.PROJECT}:${imageTag}"
+                        if (force) {
+                            shouldBuild = true
+                            reason = 'FORCE_BUILD=true'
+                        } else {
+                            def prev = env.GIT_PREVIOUS_SUCCESSFUL_COMMIT?.trim()
+                            if (!prev) {
+                                shouldBuild = true
+                                reason = 'ยังไม่มี successful build ก่อนหน้า'
+                            } else {
+                                def diff = sh(
+                                    script: "git diff --name-only '${prev}' HEAD -- '${env.PROJECT}/'",
+                                    returnStdout: true
+                                ).trim()
+                                shouldBuild = diff.length() > 0
+                                reason = shouldBuild
+                                    ? "มีไฟล์เปลี่ยนใต้ ${env.PROJECT}/"
+                                    : "ไม่มีไฟล์เปลี่ยนใต้ ${env.PROJECT}/"
+                            }
+                        }
+                    }
+
+                    env.SHOULD_BUILD = shouldBuild.toString()
+                    echo "ref=${ref} SHOULD_BUILD=${env.SHOULD_BUILD} IMAGE=${env.IMAGE ?: '(none)'} (${reason})"
+                }
+            }
+        }
+
+        stage('Build and push') {
+            when {
+                expression { return env.SHOULD_BUILD == 'true' }
+            }
+            steps {
+                sh 'docker build -t "$IMAGE" "$PROJECT"'
+                withCredentials([usernamePassword(
+                    credentialsId: env.DOCKER_CREDENTIALS,
+                    usernameVariable: 'REGISTRY_USER',
+                    passwordVariable: 'REGISTRY_PASSWORD'
+                )]) {
+                    sh '''
+                        echo "$REGISTRY_PASSWORD" | docker login "$REGISTRY" -u "$REGISTRY_USER" --password-stdin
+                        docker push "$IMAGE"
+                        docker logout "$REGISTRY"
+                    '''
+                }
+            }
+        }
+    }
+}
+```
+
+Agent ที่รัน job ต้องมี Docker CLI และคุยกับ Docker daemon ได้ `docker build` ใช้โฟลเดอร์ `<project>/` เป็น context จึงอ่าน `Dockerfile` ในโฟลเดอร์นั้น
+
+## แต่ละส่วนทำอะไร
+
+### ตรวจไฟล์ที่เปลี่ยน
+
+Stage `Decide` อ่าน `GIT_PREVIOUS_SUCCESSFUL_COMMIT` แล้วรัน `git diff --name-only` เฉพาะ path `<project>/` ถ้า output ว่าง จะตั้ง `SHOULD_BUILD=false` แล้ว stage `Build and push` ถูกข้ามทั้ง stage ไม่ได้ build และไม่ได้ push
+
+Build แรกของ job หรือของ ref นั้นยังไม่มี successful commit ให้เทียบ จึง build ไปเลย ไม่งั้น job ใหม่จะไม่มี image เลยสักครั้ง หลังจากนี้ commit บน `main` ที่ไม่แตะโฟลเดอร์นี้จะถูกข้าม
+
+<ChatMessage message="ถ้า log ขึ้น `bad revision` แปลว่าเครื่องที่ build ไม่มี commit เก่าอยู่ใน workspace มักมาจาก shallow clone หรือ Lightweight checkout ให้ปิดทั้งสองอย่างแล้ว build ใหม่" avatarKey="blackCat" />
+
+### ทางเลือก: `changeset` ใน `when`
+
+ถ้าไม่อยากเรียก `git diff` เอง ให้ Jenkins ดู changelog ของ build นี้แทน ใช้ `changeset` คู่กับ `FORCE_BUILD` เป็นเงื่อนไขของ stage ที่ build:
+
+```groovy
+stage('Build and push') {
+    when {
+        anyOf {
+            changeset '<project>/**'
+            expression { return params.FORCE_BUILD == true }
+        }
+    }
+    steps {
+        // build และ push ตามด้านบน
+        // stage Decide ยังต้องอ่าน ref เพื่อตั้ง IMAGE
+        // แต่ไม่ต้องเป็นคนตัดสินว่ามีไฟล์เปลี่ยนหรือไม่
+    }
+}
+```
+
+Pattern เป็น Ant-style นับจาก root ของ repo เช่น `<project>/**` ไม่ใช่จากโฟลเดอร์ที่วาง Jenkinsfile. อย่าใช้ทั้ง `changeset` และผลของ `git diff` พร้อมกัน จะได้เงื่อนไขคนละชุด
+
+<ChatMessage message="`changeset` อ่าน changelog ของ build นี้. Build แรกมักไม่มี changelog เลย stage ถูกข้ามทั้งที่ควรได้ image. ถ้า build ก่อนหน้าล้ม ช่วงไฟล์ที่เห็นอาจไม่ตรงกับ `GIT_PREVIOUS_SUCCESSFUL_COMMIT` ด้วย" avatarKey="blackCat" />
+
+### FORCE_BUILD
+
+`booleanParam` ชื่อ `FORCE_BUILD` ค่าเริ่มต้นเป็น `false` build ที่มาจาก webhook หรือ Poll SCM จึงยังเชื่อผล diff อยู่
+
+ตอนกด build เองจากหน้า Jenkins ใช้ Build with Parameters แล้วติ๊กช่องนี้ Pipeline จะข้ามการเทียบ diff แต่ยังตั้ง tag จาก ref ปัจจุบัน ถ้า ref เป็น `main` ก็ยัง push tag `main` ถ้า ref เป็นของโปรเจกต์อื่น ช่องนี้ไม่ทำให้ job นี้ push เวอร์ชันของคนอื่น
+
+หลังเพิ่มพารามิเตอร์ใน Jenkinsfile ต้องรัน job หนึ่งครั้ง ช่องติ๊กถึงจะโผล่ในหน้า Build with Parameters
+
+### เวอร์ชันจากชื่อ branch หรือ tag
+
+Docker tag ใส่ `/` ไม่ได้ จึงไม่ push ชื่อ `app/1.0.0` ทั้งก้อน แต่แยกที่ `/` ตัวแรก
+
+| ref ที่ job นี้กำลัง build | เงื่อนไข | image ที่ push |
+|---|---|---|
+| `main` | มีไฟล์เปลี่ยนใต้ `<project>/` | `<registry-url>/<project>:main` |
+| `main` | ไม่มีไฟล์เปลี่ยน | ไม่ push, stage build ถูกข้าม |
+| `main` | ติ๊ก `FORCE_BUILD` | `<registry-url>/<project>:main` แม้ diff ว่าง |
+| `<project>/1.0.0` เช่น `app/1.0.0` | build แรกของ ref นี้ หรือมีไฟล์เปลี่ยน | `<registry-url>/<project>:1.0.0` |
+| `<project>/1.0.0` | build ซ้ำและไม่มีไฟล์เปลี่ยน | ไม่ push เว้นแต่ติ๊ก `FORCE_BUILD` |
+| `<other-project>/2.0.0` เช่น `billing/2.0.0` | ชื่อโปรเจกต์ไม่ตรง job นี้ | ไม่ push |
+
+Tag `main` ถูกทับทุกครั้งที่ push สำเร็จ ส่วน `1.0.0` ค้างที่ release นั้น จนกว่าจะมีคน build ref เดิมซ้ำแล้ว push ทับ
+
+ถ้า job ไม่ได้แยกประวัติต่อ branch/tag (checkout สลับ ref บน job เดียว) การ build `app/1.0.0` หลัง `main` ของ commit เดียวกันจะเห็น diff ว่างแล้วข้าม stage ใช้ Multibranch เพื่อให้แต่ละ ref มี successful build ของตัวเอง หรือติ๊ก `FORCE_BUILD` ตอนปล่อยเวอร์ชัน
+
+<ChatMessage message="tag `main` เหมาะกับ image ล่าสุดของ branch ไม่ใช่ release ที่ต้องย้อนกลับ ตอนจะปักเวอร์ชันให้สร้าง ref แบบ `<project>/1.0.0` แล้วให้ job ของโปรเจกต์นั้น push tag `1.0.0`" avatarKey="whiteCat" />
+
+### Build และ push
+
+`docker build -t "$IMAGE" "$PROJECT"` สร้าง image จาก Dockerfile ในโฟลเดอร์โปรเจกต์ แล้ว `docker push` ขึ้น `<registry-url>` ด้วย credentials id ที่ใส่ไว้ รหัสไม่อยู่ใน Jenkinsfile
+
+ตัวอย่างค่าหลังแทน placeholder ของโปรเจกต์ `app` บน `main`:
+
+```text
+registry.example.com/app:main
+```
+
+และเมื่อ build ref `app/1.0.0`:
+
+```text
+registry.example.com/app:1.0.0
+```
+
+`registry.example.com`, `app` และ credentials id ยังเป็นตัวอย่าง ต้องเปลี่ยนให้ตรงกับ registry และ job จริง
