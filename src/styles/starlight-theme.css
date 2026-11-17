@@ -58,3 +58,24 @@
 .starlight-sidebar-topics {
   display: none;
 }
+
+/*
+ * Pele reads these variables off the diagram (class `pele`) at display time,
+ * so one SVG follows Starlight's light and dark themes. The blog sets the
+ * same variables on `.markdown`; here they track Starlight's theme tokens,
+ * which flip with `data-theme` rather than only `prefers-color-scheme`.
+ */
+.sl-markdown-content {
+  --pele-bg: var(--sl-color-bg);
+  --pele-fg: var(--sl-color-text);
+  --pele-muted: var(--sl-color-gray-3);
+  --pele-line: var(--sl-color-gray-1);
+  --pele-surface: var(--sl-color-gray-6);
+  --pele-surface-alt: var(--sl-color-gray-5);
+  --pele-border: var(--sl-color-gray-4);
+  --pele-accent: var(--sl-color-accent);
+}
+
+.sl-markdown-content p > svg.pele {
+  margin-inline: auto;
+}
