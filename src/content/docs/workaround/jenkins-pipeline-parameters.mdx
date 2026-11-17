@@ -7,6 +7,16 @@ publishedAt: "2026-11-18T01:23:00"
 
 import ChatMessage from '../../../components/ChatMessage.astro';
 
+Parameter ใน Jenkins Declarative Pipeline คือค่าที่ส่งเข้า build ตอนกดรัน เช่น จะ deploy ไป environment ไหน, ใช้ image tag ไหน, หรือจะบังคับ build, ข้าม test, dry run หรือไม่
+
+ถ้าไม่มีค่าพวกนี้ มักต้อง hardcode ไว้ใน Jenkinsfile หรือแยก job ตาม environment และเวอร์ชัน ทำให้คนสั่ง build เปลี่ยนค่าจากหน้า UI ไม่ได้. Pipeline เส้นเดียวที่ประกาศ parameter ไว้ใช้ซ้ำได้หลายแบบ โดยคนกดเลือกจากฟอร์มตอน trigger และรอบจาก SCM หรือ webhook ใช้ค่า default โดยไม่ต้องแก้ไฟล์แล้ว commit ใหม่ทุกครั้ง.
+
+ใช้เมื่อต้องการควบคุมจากปุ่ม build:
+
+- เลือก environment กับ version ตอน deploy หรือ rollback
+- เปิด force build เมื่อไม่มี commit ที่เข้าเงื่อนไข
+- ข้าม test หรือเปิด dry run โดยไม่แก้ Jenkinsfile
+
 บล็อก `parameters {}` ใน Declarative Pipeline รับค่าตอนกด build โดยไม่ต้องแก้ Jenkinsfile ทุกครั้งที่ต้องเปลี่ยน environment, image tag, บังคับ build, ข้าม test หรือลอง dry run
 
 ค่าที่อยู่ใน `<...>` เป็น placeholder ให้แทนด้วยชื่อจริงก่อนเอาไปใช้
