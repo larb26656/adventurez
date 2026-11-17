@@ -7,11 +7,7 @@ publishedAt: "2026-11-18T01:20:00"
 
 import ChatMessage from '../../../components/ChatMessage.astro';
 
-Monorepo ที่ใช้มีหลายโปรเจกต์ใน repo เดียวกัน ถ้าใช้ Jenkinsfile เดียวที่ root ทุกครั้งที่มีคน push ระบบจะ build image ของทุกโปรเจกต์ ทั้งที่ส่วนใหญ่ไม่ได้ถูกแก้
-
-วิธีที่ใช้คือแยก Jenkinsfile ไปไว้ในโฟลเดอร์ของแต่ละโปรเจกต์ แล้วสร้าง Jenkins job หนึ่งตัวต่อโปรเจกต์ ให้ชี้ Script Path มาที่ไฟล์นั้น. Pipeline จะเทียบไฟล์ใต้โฟลเดอร์ของตัวเองกับ commit ของ successful build ก่อนหน้า ถ้าไม่มีอะไรเปลี่ยน จะข้าม stage ที่ build และ push. ถ้ากด build จากหน้า Jenkins เอง ให้ติ๊ก `FORCE_BUILD` เพื่อ build แม้ diff จะว่าง
-
-ชื่อ tag ของ image มาจากชื่อ branch หรือ tag ที่กำลัง build: `main` push ด้วย tag `main` ซึ่งถูกทับทุกครั้ง ส่วน ref แบบ `app/1.0.0` แยกเป็นโปรเจกต์ `app` กับเวอร์ชัน `1.0.0` แล้ว push tag `1.0.0` ค่า registry, credentials และชื่อโปรเจกต์ในตัวอย่างเป็น placeholder ให้แทนด้วยค่าจริงก่อนใช้
+Monorepo ที่ใช้มีหลายโปรเจกต์อยู่ใน repo เดียวกัน. Jenkinsfile เดียวที่ root จะ build image ของทุกโปรเจกต์ทุกครั้งที่มีคน push ทั้งที่โฟลเดอร์ส่วนใหญ่ไม่ได้ถูกแก้
 
 ## โครงโฟลเดอร์
 
