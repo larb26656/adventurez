@@ -1,18 +1,21 @@
 ---
-title: "Overview"
-description: React Hooks - useState, useEffect, useCallback, useRef และ Custom Hooks
+title: "Hooks"
+description: useState, useEffect, useRef, useMemo, useCallback และ custom hook ของร้านชา
 sidebar:
   order: 2
+  label: "02 Hooks"
   collapsed: false
 ---
 
-## Part 2: Hooks - เพิ่มพลังให้ Components
+## Part 2: Hooks
 
-เรียนรู้ React Hooks ที่จำเป็น - จัดการ state, side effects, และสร้าง Custom Hooks ของตัวเอง
+หน้าร้านต้องจำว่ากำลังกรองชาเย็นหรือร้อน, จำธีม, โฟกัสช่องชื่อตอนสั่ง, และไม่คำนวณรายการที่มองเห็นใหม่ทั้งก้อนถ้าตัวกรองไม่เปลี่ยน Hook คือฟังก์ชันที่ให้ component จำค่าและทำงานหลัง render
 
 สิ่งที่จะได้เรียนรู้:
-- **useState** - จัดการ state ภายใน component
-- **useEffect** - จัดการ side effects
-- **useRef** - อ้างถึง DOM elements
-- **useMemo** - optimize performance ด้วย memoization
-- **Custom Hooks** - สร้าง hook ของตัวเอง
+
+- **useState** เก็บตัวกรองทั้งหมด / เย็น / ร้อน
+- **useEffect** ใส่ class `dark` และจำธีม
+- **useRef** โฟกัสช่องชื่อผู้รับ
+- **useMemo** กรองเมนูเฉพาะตอนข้อมูลที่เกี่ยวกับการกรองเปลี่ยน
+- **useCallback** คงฟังก์ชันเพิ่มลงตะกร้า
+- **custom hook** `useTeaFilter` กับ `useCartCount`

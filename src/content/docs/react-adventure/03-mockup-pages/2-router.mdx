@@ -1,162 +1,101 @@
 ---
-title: "Router"
-description: File-based routing - ชื่อไฟล์คือ path ของหน้าเว็บ
+title: "TanStack Router"
+description: file-based routing ของร้านชา
+sidebar:
+  order: 2
 ---
 
-ความจริงคือถ้าเราเขียน React แบบเดิม ๆ เรามักจะกองทุกอย่างไว้ที่ App.tsx แล้วใช้ useState เพื่อสลับหน้าไปมา ซึ่งมัน Scale ยากมาก และเนื่องจาก React เป็น Library ไม่ใช่ Framework (อย่าง Next.js) 
-มันเลยไม่มีระบบจัดการเส้นทาง (Routing) มาให้ในตัว
+import ChatMessage from "@/components/ChatMessage.astro"
 
-เพื่อให้เห็นภาพชัดเจนก่อนจะไปถึงเครื่องมือ เรามาแยกให้เห็นก่อนว่าระบบจัดการเส้นทางมันทำงานยังไง และทำไมเราถึง "ขาดมันไม่ได้" เมื่อโปรเจกต์เริ่มโต
+React ไม่มี router ในตัว ถ้ายัดทุกหน้าไว้ใน component เดียวแล้วใช้ `useState` สลับการแสดง URL จะไม่เปลี่ยน กด back ของเบราว์เซอร์แล้วไม่ย้อนหน้า และส่งลิงก์ให้เพื่อนไม่ได้
 
-## Router
-ในสมัยก่อน เวลาเราเปลี่ยนหน้า เว็บจะทำการ "โหลดใหม่ทั้งหน้า" (Refresh) ซึ่งทำให้ช้าและเสียจังหวะ แต่พอเป็น Single Page Application (SPA) แบบ React:
-- ไม่มีการโหลดหน้าใหม่: เว็บจะโหลดแค่ครั้งเดียวตอนเข้าครั้งแรก
-- Router เข้ามาจัดการ: เมื่อคุณคลิกเมนู Router จะเปลี่ยน URL ให้ (เช่นจาก / เป็น /about) และสลับเอา Component About มาแปะแทนที่หน้าเดิมทันทีโดยไม่เกิดการกระพริบของหน้าจอ
-หน้าที่หลักของ Router
-	1.	Navigation: จัดการการนำทาง เช่น การกดปุ่มย้อนกลับ (Back) หรือไปข้างหน้า (Forward) ใน Browser ให้ทำงานได้ถูกต้อง
-	2.	State Management (URL): เก็บข้อมูลไว้ที่ URL เช่น /products?category=electronics เพื่อให้เราสามารถก๊อปปี้ลิงก์นี้ไปให้เพื่อน แล้วเพื่อนเปิดมาเจอหน้าเดียวกันเป๊ะๆ
-	3.	Data Fetching: ใน TanStack Router มันเก่งถึงขั้นที่ว่า พอมันรู้ว่าคุณกำลังจะไปหน้าไหน มันจะแอบไปโหลดข้อมูล (Pre-fetch) เตรียมไว้ให้ก่อนที่คุณจะคลิกเสร็จด้วยซ้ำ!
-	4.	Security: ตรวจสอบสิทธิ์ (Auth) เช่น ถ้ายังไม่ได้ Login แล้วพยายามจะเข้าหน้า /admin ตัว Router ก็จะเตะเรากลับไปหน้า /login ทันที
-🏗️ หน้าตาของ Router ในเชิงเปรียบเทียบ
-
-โดยใน tutorial นี้จะใช้ Tanstack router
-
-## TanStack Router 
-คือ Type-safe routing library สำหรับ React ที่สร้างโดยทีม TanStack
-
-**จุดเด่น:**
-- Type-safe - type inference อัตโนมัติ
-- File-based routing - รองรับ auto-routing จากโครงสร้างไฟล์
-- Lightweight - ไม่มี dependencies มาก
-
-ก่อนจะไปลองใช้งาน เรามาติดตั้ง react tanstack router กันก่อน
+ร้านชาใช้ TanStack Router 1 แบบไฟล์ วางไฟล์ใน `src/routes` แล้ว plugin สร้าง `src/routeTree.gen.ts` ให้ ไม่ได้ลงทะเบียน path ทีละเส้นในไฟล์แยก
 
 ## ติดตั้ง
 
-``` bash
-npm install @tanstack/react-router @tanstack/router-devtools
-npm install -D @tanstack/router-plugin @tanstack/router-cli vite-plugin-tanstack-router
+```bash
+npm install @tanstack/react-router
+npm install -D @tanstack/router-plugin
 ```
 
-เพื่อให้ระบบ File-based ทำงานได้ลื่นไหล เราต้องลงทะเบียน Plugin ใน Vite
+## Vite
 
-``` ts
-// vite.config.ts
-import { defineConfig } from 'vite'
+Plugin ของ router ต้องมาก่อน `react()` ปิด code splitting อัตโนมัติไว้ เพื่อให้ไฟล์ route ยัง export `Route` ตรงๆ อ่านในบทเรียนได้
+
+```ts
+import tailwindcss from '@tailwindcss/vite'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
-import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [
-    TanStackRouterVite(), // วางไว้ก่อน react()
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: false,
+      quoteStyle: 'single',
+      semicolons: false,
+    }),
     react(),
+    tailwindcss(),
   ],
+  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.test.tsx'],
+  },
 })
 ```
 
-เชื่อมต่อ Router ใน src/main.tsx
-นี่คือขั้นตอนสุดท้าย คือการสร้าง Router Instance และครอบ App ด้วย RouterProvider
+บล็อก `test` เป็นของ Vitest ในพาร์ต 8 ใส่ไว้ไฟล์เดียวกันได้เลย
 
-``` tsx
-// src/main.tsx
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+## ต่อ Router ใน main
+
+```tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-
-// นำเข้า routeTree ที่ถูกเจนมาอัตโนมัติ (จะเกิดขึ้นหลังรัน dev server)
+import { ThemeProvider } from './contexts/ThemeContext.tsx'
 import { routeTree } from './routeTree.gen'
+import './index.css'
 
 const router = createRouter({ routeTree })
 
-// ลงทะเบียน type เพื่อให้ Link ต่างๆ เป็น Fully Type-safe
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router
   }
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>,
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <ThemeProvider>
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  </StrictMode>,
 )
 ```
 
-## โครงสร้างไฟล์
+`createRouter` รับ `routeTree` ที่ plugin สร้าง `declare module` ลงทะเบียน type ของ router นี้ เพื่อให้ `<Link to="...">` ตรวจ path ผิดได้ตั้งแต่ตอน typecheck
 
-```
-src/
-└── routes/
-    ├── __root.tsx        # Root layout
-    ├── index.tsx         # หน้าแรก (/)
-    ├── catalog.tsx      # /catalog
-    ├── cart.tsx         # /cart
-    └── login.tsx        # /login
-```
+`routeTree.gen.ts` ถูกเขียนทับทุกครั้งที่รัน dev หรือ build เปิดดูได้ แต่ไม่ต้องแก้
 
-## การตั้งค่า Route พื้นฐาน
+## ไฟล์กับ path
 
-```tsx
-// src/routes/__root.tsx - Root layout ของทุกหน้า
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router"
+| ไฟล์ | URL |
+| --- | --- |
+| `src/routes/__root.tsx` | โครงของทุกหน้า |
+| `src/routes/index.tsx` | `/` เมนูชา |
+| `src/routes/cart.tsx` | `/cart` |
+| `src/routes/login.tsx` | `/login` |
+| `src/routes/checkout.tsx` | `/checkout` |
 
-export const Route = createRootRoute({
-  component: () => (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex gap-6">
-          <Link to="/" className="font-bold text-xl text-blue-600">
-            Adventure Shop
-          </Link>
-          <Link to="/catalog" className="text-gray-700 hover:text-blue-600">
-            สินค้า
-          </Link>
-          <Link to="/cart" className="text-gray-700 hover:text-blue-600">
-            ตะกร้า
-          </Link>
-          <Link to="/login" className="text-gray-700 hover:text-blue-600">
-            เข้าสู่ระบบ
-          </Link>
-        </div>
-      </nav>
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <Outlet />
-      </main>
-    </div>
-  ),
-})
-```
+แต่ละไฟล์ export ชื่อ `Route` จาก `createFileRoute` หรือ `createRootRoute` ลิงก์ภายในแอปใช้ `<Link to="/cart">` ไม่ใช้ `<a href>` เพื่อไม่ให้ทั้งหน้าโหลดใหม่
 
-```tsx
-// src/routes/index.tsx - หน้าแรก
-import { createFileRoute } from "@tanstack/react-router"
-
-export const Route = createFileRoute("/")({
-  component: Index,
-})
-
-function Index() {
-  return (
-    <div className="text-center py-20">
-      <h1 className="text-4xl font-bold text-gray-800 mb-4">
-        ยินดีต้อนรับสู่ Adventure Shop
-      </h1>
-      <p className="text-xl text-gray-600 mb-8">
-        สินค้าสำหรับนักเดินทางทุกประเภท
-      </p>
-      <a
-        href="/catalog"
-        className="inline-block bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
-      >
-        ดูสินค้า
-      </a>
-    </div>
-  )
-}
+<ChatMessage message="ชื่อใน createFileRoute ต้องตรงกับชื่อไฟล์ ถ้าเขียนคนละ path กับที่ plugin คาดไว้ dev server จะฟ้อง" avatarKey="blackCat" />
 
 import { Quiz } from "@/components/quiz"
 
-<Quiz
+<Quiz client:load
   quiz={{
     id: "tanstack-router-basics",
     title: "Quiz: TanStack Router พื้นฐาน",
@@ -164,8 +103,8 @@ import { Quiz } from "@/components/quiz"
       {
         id: "q1",
         type: "single",
-        question: "TanStack Router มี feature อะไรที่เด่น?",
-        options: ["Component-based routing", "File-based routing", "API-based routing", "Manual routing"],
+        question: "TanStack Router ในคอร์สนี้จัด route แบบไหน?",
+        options: ["สลับหน้าด้วย useState", "File-based routing", "เขียน path มือในไฟล์แยก", "ฝังทุกหน้าไว้ใน main.tsx"],
         correctAnswer: "File-based routing"
       },
       {
@@ -178,25 +117,26 @@ import { Quiz } from "@/components/quiz"
       {
         id: "q3",
         type: "single",
-        question: "TanStack Router ใช้ style การเขียนอย่างไร?",
-        options: ["Imperative style", "Declarative style", "Functional style", "Object-oriented style"],
-        correctAnswer: "Declarative style"
+        question: "routeTree.gen.ts มาจากไหน?",
+        options: ["เขียนเองใน App.tsx", "plugin ของ TanStack สร้างให้", "คัดลอกจาก Tailwind", "ได้มาจาก Zustand"],
+        correctAnswer: "plugin ของ TanStack สร้างให้"
       },
       {
         id: "q4",
         type: "single",
         question: "ไฟล์ __root.tsx ใช้ทำอะไร?",
-        options: ["สร้างหน้า 404", "Root layout ของทุกหน้า", "กำหนด config ของ router", "สร้าง redirect"],
+        options: ["สร้างหน้า 404", "Root layout ของทุกหน้า", "กำหนดราคาน้ำชา", "ล้างตะกร้า"],
         correctAnswer: "Root layout ของทุกหน้า"
       },
       {
         id: "q5",
         type: "single",
-        question: "Component ใดใช้สำหรับสร้าง Link ใน TanStack Router?",
-        options: ["<Link>", "<a href>", "<RouterLink>", "<NavLink>"],
-        correctAnswer: "<Link>"
+        question: "Component ใดใช้สำหรับสร้างลิงก์ภายในร้านชา?",
+        options: ["<Link> จาก TanStack Router", "<a href> อย่างเดียว", "<RouterLink>", "<button> ที่เปลี่ยน useState"],
+        correctAnswer: "<Link> จาก TanStack Router"
       }
     ]
   }}
 />
-```
+
+> ไฟล์ประกอบ: [`vite.config.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/vite.config.ts), [`src/main.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/main.tsx), [`src/routes`](https://github.com/larb26656/adventurez/tree/main/examples/react-tea-shop/src/routes)

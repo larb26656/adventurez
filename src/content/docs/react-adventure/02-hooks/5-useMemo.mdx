@@ -1,116 +1,47 @@
 ---
-title: "useMemo - Memoize ค่า"
-description: เรียนรู้ useMemo สำหรับจำค่าที่คำนวณแล้วเพื่อประสิทธิภาพ
+title: "useMemo"
+description: กรองเมนูชาเมื่อตัวกรองหรือรายการเปลี่ยน
+sidebar:
+  order: 5
 ---
+
 import ChatMessage from "@/components/ChatMessage.astro"
 
-## useMemo - จำค่าที่คำนวณแล้ว
+`useMemo` จำผลลัพธ์ของการคำนวณ แล้วคำนวณใหม่เมื่อค่าใน dependency เปลี่ยน
 
-`useMemo` ใช้ **จำ** ค่าที่คำนวณไว้ เพื่อไม่ต้องคำนวณใหม่ทุก render
-
-### ปัญหา: คำนวณซ้ำทุก render
+ตัวอย่างที่พังบ่อยคือใส่ dependency ที่สูตรไม่ได้อ่าน การบวกเลขล้านรอบด้านล่างไม่ได้ใช้ `count` แต่ใส่ `[count]` ทำให้ทุกครั้งที่กดเพิ่มตัวนับ ลูปวิ่งใหม่ทั้งที่คำตอบเดิม
 
 ```tsx
-import { useState } from "react"
-
-function ExpensiveComponent() {
-  const [count, setCount] = useState(0)
-  
-  // ❌ ฟังก์ชันนี้จะทำงานทุกครั้งที่ render
-  // แม้ว่า `count` จะไม่เปลี่ยน
-  function expensiveCalculation() {
-    console.log("Calculating...")
-    let result = 0
-    for (let i = 0; i < 1000000; i++) {
-      result += i
-    }
-    return result
-  }
-  
-  const result = expensiveCalculation()
-  
-  return (
-    <div>
-      <p>Result: {result}</p>
-      <p>Count: {count}</p>
-      <button onClick={() => setCount(c => c + 1)}>+1</button>
-    </div>
-  )
-}
+// ตัวอย่างที่ห้ามทำ ผลลัพธ์ไม่ได้ขึ้นกับ count
+const result = useMemo(() => {
+  let total = 0
+  for (let i = 0; i < 1000000; i++) total += i
+  return total
+}, [count])
 ```
 
-### แก้ด้วย useMemo
+ถ้าคำตอบไม่ขึ้นกับอะไรเลย dependency ควรเป็น `[]` และถ้างานไม่หนักก็ไม่ต้องห่อ `useMemo` เลย
+
+## ของร้านชา
+
+รายการที่มองเห็นขึ้นกับเมนูทั้งก้อนและปุ่มที่กด สูตรอ่านทั้ง `products` และ `filter` ดังนั้นสองตัวนี้ต้องอยู่ใน dependency
 
 ```tsx
-import { useState, useMemo } from "react"
-
-function MemoizedComponent() {
-  const [count, setCount] = useState(0)
-  
-  // ✅ คำนวณเฉพาะเมื่อ count เปลี่ยนเท่านั้น
-  const result = useMemo(() => {
-    console.log("Calculating...")
-    let res = 0
-    for (let i = 0; i < 1000000; i++) {
-      res += i
-    }
-    return res
-  }, [count]) // dependency array
-  
-  return (
-    <div>
-      <p>Result: {result}</p>
-      <p>Count: {count}</p>
-      <button onClick={() => setCount(c => c + 1)}>+1</button>
-    </div>
+  const visibleProducts = useMemo(
+    () =>
+      products.filter(
+        (product) => filter === 'all' || product.temperature === filter,
+      ),
+    [products, filter],
   )
-}
 ```
 
-```mermaid
-flowchart TB
-    subgraph "With useMemo"
-        Render[Render] --> Check{dependency<br/>เปลี่ยน?}
-        Check -->|ไม่| Return[Return ค่าเดิม]
-        Check -->|ใช่| Calculate[คำนวณใหม่]
-        Calculate --> Return2[Return ค่าใหม่]
-    end
-    
-    classDef important fill:#f472b6,stroke:#ec4899,stroke-width:2px
-    class Calculate important
-```
+- กด "เย็น" แล้ว `filter` เป็น `'cold'` เหลือชาที่ `temperature === 'cold'`
+- กด "ร้อน" เหลือ `'hot'`
+- กด "ทั้งหมด" คืนทุกรายการ
 
-<ChatMessage message="useMemo ใช้กับการคำนวณที่หนัก ๆ หรือ object/array ที่สร้างใหม่ทุก render" avatarKey="whiteCat" />
+`useTeaFilter` คืน `filter`, `setFilter`, และ `visibleProducts` ให้หน้าเมนู บท custom hook แปะไฟล์เต็ม
 
-### ตัวอย่าง: Memoize object
+<ChatMessage message="dependency คือรายการที่สูตรอ่านจริงๆ ใส่น้อยไปค่าจะค้าง ใส่มากไปจะคำนวณทั้งที่ผลไม่เปลี่ยน" avatarKey="whiteCat" />
 
-```tsx
-import { useState, useMemo } from "react"
-
-function UserProfile() {
-  const [name, setName] = useState("")
-  const [age, setAge] = useState(0)
-  
-  // ❌ object ใหม่ทุก render → ทำให้ child re-render
-  const user = { name, age }
-  
-  // ✅ สร้าง object ใหม่เฉพาะเมื่อ name หรือ age เปลี่ยน
-  const userMemoized = useMemo(() => ({ name, age }), [name, age])
-  
-  return (
-    <div>
-      <input value={name} onChange={e => setName(e.target.value)} />
-      <input value={age} onChange={e => setAge(+e.target.value)} />
-    </div>
-  )
-}
-```
-
----
-
-## สรุป useMemo vs useRef
-
-| Hook | ใช้เก็บ | Re-render เมื่อ |
-|------|---------|-----------------|
-| `useMemo` | ค่าที่คำนวณแล้ว | dependency เปลี่ยน |
-| `useRef` | ค่าที่ไม่แสดงใน UI | ไม่ re-render |
+> ไฟล์ประกอบ: [`src/hooks/useTeaFilter.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/hooks/useTeaFilter.ts)

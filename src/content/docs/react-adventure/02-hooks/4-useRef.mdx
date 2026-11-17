@@ -1,110 +1,46 @@
 ---
-title: "useRef - DOM Access"
-description: เรียนรู้ useRef สำหรับเข้าถึง DOM และเก็บค่าโดยไม่ re-render
+title: "useRef"
+description: โฟกัสช่องชื่อผู้รับในหน้าสั่งชา
+sidebar:
+  order: 4
 ---
+
 import ChatMessage from "@/components/ChatMessage.astro"
 
-## useRef - เข้าถึง DOM โดยตรง
+`useRef` เก็บกล่องที่เปลี่ยนค่าได้โดยไม่ทำให้ component render ใหม่ ใช้ชี้ DOM หรือเก็บ id ของ timer
 
-`useRef` ให้คุณ **เก็บค่า** โดยไม่ทำให้ re-render เมื่อค่าเปลี่ยน (ต่างจาก useState)
-
-### ใช้งาน: Focus input
+หน้าสั่งชาโฟกัสช่อง "ชื่อผู้รับ" ตอนเปิดหน้า ผู้ใช้ได้พิมพ์เลย
 
 ```tsx
-import { useRef } from "react"
-
-function FocusInput() {
-  const inputRef = useRef(null)
-  
-  function handleClick() {
-    // เข้าถึง DOM element โดยตรง!
-    inputRef.current.focus()
-  }
-  
-  return (
-    <>
-      <input ref={inputRef} type="text" />
-      <button onClick={handleClick}>Focus</button>
-    </>
-  )
-}
+  const nameInputRef = useRef<HTMLInputElement>(null)
 ```
-
-``` mermaid
-flowchart LR
-    subgraph "useRef Hook"
-        %% ใช้ ID เป็นคำง่ายๆ เช่น R, D, A
-        R["ref = useRef(null)"] 
-        D["&lt;input ref={ref} /&gt;"] 
-        A["ref.current.focus()"]
-
-        %% เชื่อมต่อด้วย ID
-        R -->|Assign to| D
-        D -->|Access via| A
-    end
-```
-
-### ใช้งาน: เก็บค่าที่ไม่ต้องการ render
 
 ```tsx
-import { useRef, useState } from "react"
-
-function CounterWithRef() {
-  const [count, setCount] = useState(0)
-  const prevCountRef = useRef(0)
-  
-  function handleClick() {
-    prevCountRef.current = count // เก็บค่าก่อนเปลี่ยน
-    setCount(c => c + 1)
-  }
-  
-  return (
-    <div>
-      <p>Current: {count}</p>
-      <p>Previous: {prevCountRef.current}</p>
-      <button onClick={handleClick}>+1</button>
-    </div>
-  )
-}
-```
-
-### ตัวอย่าง: Stopwatch ด้วย useRef
-
-```tsx
-import { useState, useRef, useEffect } from "react"
-
-function Stopwatch() {
-  const [time, setTime] = useState(0)
-  const intervalRef = useRef(null)
-  const [isRunning, setIsRunning] = useState(false)
-  
   useEffect(() => {
-    if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setTime(t => t + 1)
-      }, 1000)
-    }
-    return () => clearInterval(intervalRef.current)
-  }, [isRunning])
-  
-  return (
-    <div>
-      <p>Time: {time}s</p>
-      <button onClick={() => setIsRunning(!isRunning)}>
-        {isRunning ? "Stop" : "Start"}
-      </button>
-    </div>
-  )
-}
+    nameInputRef.current?.focus()
+  }, [])
 ```
 
----
+`current` เริ่มเป็น `null` หลัง React แปะ input จริงแล้วจะชี้ไปที่ element เครื่องหมาย `?.` กันกรณีที่ยังไม่มี node
 
-## เปรียบเทียบ useState vs useRef
+ช่องนี้ผูกกับ React Hook Form ด้วย `register('name')` ซึ่งก็อยากได้ ref ของมันเอง เราเลยส่ง ref ทั้งสองทางใน callback เดียว:
 
-| Hook | ใช้เก็บ | Re-render เมื่อ |
-|------|---------|-----------------|
-| `useState` | ค่าที่แสดงใน UI | ค่าเปลี่ยน |
-| `useRef` | ค่าที่ไม่แสดงใน UI | ไม่ re-render |
+```tsx
+          ref={(node) => {
+            nameRegisterRef(node)
+            nameInputRef.current = node
+          }}
+```
 
-<ChatMessage message="useState เปลี่ยน → re-render / useRef เปลี่ยน → ไม่ re-render" avatarKey="whiteCat" />
+## ต่างจาก useState
+
+| | useState | useRef |
+| --- | --- | --- |
+| เปลี่ยนค่าแล้ว | render ใหม่ | ไม่ render |
+| เหมาะกับ | ตัวกรอง, จำนวนแก้ว, ชื่อที่โชว์บนจอ | ชี้ DOM, ค่าที่จอไม่ต้องวาดตาม |
+
+อย่าเอา `useRef` ไปเก็บจำนวนในตะกร้า ตัวเลขบนแถบนำทางจะไม่อัปเดต เพราะ React ไม่ได้ถูกบอกให้วาดใหม่
+
+<ChatMessage message="useState เปลี่ยนแล้วจอตาม useRef เปลี่ยนแล้วจอไม่ตาม เว้นแต่มี state ตัวอื่นทำให้วาดใหม่" avatarKey="whiteCat" />
+
+> ไฟล์ประกอบ: [`src/components/CheckoutForm.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/components/CheckoutForm.tsx)

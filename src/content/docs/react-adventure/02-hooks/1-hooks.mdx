@@ -1,26 +1,34 @@
 ---
-title: "Hooks"
-description: เรียนรู้ Hooks พื้นฐาน - useState, useEffect, useRef, useMemo และ Styling
+title: "Hooks คืออะไร"
+description: กฎของ Hook และจุดที่ร้านชาใช้แต่ละตัว
+sidebar:
+  order: 1
 ---
+
 import ChatMessage from "@/components/ChatMessage.astro"
 
-## Hooks คืออะไร?
+Hook คือฟังก์ชันที่ขึ้นต้นด้วย `use` ใช้ต่อ component เข้ากับความสามารถของ React เช่น จำค่า, ทำงานหลังวาดจอ, หรือชี้ไปที่ DOM
 
-Hook คือ **function พิเศษ** ที่ให้คุณ "ต่อ" กับ React features ต่าง ๆ เช่น state, lifecycle, refs
+ถ้าไม่มี Hook, ฟังก์ชัน component ถูกเรียกใหม่ทุกครั้งที่ render ตัวแปรธรรมดาจะเริ่มนับหนึ่งใหม่ทุกครั้ง ปุ่มกรองชาจะเด้งกลับไปที่ "ทั้งหมด" ทันทีที่กด
 
-```mermaid
-flowchart TB
-    subgraph Hooks
-        useState[useState<br/>State management]
-        useEffect[useEffect<br/>Side effects]
-        useRef[useRef<br/>DOM access]
-        useMemo[useMemo<br/>Memoization]
-    end
-    
-    classDef hook fill:#a78bfa,stroke:#7c3aed,stroke-width:2px
-    class useState,useEffect,useRef,useMemo hook
-```
+## กฎสองข้อ
 
-<ChatMessage message="ทุก Hook ขึ้นต้นด้วย 'use' - เป็น convention ของ React เลยนะ" avatarKey="whiteCat" />
+1. เรียก Hook ที่ระดับบนสุดของ component หรือ custom hook ห้ามเรียกใน `if`, ในลูป, หรือในฟังก์ชันที่ซ้อนอยู่ React จำ Hook ตามลำดับที่เรียก
+2. เรียกได้จาก component หรือจากฟังก์ชันที่ชื่อขึ้นต้นด้วย `use` เท่านั้น ห้ามเรียกจากฟังก์ชันทั่วไปเช่น `formatPrice`
 
----
+<ChatMessage message="ถ้าเรียก useState ใน if ลำดับ Hook จะเหลื่อมกัน แล้วค่าที่จำไว้จะสลับช่อง" avatarKey="blackCat" />
+
+## ร้านชาใช้ตัวไหน
+
+| Hook | ใช้ทำอะไร | ไฟล์ |
+| --- | --- | --- |
+| `useState` | จำปุ่มกรอง และจำออเดอร์ที่เพิ่งสั่ง | `useTeaFilter.ts`, `CheckoutForm.tsx` |
+| `useEffect` | ติด class `dark` ที่ `<html>` แล้วเก็บธีม | `ThemeContext.tsx` |
+| `useRef` | ชี้ input ชื่อผู้รับ เพื่อ focus ตอนเปิดหน้า | `CheckoutForm.tsx` |
+| `useMemo` | คำนวณรายการที่ผ่านตัวกรอง | `useTeaFilter.ts` |
+| `useCallback` | ฟังก์ชันกดเพิ่มลงตะกร้า | `ProductCard.tsx` |
+| custom hook | รวมของด้านบนให้หน้าอื่นเรียกสั้นๆ | `useTeaFilter.ts`, `useCartCount.ts` |
+
+บทนี้ยังไม่ต้องจำ API ทั้งก้อน บทถัดไปไล่ทีละตัว โดยโค้ดที่แปะเป็นไฟล์ของร้านชาคือของที่รันได้จริง โค้ดที่เขียนว่า "ตัวอย่างฝึก" หรือ "ตัวอย่างที่ห้ามทำ" ไม่ได้อยู่ในโปรเจกต์
+
+<ChatMessage message="ทุก Hook ขึ้นต้นด้วย use เป็นข้อตกลงของ React ตัวตรวจจะได้เตือนได้" avatarKey="whiteCat" />

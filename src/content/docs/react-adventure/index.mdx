@@ -1,6 +1,6 @@
 ---
 title: React Adventure
-description: เรียนรู้ React ตั้งแต่เริ่มต้นจนถึง deploy ขึ้น Vercel
+description: สร้างร้านชาด้วย React ตั้งแต่ Vite จนถึง deploy บน Vercel
 thumbnail: /react-adventure/thumbnail.png
 tags: [React, Frontend, JavaScript, Vite, TypeScript]
 categories: [Technology]
@@ -17,13 +17,17 @@ import PartnerIntro from "@/components/PartnerIntro.astro"
 <PartnerIntro />
 
 ## ทำความรู้จักกับ React
+
 ### จุดกำเนิดและ Pain Point
+
 ย้อนกลับไปช่วงปี 2011 Facebook ประสบปัญหาอย่างหนักในการจัดการ UI ที่มีความซับซ้อนสูง (เช่น ระบบ Chat และ Notifications ที่ต้องอัปเดตตลอดเวลา)
 ในสมัยนั้น การเขียนเว็บด้วย JavaScript ปกติ (Vanilla JS) มีปัญหาหลักคือ:
 
 - การจัดการ DOM ที่ยุ่งเหยิง: เมื่อข้อมูลเปลี่ยน เราต้องสั่งอัปเดตหน้าจอทีละจุดเอง (Imperative) เช่น "ไปหา ID นี้ แล้วเปลี่ยนข้อความเป็นแบบนี้" พอเว็บใหญ่ขึ้น โค้ดจะพันกันจนไล่เช็คยากมาก
 - State Management: การติดตามว่าตอนนี้หน้าจอแสดงผลอะไรอยู่ และข้อมูลล่าสุดคืออะไร ทำได้ยากและเกิดบั๊กได้ง่าย
+
 ### การมาถึงของ React
+
 Facebook จึงสร้าง React ขึ้นมาในปี 2013 เพื่อเปลี่ยนวิธีคิดในการเขียน UI ใหม่ทั้งหมด:
 
 1. Component-Based: แทนที่จะเขียน HTML หน้าเดียวยาวๆ เราจะแบ่ง UI ออกเป็นส่วนย่อยๆ ที่ทำงานอิสระต่อกัน (เช่น ปุ่ม, การ์ดสินค้า, แถบเมนู) ทำให้เราสามารถนำกลับมาใช้ซ้ำได้ง่าย
@@ -31,4 +35,17 @@ Facebook จึงสร้าง React ขึ้นมาในปี 2013 เ�
 3. Virtual DOM: React มีระบบ "โดมเสมือน" ที่ช่วยคำนวณว่าต้องอัปเดตหน้าจอเฉพาะจุดไหนที่จำเป็นจริงๆ ทำให้ประสิทธิภาพการทำงานรวดเร็วและลื่นไหล
 
 <ChatMessage message="เข้าใจที่มาแล้วก็เตรียมตัวซะ ลืมวิธีเขียนเว็บแบบเดิมๆ ที่ยุ่งเหยิงไปได้เลย!" avatarKey="blackCat" />
+
+## โปรเจกต์ของคอร์สนี้: ร้านชา
+
+ทั้งคอร์สสร้างแอปเดียวชื่อร้านชา หน้าตาตาม wireframe ในพาร์ต 3: แถบบนมีชื่อร้านกับตะกร้า, ปุ่มกรองทั้งหมด/เย็น/ร้อน, การ์ดเมนู, หน้ารวมราคาเป็นบาท
+
+ไม่มี backend Login กับหน้าสั่งชาทำงานในเบราว์เซอร์ ราคาเป็นบาท (THB) ข้อความบน UI เป็นภาษาไทย
+
+เส้นทางของแอปใช้ TanStack Router แบบ file-based ตั้งแต่ต้น ไม่สลับหน้าด้วย `useState` และไม่เขียน route แบบ code-based
+
+เวอร์ชันที่ล็อกไว้: Node 22, Vite 7, React 19, TypeScript 5, Tailwind CSS 4, TanStack Router 1, Zustand 5, React Hook Form 7, Zod 3
+
+โปรเจกต์ที่ทำเสร็จแล้วอยู่ใน [examples/react-tea-shop](https://github.com/larb26656/adventurez/tree/main/examples/react-tea-shop) แต่ละบทจะชี้ไปที่ไฟล์คู่กัน
+
 <ChatMessage message="หัวใจสำคัญคือการมองทุกอย่างเป็นส่วนย่อยนะ ถ้าพร้อมแล้วเริ่มบทที่ 1 กันเถอะ ถ้าพร้อมแล้วก็ลุยกันเลย!" avatarKey="whiteCat" />

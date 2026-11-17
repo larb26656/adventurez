@@ -1,0 +1,29 @@
+---
+title: "useCallback"
+description: คงฟังก์ชันเพิ่มลงตะกร้าของการ์ดชา
+sidebar:
+  order: 8
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+ทุกครั้งที่ component render ฟังก์ชันที่เขียนในตัวมันจะเป็นคนละตัวกับรอบที่แล้ว `useCallback` จำฟังก์ชันเดิมไว้ จนกว่าค่าใน dependency จะเปลี่ยน
+
+การ์ดชาทำแบบนี้:
+
+```tsx
+  const addItem = useCartStore((state) => state.addItem)
+  const handleAdd = useCallback(() => {
+    addItem(product)
+  }, [addItem, product])
+```
+
+`handleAdd` อ่าน `addItem` กับ `product` จึงใส่ทั้งคู่ใน dependency กดปุ่มแล้วเรียก `addItem(product)` ซึ่งไปเพิ่มจำนวนในตะกร้า ถ้าสินค้านั้นอยู่ในตะกร้าแล้ว store จะบวก `quantity` ไม่ได้เพิ่มแถวซ้ำ
+
+ไม่ต้องห่อทุกฟังก์ชัน ห่อเมื่อส่งฟังก์ชันนั้นลงไปใน component ที่ถูก `memo` หรือเมื่อฟังก์ชันไปอยู่ใน dependency ของ Hook อื่น การ์ดนี้ห่อไว้ให้เห็นรูปแบบชัดๆ แม้ปุ่มจะรับ `onClick` ตรงๆ ก็ตาม
+
+<ChatMessage message="ลืมใส่ product ใน dependency แล้วการ์ดจะเพิ่มชาใบเก่าค้างอยู่ แม้ props จะเปลี่ยนแล้ว" avatarKey="blackCat" />
+
+ไฟล์เต็มของการ์ดอยู่พาร์ต 4 พร้อมปุ่มและราคาเป็นบาท
+
+> ไฟล์ประกอบ: [`src/components/ProductCard.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/components/ProductCard.tsx)

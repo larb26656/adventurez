@@ -1,24 +1,90 @@
 ---
-title: "Layout + Navbar"
-description: โครงสร้างหน้าเว็บที่มี Navbar คงที่
+title: "Layout และแถบบน"
+description: __root.tsx ของร้านชา มี Outlet, ธีม, และป้ายจำนวนตะกร้า
+sidebar:
+  order: 3
 ---
 
-จากตัวอย่างด้านบน เราใช้ `__root.tsx` เป็น **layout** ที่ครอบทุกหน้า - มี `<nav>` และ `<Outlet />` ที่จะแสดงหน้าย่อย ๆ
+import ChatMessage from "@/components/ChatMessage.astro"
 
-## การทำงาน
+`__root.tsx` คือโครงที่ครอบทุก URL ส่วนที่อยู่เหนือ `<Outlet />` จะค้างไว้ ส่วนใน Outlet เปลี่ยนตามไฟล์ route ลูก
+
+แถบบนของร้านชาเรียงตามสเก็ตช์: ชื่อร้านอยู่ซ้าย, ตะกร้าอยู่ขวา เพิ่มปุ่มธีมกับลิงก์เข้าสู่ระบบไว้ตรงกลางขวา เพราะพาร์ต 4 และ 5 ต้องใช้
+
+จำนวนในวงกลมมาจาก `useCartCount()` มันรวม `quantity` ของทุกแก้ว กดเพิ่มชานมสองครั้ง เลขจะเป็น 2 ทั้งที่ยังอยู่หน้าเมนู เพราะแถบบนกับหน้าเมนูอ่าน store เดียวกัน
+
+ปุ่ม "มืด" / "สว่าง" เรียก `toggleTheme` จาก `ThemeProvider` ต้องห่อแอปด้วย provider ใน `main.tsx` ก่อน ไม่งั้น `useTheme` จะ throw
+
+ถ้ามีผู้ใช้ใน auth store แถบบนจะโชว์ปุ่มออกจากระบบแทนลิงก์เข้าสู่ระบบ store ตัวนั้นมาในพาร์ต 5 ตอนนี้เห็นแค่จุดที่ layout อ่านมัน
 
 ```tsx
-// การทำงาน
-<nav>...</nav>           // แสดงทุกหน้า
-<main>
-  <Outlet />             // เปลี่ยนไปตาม URL
-</main>
+import { createRootRoute, Link, Outlet } from '@tanstack/react-router'
+import { useTheme } from '../contexts/ThemeContext.tsx'
+import { useCartCount } from '../hooks/useCartCount.ts'
+import { useAuthStore } from '../stores/authStore.ts'
+
+export const Route = createRootRoute({
+  component: RootLayout,
+})
+
+function RootLayout() {
+  const { theme, toggleTheme } = useTheme()
+  const count = useCartCount()
+  const user = useAuthStore((state) => state.user)
+  const logout = useAuthStore((state) => state.logout)
+
+  return (
+    <div className="min-h-screen bg-stone-100 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col border-x border-stone-300 bg-[#fffaf3] dark:border-stone-700 dark:bg-stone-950">
+        <header className="flex items-center justify-between gap-4 border-b border-stone-300 px-6 py-4 dark:border-stone-700">
+          <Link to="/" className="text-2xl font-semibold tracking-tight">
+            ร้านชา
+          </Link>
+          <nav className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="rounded-lg border border-stone-300 px-3 py-1 text-sm dark:border-stone-600"
+              aria-label={theme === 'light' ? 'เปิดโหมดมืด' : 'เปิดโหมดสว่าง'}
+            >
+              {theme === 'light' ? 'มืด' : 'สว่าง'}
+            </button>
+            {user ? (
+              <button type="button" onClick={logout} className="text-sm">
+                ออกจากระบบ
+              </button>
+            ) : (
+              <Link to="/login" className="text-sm">
+                เข้าสู่ระบบ
+              </Link>
+            )}
+            <Link to="/cart" className="inline-flex items-center gap-2 text-lg">
+              ตะกร้า
+              <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full border border-stone-800 px-1 text-sm dark:border-stone-200">
+                {count}
+              </span>
+            </Link>
+          </nav>
+        </header>
+        <main className="flex-1 px-6 py-8">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  )
+}
 ```
 
-หน้า `/catalog` จะแสดงที่ `<Outlet />`, หน้า `/cart` ก็เหมือนกัน - Navbar จะอยู่ตลอด
+<ChatMessage message="ลิงก์ชื่อร้านชี้ไปที่ / ไม่ใช่การ setState ชื่อหน้า ไม่งั้นปุ่ม back ของเบราว์เซอร์จะใช้ไม่ได้" avatarKey="whiteCat" />
 
-## ประโยชน์ของ Layout
+## ทำไมไม่สลับหน้าด้วย useState
 
-- ** reuse โค้ด** - เขียน nav ครั้งเดียว ใช้ได้ทุกหน้า
-- ** แก้ไขง่าย** - อยากเปลี่ยน menu แก้ที่เดียว
-- ** โครงสร้างชัดเจน** - เห็นว่าหน้าไหนมี nav หรือไม่
+ถ้าเก็บชื่อหน้าไว้ใน state แล้วเลือก component ด้วยเงื่อนไข จะเกิดสามอย่าง:
+
+- URL ไม่เปลี่ยน รีเฟรชแล้วหลุดกลับหน้าแรก
+- เปิด `/cart` ตรงๆ ไม่ได้
+- แถบบนต้องรู้จักทุกหน้าเอง เพิ่มหน้าสั่งชาทีก็ต้องแก้เงื่อนไข
+
+`<Outlet />` ให้ router เลือกไฟล์ลูกเอง layout แค่ไม่บังเนื้อหา
+
+> ไฟล์ประกอบ: [`src/routes/__root.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/routes/__root.tsx)

@@ -1,0 +1,58 @@
+---
+title: "เทสต์ ProductCard"
+description: Vitest กับ Testing Library ตรวจการเพิ่มชานมลงตะกร้า
+sidebar:
+  order: 1
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+ติดตั้งของเทสต์เป็น devDependency: `vitest`, `jsdom`, `@testing-library/react`, `@testing-library/user-event`
+
+ค่า `test` ใน `vite.config.ts` ใช้ environment `jsdom` และรันเฉพาะ `src/**/*.test.tsx` จะได้ไม่ไปยุ่งเทสต์ของเว็บเอกสาร
+
+```ts
+  test: {
+    environment: 'jsdom',
+    include: ['src/**/*.test.tsx'],
+  },
+```
+
+เทสต์เรนเดอร์การ์ดด้วยชานมไต้หวัน ราคา 50 บาท เย็น แล้วคลิกปุ่มที่ชื่อ "เพิ่มลงตะกร้า" จากนั้นอ่าน `useCartStore.getState().items`
+
+ก่อนแต่ละเคสล้าง `localStorage` แล้ว `setState({ items: [] })` เพราะ store ใช้ `persist` ของค้างจากเคสก่อนจะทำให้คาดหวังพัง
+
+```tsx
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { beforeEach, expect, test } from 'vitest'
+import type { Product } from '../data/products.ts'
+import { useCartStore } from '../stores/cartStore.ts'
+import { ProductCard } from './ProductCard.tsx'
+
+const milkTea: Product = {
+  id: 'milk-tea',
+  name: 'ชานมไต้หวัน',
+  price: 50,
+  image: '🧋',
+  temperature: 'cold',
+}
+
+beforeEach(() => {
+  localStorage.clear()
+  useCartStore.setState({ items: [] })
+})
+
+test('เพิ่มชานมลงตะกร้าเมื่อกดปุ่ม', async () => {
+  const user = userEvent.setup()
+  render(<ProductCard product={milkTea} />)
+
+  await user.click(screen.getByRole('button', { name: 'เพิ่มลงตะกร้า' }))
+
+  expect(useCartStore.getState().items).toEqual([{ ...milkTea, quantity: 1 }])
+})
+```
+
+<ChatMessage message="หาปุ่มด้วยชื่อที่ผู้ใช้เห็น ไม่ใช้ class ของ Tailwind เป็นตัวชี้" avatarKey="whiteCat" />
+
+> ไฟล์ประกอบ: [`src/components/ProductCard.test.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/components/ProductCard.test.tsx), [`vite.config.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/vite.config.ts)

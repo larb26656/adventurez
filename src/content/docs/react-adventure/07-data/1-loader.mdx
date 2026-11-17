@@ -1,0 +1,175 @@
+---
+title: "Route loader"
+description: โหลด public/products.json พร้อมจอโหลดและจอ error
+sidebar:
+  order: 1
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+`createFileRoute('/')` รับ `loader` ที่รันก่อนวาดหน้า ระหว่างรอ TanStack Router แสดง `pendingComponent` ถ้า loader throw จะแสดง `errorComponent` แทน ไม่ต้องเขียน `useEffect` เพื่อ fetch เอง
+
+```tsx
+    const response = await fetch('/products.json')
+    if (!response.ok) {
+      throw new Error('โหลดรายการชาไม่สำเร็จ')
+    }
+```
+
+`error` ที่เข้า `errorComponent` มี type เป็น `unknown` จึงเช็ค `instanceof Error` ก่อนอ่าน `.message` ถ้าไม่ใช่ Error ให้ขึ้นว่า "ไม่ทราบสาเหตุ"
+
+หน้าโหลดขึ้นข้อความ "กำลังโหลดเมนูชา..." ไฟล์ในเครื่องโหลดเร็ว ข้อความอาจแวบเดียว มันยังต้องมีไว้สำหรับเน็ตช้า
+
+JSON ต้องเป็น array ถ้าไม่ใช่ loader จะ throw "รูปแบบเมนูชาไม่ถูกต้อง" แล้วจอ error รับช่วง
+
+```json
+[
+  {
+    "id": "milk-tea",
+    "name": "ชานมไต้หวัน",
+    "price": 50,
+    "image": "🧋",
+    "temperature": "cold"
+  },
+  {
+    "id": "matcha",
+    "name": "ชาเขียวมัทฉะ",
+    "price": 55,
+    "image": "🍵",
+    "temperature": "hot"
+  },
+  {
+    "id": "thai-tea",
+    "name": "ชาไทย",
+    "price": 45,
+    "image": "🧡",
+    "temperature": "cold"
+  },
+  {
+    "id": "lemon-black",
+    "name": "ชาดำมะนาว",
+    "price": 40,
+    "image": "🍋",
+    "temperature": "cold"
+  },
+  {
+    "id": "green-hot",
+    "name": "ชาเขียวร้อน",
+    "price": 35,
+    "image": "🍃",
+    "temperature": "hot"
+  },
+  {
+    "id": "lemon-hot",
+    "name": "ชามะนาวร้อน",
+    "price": 40,
+    "image": "🍋",
+    "temperature": "hot"
+  },
+  {
+    "id": "oolong",
+    "name": "ชาอู่หลง",
+    "price": 50,
+    "image": "🫖",
+    "temperature": "hot"
+  },
+  {
+    "id": "fruit-tea",
+    "name": "ชาผลไม้",
+    "price": 55,
+    "image": "🍓",
+    "temperature": "cold"
+  }
+]
+```
+
+```tsx
+import { createFileRoute, type ErrorComponentProps } from '@tanstack/react-router'
+import { ProductCard } from '../components/ProductCard.tsx'
+import type { Product, TeaFilter } from '../data/products.ts'
+import { useTeaFilter } from '../hooks/useTeaFilter.ts'
+
+const filters: { id: TeaFilter; label: string }[] = [
+  { id: 'all', label: 'ทั้งหมด' },
+  { id: 'cold', label: 'เย็น' },
+  { id: 'hot', label: 'ร้อน' },
+]
+
+export const Route = createFileRoute('/')({
+  loader: async () => {
+    const response = await fetch('/products.json')
+    if (!response.ok) {
+      throw new Error('โหลดรายการชาไม่สำเร็จ')
+    }
+
+    const data: unknown = await response.json()
+    if (!Array.isArray(data)) {
+      throw new Error('รูปแบบเมนูชาไม่ถูกต้อง')
+    }
+
+    return { products: data as Product[] }
+  },
+  pendingComponent: CatalogPending,
+  errorComponent: CatalogError,
+  component: CatalogPage,
+})
+
+function CatalogPending() {
+  return (
+    <p className="text-stone-600 dark:text-stone-300">กำลังโหลดเมนูชา...</p>
+  )
+}
+
+function CatalogError({ error }: ErrorComponentProps) {
+  const message = error instanceof Error ? error.message : 'ไม่ทราบสาเหตุ'
+  return (
+    <p role="alert" className="text-red-700 dark:text-red-300">
+      โหลดเมนูชาไม่สำเร็จ: {message}
+    </p>
+  )
+}
+
+function CatalogPage() {
+  const { products } = Route.useLoaderData()
+  const { filter, setFilter, visibleProducts } = useTeaFilter(products)
+
+  return (
+    <section>
+      <h1 className="text-3xl font-bold">เมนูชา</h1>
+      <div className="mt-4 flex flex-wrap gap-3">
+        {filters.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setFilter(item.id)}
+            className={
+              filter === item.id
+                ? 'rounded-lg border border-amber-800 bg-amber-800 px-4 py-2 text-white'
+                : 'rounded-lg border border-stone-300 bg-white px-4 py-2 text-stone-700 hover:border-amber-800 dark:border-stone-600 dark:bg-stone-900 dark:text-stone-100'
+            }
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+      {visibleProducts.length === 0 ? (
+        <p className="mt-8 text-stone-500">ไม่มีชาในหมวดนี้</p>
+      ) : (
+        <div className="mt-8 grid grid-cols-2 gap-6 lg:grid-cols-4">
+          {visibleProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+```
+
+<ChatMessage message="แก้ JSON แล้วอย่าลืมแก้ products.ts ให้ตรงกัน เทสต์และบทเรียนอ่านไฟล์ TypeScript แต่หน้าเว็บอ่าน JSON" avatarKey="blackCat" />
+
+อยากเห็นจอ error ชั่วคราว ให้เปลี่ยน path ใน `fetch` เป็นไฟล์ที่ไม่มี แล้วเปลี่ยนกลับ อย่า commit path ที่พัง
+
+> ไฟล์ประกอบ: [`public/products.json`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/public/products.json), [`src/routes/index.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/routes/index.tsx)
+
+ต่อไป: [เทสต์การ์ด](../08-testing/)

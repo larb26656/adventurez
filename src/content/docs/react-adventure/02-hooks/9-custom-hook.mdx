@@ -1,0 +1,63 @@
+---
+title: "Custom hook"
+description: useTeaFilter กับ useCartCount
+sidebar:
+  order: 9
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+Custom hook คือฟังก์ชันที่ชื่อขึ้นต้นด้วย `use` แล้วเรียก Hook ตัวอื่นข้างใน ใช้รวมพฤติกรรมที่ซ้ำ หรือซ่อน state ที่หน้าจอไม่จำเป็นต้องเห็นทั้งก้อน
+
+กฎเดียวกับ Hook ทั่วไป: เรียกที่ระดับบนสุด ห้ามเรียกแบบมีเงื่อนไข
+
+## useTeaFilter
+
+หน้าร้านต้องมี state ของปุ่มกรอง และรายการที่ผ่านตัวกรอง รวมไว้ที่เดียว หน้าเมนูเลยไม่ต้องเขียน `useState` กับ `useMemo` เอง
+
+```ts
+import { useMemo, useState } from 'react'
+import type { Product, TeaFilter } from '../data/products.ts'
+
+export function useTeaFilter(products: Product[]) {
+  const [filter, setFilter] = useState<TeaFilter>('all')
+
+  const visibleProducts = useMemo(
+    () =>
+      products.filter(
+        (product) => filter === 'all' || product.temperature === filter,
+      ),
+    [products, filter],
+  )
+
+  return { filter, setFilter, visibleProducts }
+}
+```
+
+เรียกใช้แบบนี้ในหน้าเมนู:
+
+```tsx
+const { filter, setFilter, visibleProducts } = useTeaFilter(products)
+```
+
+`products` มาจาก loader ในพาร์ต 7 ไม่ได้ import array จาก `products.ts` ตอนรัน
+
+## useCartCount
+
+แถบบนอยากได้แค่จำนวนแก้ว ไม่ได้อยาก subscribe รายละเอียดทั้งตะกร้าในไฟล์ layout
+
+```ts
+import { useCartStore } from '../stores/cartStore.ts'
+
+export function useCartCount() {
+  return useCartStore((state) =>
+    state.items.reduce((sum, item) => sum + item.quantity, 0),
+  )
+}
+```
+
+ตัวเลขในวงกลมข้างคำว่า "ตะกร้า" คือค่านี้ รวม `quantity` ทุกแถว ไม่ใช่จำนวนแถว ชานม 2 แก้วกับมัทฉะ 1 แก้วขึ้นเลข 3
+
+<ChatMessage message="ชื่อต้องขึ้นต้นด้วย use ไม่งั้นตัวตรวจจะไม่รู้ว่าข้างในเรียก Hook ได้" avatarKey="whiteCat" />
+
+> ไฟล์ประกอบ: [`src/hooks/useTeaFilter.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/hooks/useTeaFilter.ts), [`src/hooks/useCartCount.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/hooks/useCartCount.ts)

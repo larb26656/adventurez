@@ -1,171 +1,54 @@
 ---
-title: "useState - เก็บ State ใน Component"
-description: เรียนรู้ useState ใน React พร้อมตัวอย่าง Counter และ Form
+title: "useState"
+description: จำตัวกรองทั้งหมด เย็น ร้อน
+sidebar:
+  order: 2
 ---
+
 import ChatMessage from "@/components/ChatMessage.astro"
 
-## useState - ยังจำค่าได้
-
-`useState` ใช้ **จำ** ค่าบางอย่างไว้ใน component - ค่านี้จะคงอยู่ตลอดการ render
-
-ถ้าไม่มี useState ทุกครั้งที่ re-render ค่าจะ reset กลับไปเหมือนเดิม!
-
-### รูปแบบการใช้
+`useState` จำค่าข้ามการ render เมื่อเรียกฟังก์ชันตั้งค่า React จะวาด component ใหม่
 
 ```tsx
-const [state, setState] = useState(initialValue)
+const [filter, setFilter] = useState<TeaFilter>('all')
 ```
 
-- **state** - ค่าปัจจุบัน (read-only)
-- **setState** - function สำหรับเปลี่ยนค่า
-- **initialValue** - ค่าเริ่มต้น
+- `filter` คือค่าปัจจุบัน อ่านได้อย่างเดียว
+- `setFilter` ใช้เปลี่ยนค่า
+- `'all'` คือค่าเริ่ม ซึ่งตรงกับปุ่ม "ทั้งหมด"
 
-```mermaid
-flowchart LR
-    subgraph "useState"
-        Initial[initialValue] -->|useState| State[state]
-        State -->|render| UI[UI แสดงค่า]
-        UI -->|onClick| setState["setState(newValue)"]
-        setState -->|update| State2[state ใหม่]
-        State2 -->|re-render| UI2[UI อัพเดท]
-    end
-    
-    classDef state fill:#34d399,stroke:#10b981,stroke-width:2px;
-    class State,State2 state;
-```
+ปุ่มบนหน้าเมนูมีสามปุ่ม ค่าใน state เป็นภาษาอังกฤษ ส่วนป้ายบนปุ่มเป็นภาษาไทย:
 
----
+| state | ปุ่ม |
+| --- | --- |
+| `all` | ทั้งหมด |
+| `cold` | เย็น |
+| `hot` | ร้อน |
 
-## ตัวอย่าง: Counter
+กดปุ่มแล้วเรียก `setFilter(item.id)` รายการที่โชว์จะถูกกรองใน `useMemo` ของบท useMemo
 
-ลองทำ counter ง่าย ๆ:
+## ห้ามเขียนทับ state
 
 ```tsx
-import { useState } from "react"
-
-function Counter() {
-  const [count, setCount] = useState(0)
-  
-  return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>
-        +1
-      </button>
-    </div>
-  )
-}
+// ตัวอย่างที่ห้ามทำ
+filter = 'cold'
 ```
 
-### อธิบาย
+แบบนี้ React ไม่รู้ว่าต้องวาดใหม่ ให้เรียก `setFilter('cold')`
 
-1. `useState(0)` - เริ่มต้น count = 0
-2. `{count}` - แสดงค่าใน UI
-3. `setCount(count + 1)` - เมื่อคลิก เปลี่ยนค่าเป็น count + 1
-4. React จะ **re-render** และแสดงค่าใหม่
-
-<ChatMessage message="สังเกตว่าเราใช้ setCount(count + 1) ไม่ใช่ count++ เพราะ state เปลี่ยนค่าไม่ได้โดยตรง!" avatarKey="whiteCat" />
-
----
-
-## ตัวอย่าง: Form พื้นฐาน
-
-ใช้ useState กับ input:
+ถ้าค่าใหม่ขึ้นกับค่าเก่า ใช้รูปฟังก์ชัน เพื่อไม่ไปอ่านค่าที่ค้างใน closure:
 
 ```tsx
-function SimpleForm() {
-  const [name, setName] = useState("")
-  
-  return (
-    <div>
-      <input 
-        type="text" 
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <p>สวัสดี: {name}</p>
-    </div>
-  )
-}
+// ตัวอย่างฝึก จำนวนแก้ว
+setCount((current) => current + 1)
 ```
 
----
+ร้านชาใช้รูปนี้ตอนสลับธีม: `setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))`
 
-## การอัพเดท State - สำคัญ!
+## ก้อน object
 
-### ❌ ไม่ถูกต้อง
+ถ้า state เป็น object ต้องก็อปของเดิมมาก่อนแล้วค่อยทับ field ที่เปลี่ยน ตะกร้าทำแบบนี้ใน Zustand ด้วยการ spread `...item` ตอนเพิ่มจำนวน ไม่ได้แก้ `item.quantity` ตรงๆ
 
-```tsx
-// ผิด! ไม่สามารถเปลี่ยน state โดยตรง
-count = count + 1
-```
+<ChatMessage message="setFilter('cold') ได้ เพราะค่าใหม่ไม่ได้อ่านจาก filter เดิม ถ้าจะบวกจำนวนให้ใช้รูปฟังก์ชัน" avatarKey="whiteCat" />
 
-### ✅ ถูกต้อง
-
-```tsx
-// ถูกต้อง ใช้ setter
-setCount(count + 1)
-
-// หรือใช้ function form (ดีกว่าเมื่อค่าขึ้นกับค่าเดิม)
-setCount(c => c + 1)
-```
-
-```mermaid
-flowchart TB
-    subgraph "State Update"
-        Wrong["Wrong"] -.->|ไม่ทำงาน| RenderFail[ไม่ Re-render]
-        Correct["Correct"] -->|อัพเดท| RenderSuccess[Re-render]
-    end
-```
-
-<ChatMessage message="ใช้ setCount(c => c + 1) แทน setCount(count + 1) ทุกครั้ง เพื่อหลีกเลี่ยง stale closure!" avatarKey="whiteCat" />
-
----
-
-## State หลายตัว
-
-หลาย state ใน component:
-
-```tsx
-function MultipleStates() {
-  const [name, setName] = useState("")
-  const [age, setAge] = useState(0)
-  const [isActive, setIsActive] = useState(false)
-  
-  // ...
-}
-```
-
----
-
-## Object State
-
-```tsx
-function UserProfile() {
-  const [user, setUser] = useState({
-    name: "",
-    email: "",
-    age: 0
-  })
-  
-  return (
-    <div>
-      <input 
-        value={user.name}
-        onChange={(e) => setUser({ ...user, name: e.target.value })}
-      />
-    </div>
-  )
-}
-```
-
-<ChatMessage message="เมื่ออัพเดท object state ต้อง spread (...) ค่าเดิมก่อน ไม่งั้นค่าอื่นจะหาย!" avatarKey="whiteCat" />
-
----
-
-## 🎯 สรุป
-
-- **useState(initial)** - สร้าง state ที่ React จะจำ
-- **setState(newValue)** - อัพเดทค่า และ trigger re-render
-- **setState(prev => ...)** - ใช้ function form เมื่ออัพเดทค่าขึ้นกับค่าเดิม
-- **Spread operator (...)** - เมื่ออัพเดท object state
+> ไฟล์ประกอบ: [`src/hooks/useTeaFilter.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/hooks/useTeaFilter.ts)

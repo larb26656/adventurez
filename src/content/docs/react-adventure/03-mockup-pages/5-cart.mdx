@@ -1,191 +1,107 @@
 ---
-title: "หน้า Cart - แสดงสินค้าในตะกร้า"
-description: สร้างหน้าตะกร้าสินค้าพร้อมคำนวณรวม
+title: "หน้าตะกร้า"
+description: รายการชา จำนวนแก้ว ราคารวมเป็นบาท
+sidebar:
+  order: 5
 ---
+
 import ChatMessage from "@/components/ChatMessage.astro"
 
-ต่อไปเราจะสร้าง **หน้า Cart** ที่แสดงสินค้าที่เลือกไว้ และคำนวณรวมทั้งหมด
+`src/routes/cart.tsx` คือหน้า `/cart` ของไม่ได้มาจาก array ที่เขียนตายตัวในไฟล์ มันอ่าน `items` จาก `useCartStore`
 
+แต่ละแถวโชว์ชื่อ, ราคาต่อแก้วคูณจำนวน, ปุ่มลบจำนวน, ปุ่มเพิ่มจำนวน, ปุ่มลบทั้งแถว, และราคารวมของแถวนั้นเป็นบาท
 
-## ขั้นตอนที่ 1: สร้าง Cart Component
+ถ้ารายการว่าง แสดงคำว่า "ตะกร้าว่าง" และไม่โชว์ปุ่มสั่งชา
 
-สร้างไฟล์ `src/components/react-adventure/pages/Cart.tsx`:
+รวมท้ายบิลมาจาก `getTotal()` ซึ่งคูณ `price * quantity` ทุกแถวแล้วบวกกัน ชานม 50 บาทสองแก้วกับมัทฉะ 55 บาทหนึ่งแก้ว ได้ 155
 
-```tsx
-// src/components/react-adventure/pages/Cart.tsx
-export function Cart() {
-  return (
-    <div>
-      <h1>ตะกร้าสินค้า</h1>
-    </div>
-  )
-}
-```
+ปุ่ม "สั่งชา" เป็น `<Link to="/checkout">` ไม่ได้ตัดเงิน
 
-## ขั้นตอนที่ 2: เพิ่มข้อมูลสินค้าในตะกร้า
-
-ตะกร้าจะมีข้อมูลต่างจาก catalog ตรงที่มี **quantity**:
+<ChatMessage message="กดลบจนจำนวนเหลือ 0 แล้ว store จะตัดแถวนั้นทิ้ง ไม่ปล่อย quantity ติดลบ" avatarKey="blackCat" />
 
 ```tsx
-// src/components/react-adventure/pages/Cart.tsx
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { useCartStore } from '../stores/cartStore.ts'
 
-const cartItems = [
-  { id: 1, name: "กระเป๋าเดินทาง", price: 1200, quantity: 1 },
-  { id: 3, name: "หมวกกันแดด", price: 450, quantity: 2 },
-]
+export const Route = createFileRoute('/cart')({
+  component: CartPage,
+})
 
-export function Cart() {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">ตะกร้าสินค้า</h1>
-      {/* ตรงนี้จะเพิ่มรายการสินค้า */}
-    </div>
-  )
-}
-```
-
-## ขั้นตอนที่ 3: แสดงรายการสินค้าด้วย Flexbox
-
-ต่อไปเราจะแสดงรายการสินค้าโดยใช้ **flexbox** จัดเรียง:
-
-```tsx
-export function Cart() {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">ตะกร้าสินค้า</h1>
-      
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        {cartItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0"
-          >
-            <div>
-              <h3 className="font-semibold text-gray-800">{item.name}</h3>
-              <p className="text-gray-500">
-                ฿{item.price} × {item.quantity}
-              </p>
-            </div>
-            <div className="text-blue-600 font-bold">
-              ฿{item.price * item.quantity}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-```
-
-## ขั้นตอนที่ 4: คำนวณรวมทั้งหมดด้วย reduce
-
-ต่อไปเราจะคำนวณรวมทั้งหมด ใช้ **reduce** ซึ่งเป็น array method ที่ใช้คำนวณค่าจากทุก item:
-
-```tsx
-export function Cart() {
-  // reduce ใช้รวมค่าทุก item
-  const total = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0  // ค่าเริ่มต้น
-  )
+function CartPage() {
+  const items = useCartStore((state) => state.items)
+  const updateQuantity = useCartStore((state) => state.updateQuantity)
+  const removeItem = useCartStore((state) => state.removeItem)
+  const getTotal = useCartStore((state) => state.getTotal)
+  const total = getTotal()
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">ตะกร้าสินค้า</h1>
-      
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        {cartItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0"
-          >
-            <div>
-              <h3 className="font-semibold text-gray-800">{item.name}</h3>
-              <p className="text-gray-500">
-                ฿{item.price} × {item.quantity}
-              </p>
-            </div>
-            <div className="text-blue-600 font-bold">
-              ฿{item.price * item.quantity}
-            </div>
-          </div>
-        ))}
-        
-        {/* แสดงผลรวม */}
-        <div className="bg-gray-50 p-4 flex justify-between items-center">
-          <span className="font-bold text-lg">รวมทั้งหมด</span>
-          <span className="font-bold text-2xl text-blue-600">฿{total}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-```
-
-## ขั้นตอนที่ 5: เช็คตะกร้าว่าง
-
-ต้องเช็คกรณีที่ตะกร้าว่างเปล่า จะได้ไม่แสดง list ว่างๆ:
-
-```tsx
-export function Cart() {
-  const total = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  )
-
-  return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">ตะกร้าสินค้า</h1>
-      
-      {/* เช็คว่าตะกร้าว่างหรือไม่ */}
-      {cartItems.length === 0 ? (
-        <p className="text-gray-500">ตะกร้าว่างเปล่า</p>
+    <section className="mx-auto max-w-xl">
+      <h1 className="mb-8 text-3xl font-bold">ตะกร้า</h1>
+      {items.length === 0 ? (
+        <p className="text-stone-500">ตะกร้าว่าง</p>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          {cartItems.map((item) => (
+        <div className="rounded-2xl border border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-900">
+          {items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0"
+              className="flex items-center justify-between gap-4 border-b border-stone-200 px-4 py-4 last:border-b-0 dark:border-stone-700"
             >
               <div>
-                <h3 className="font-semibold text-gray-800">{item.name}</h3>
-                <p className="text-gray-500">
+                <h2 className="font-semibold">{item.name}</h2>
+                <p className="text-sm text-stone-500">
                   ฿{item.price} × {item.quantity}
                 </p>
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    className="h-8 w-8 rounded border border-stone-300"
+                    aria-label={`ลดจำนวน ${item.name}`}
+                  >
+                    -
+                  </button>
+                  <span>{item.quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    className="h-8 w-8 rounded border border-stone-300"
+                    aria-label={`เพิ่มจำนวน ${item.name}`}
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.id)}
+                    className="ml-2 text-sm text-red-700"
+                  >
+                    ลบ
+                  </button>
+                </div>
               </div>
-              <div className="text-blue-600 font-bold">
+              <p className="font-bold text-amber-800 dark:text-amber-300">
                 ฿{item.price * item.quantity}
-              </div>
+              </p>
             </div>
           ))}
-          <div className="bg-gray-50 p-4 flex justify-between items-center">
-            <span className="font-bold text-lg">รวมทั้งหมด</span>
-            <span className="font-bold text-2xl text-blue-600">฿{total}</span>
+          <div className="flex items-center justify-between bg-stone-50 px-4 py-4 dark:bg-stone-800">
+            <span className="font-bold">รวม</span>
+            <span className="text-2xl font-bold">฿{total}</span>
           </div>
         </div>
       )}
-      
-      <button className="mt-6 w-full bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors">
-        ชำระเงิน
-      </button>
-    </div>
+      {items.length > 0 && (
+        <Link
+          to="/checkout"
+          className="mt-6 block rounded-lg bg-amber-800 py-3 text-center font-semibold text-white hover:bg-amber-900"
+        >
+          สั่งชา
+        </Link>
+      )}
+    </section>
   )
 }
 ```
 
-## ขั้นตอนที่ 6: Register Route
+รายละเอียดของ `addItem`, `updateQuantity`, `removeItem` อยู่ในบท Zustand พาร์ต 4 ไฟล์นี้คือจุดที่ UI เรียกมัน
 
-เพิ่ม cart route ใน `router.tsx`:
-
-```tsx
-// src/components/react-adventure/router.tsx
-import { Cart } from "./pages/Cart"
-
-// ...
-const cartRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/cart",
-  component: Cart,
-})
-// ...
-```
+> ไฟล์ประกอบ: [`src/routes/cart.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/routes/cart.tsx)

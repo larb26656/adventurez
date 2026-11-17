@@ -1,76 +1,134 @@
 ---
-title: "Setup & Fundamentals"
-description: ติดตั้ง React ด้วย Vite, เรียนรู้ JSX, Components และ Props
+title: "สร้างโปรเจกต์"
+description: เปิดโปรเจกต์ร้านชาด้วย Vite, React 19 และ TypeScript 5 บน Node 22
 sidebar:
   order: 1
 ---
 
-## 1. Setup: สร้าง Project ด้วย Vite
+## ตรวจ Node 22
 
-### ติดตั้ง Node.js ก่อน
-
-ถ้ายังไม่มี Node.js, ดาวน์โหลดจาก [nodejs.org](https://nodejs.org) (แนะนำ LTS version)
-
-เช็คว่าติดตั้งได้หรือยัง:
+คอร์สนี้ใช้ Node 22 ตรวจก่อนสร้างโปรเจกต์:
 
 ```bash
 node --version
 npm --version
 ```
 
-### สร้าง React Project
+ต้องขึ้นต้นด้วย `v22` ถ้าเครื่องมีหลายเวอร์ชัน ให้ใช้ไฟล์ `.nvmrc` ที่มีเลข `22` ในตัวอย่างร้านชา
 
-เปิด terminal แล้วรันคำสั่งนี้:
-
-```bash
-npm create vite@latest my-portfolio -- --template react-ts
-```
-
-**คำอธิบาย:**
-- `npm create vite` - ใช้ Vite สร้าง project
-- `my-portfolio` - ชื่อ folder ที่จะสร้าง
-- `--template react-ts` - template สำหรับ React + TypeScript
-
-### ติดตั้ง Dependencies
+## สร้างโปรเจกต์
 
 ```bash
-cd my-portfolio
+npm create vite@latest tea-shop -- --template react-ts
+cd tea-shop
 npm install
-```
-
-### รัน Development Server
-
-```bash
 npm run dev
 ```
 
-เปิด browser ไปที่ `http://localhost:5173` จะเห็นหน้าว่างๆ พร้อมโลโก้ Vite
+- `tea-shop` คือชื่อโฟลเดอร์
+- `--template react-ts` คือ React + TypeScript
 
----
+เปิด `http://localhost:5173` จะเจอหน้าตัวอย่างของ Vite บทถัดไปจะรื้อหน้านี้ทิ้ง แล้วค่อยๆ เปลี่ยนเป็นร้านชา
 
-## 2. โครงสร้าง Project
+ใน repo นี้ของที่ทำเสร็จอยู่ที่ `examples/react-tea-shop` ไม่ใช่โฟลเดอร์ `tea-shop` ที่คุณสร้างเอง โครงสร้างไฟล์เหมือนกัน
 
-หลังจากสร้าง project เสร็จ, โครงสร้างจะเป็นแบบนี้:
+## เวอร์ชันที่ล็อก
 
+หลัง `npm create` ให้ปรับ `package.json` ให้ major ตรงกับคอร์ส แล้วรัน `npm install` ใหม่
+
+| แพ็กเกจ | major |
+| --- | --- |
+| vite | 7 |
+| react, react-dom | 19 |
+| typescript | 5 |
+| tailwindcss, @tailwindcss/vite | 4 (ติดตั้งในพาร์ต 3) |
+| @tanstack/react-router, @tanstack/router-plugin | 1 (ติดตั้งในพาร์ต 3) |
+| zustand | 5 (พาร์ต 4) |
+| react-hook-form, @hookform/resolvers | 7 และ 3 (พาร์ต 5) |
+| zod | 3 (พาร์ต 5) |
+
+ไฟล์จริงของตัวอย่าง:
+
+```json
+{
+  "name": "react-tea-shop",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "@tanstack/react-router": "^1.132.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-hook-form": "^7.62.0",
+    "zod": "^3.25.76",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "@tanstack/router-plugin": "^1.132.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "jsdom": "^26.1.0",
+    "tailwindcss": "^4.1.13",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4",
+    "vitest": "^3.2.4"
+  }
+}
 ```
-my-portfolio/
+
+`engines.node` คือ `22.x` สคริปต์ `build` คือ `tsc -b && vite build`
+
+## โครงไฟล์ช่วงเริ่ม
+
+```text
+tea-shop/
 ├── index.html
 ├── package.json
 ├── tsconfig.json
+├── tsconfig.app.json
+├── tsconfig.node.json
 ├── vite.config.ts
 └── src/
-    ├── App.tsx
-    ├── App.css
     ├── main.tsx
     └── index.css
 ```
 
-### ไฟล์สำคัญ
+| ไฟล์ | หน้าที่ |
+| --- | --- |
+| `index.html` | จุดเข้าของเว็บ มี `<div id="root">` |
+| `src/main.tsx` | สั่ง React render ลง root |
+| `vite.config.ts` | รวม plugin ของ Vite, ภายหลังจะมี Tailwind กับ TanStack Router |
+| `tsconfig*.json` | ตั้งค่า TypeScript แบบที่ Vite สร้างให้ |
 
-| File | ทำหน้าที่ |
-|------|----------|
-| `index.html` | Entry point ของ web app |
-| `src/main.tsx` | ไฟล์ที่ React จะ render เป็นรูปแบบ web |
-| `src/App.tsx` | Component หลัก - เราจะเขียน code ตรงนี้เป็นส่วนใหญ่ |
-| `vite.config.ts` | Config ของ Vite |
+`index.html` ของร้านชาตั้ง `lang="th"` และชื่อแท็บเป็นร้านชา:
 
+```html
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ร้านชา</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
+> ไฟล์ประกอบ: [`package.json`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/package.json), [`index.html`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/index.html)
