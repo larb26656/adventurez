@@ -40,7 +40,7 @@ Write like a human author, not like an LLM summary.
 
 ## Architecture Notes
 - Site builds to `dist/` folder
-- Mermaid diagrams supported via `astro-mermaid`
+- Mermaid diagrams render to inline SVG at build time via Pele (`src/plugins/remark-pele.ts`)
 - Starlight custom CSS at `src/styles/starlight-theme.css`
 
 ## Agent skills

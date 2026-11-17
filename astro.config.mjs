@@ -4,18 +4,19 @@ import starlight from "@astrojs/starlight";
 import react from "@astrojs/react";
 
 import tailwindcss from "@tailwindcss/vite";
-import mermaid from "astro-mermaid";
 import starlightSidebarTopics from "starlight-sidebar-topics";
+import remarkPele from "./src/plugins/remark-pele.ts";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://docs.luckytime1996.dev",
+  markdown: {
+    // Astro 6 still runs remark plugins. Pele replaces ```mermaid fences
+    // with inline SVG before Starlight's rehype pipeline highlights code.
+    remarkPlugins: [remarkPele],
+  },
   integrations: [
     react(),
-    mermaid({
-      theme: "dark",
-      autoTheme: true,
-    }),
     starlight({
       title: "Adventurez",
       favicon: "/public/favicon.png",
