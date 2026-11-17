@@ -1,0 +1,493 @@
+---
+title: Jenkins
+description: A cheatsheet of Jenkins - controller, agent, and declarative Pipeline
+tags: [CI/CD, Jenkins]
+categories: [Technology]
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+[Jenkins](https://www.jenkins.io/) คือ automation server สำหรับ CI/CD ใช้กำหนด job แล้วให้ controller จัดคิว ส่วน build, test และ deploy ไปรันบน agent รองรับทั้ง Freestyle job และ Pipeline ที่เขียนไว้ใน Jenkinsfile
+
+คำสั่งและค่าในรูปแบบ `<...>` เป็น placeholder ให้แทนด้วยค่าจริงก่อนนำไปใช้ เครื่องหมายนี้เป็นสัญลักษณ์ในเอกสาร ไม่ใช่ syntax ของ Groovy หรือ shell
+
+## จุดเด่นของ Jenkins
+
+- **Pipeline as code** - เก็บขั้นตอน build ไว้ใน `Jenkinsfile` ข้างโค้ด แล้ว review ผ่าน Git ได้
+- **กระจายงานไป agent** - controller จัดคิว ส่วน build ไปรันบน node ที่ติด label ไว้
+- **Plugin** - ต่อ SCM, Docker, credentials และรายงาน test ผ่าน plugin โดยไม่ต้องแก้ core
+- **Multibranch และ Organization Folder** - สร้าง Pipeline ต่อ branch, pull request หรือทั้ง organization จาก repository
+
+## คำศัพท์
+
+| คำ | ความหมาย |
+| --- | --- |
+| controller | กระบวนการหลักของ Jenkins เก็บ config, จัดคิว build และเสิร์ฟ UI เอกสารเก่าเรียก master |
+| agent (node) | เครื่องที่รัน build ในหน้า Nodes เรียกว่า node รวม built-in node บน controller เอกสารเก่าเรียก agent ว่า slave |
+| executor | ช่องรันงานบน node หนึ่ง executor รับได้หนึ่ง build ในเวลาเดียวกัน |
+| Freestyle project | job ที่ประกอบ build step จากหน้า UI ไม่ต้องมี Jenkinsfile |
+| Pipeline | job ที่รัน declarative หรือ scripted Pipeline จาก script ใน job หรือจาก SCM |
+| Multibranch Pipeline | สแกน branch และ pull request ของ repository เดียว แล้วสร้าง Pipeline ให้แต่ละ branch |
+| Organization Folder | สแกน organization หรือ team แล้วสร้าง Multibranch Pipeline ให้แต่ละ repository ต้องมี branch source plugin เช่น GitHub หรือ Bitbucket |
+| Jenkinsfile | ไฟล์นิยาม Pipeline ใน repo ส่วนใหญ่ตั้งชื่อ `Jenkinsfile` |
+| declarative pipeline | Pipeline ในบล็อก `pipeline` มีส่วนที่กำหนดไว้ เช่น `agent`, `stages`, `steps` |
+| scripted pipeline | Pipeline ที่เป็น Groovy ทั่วไป มักเริ่มด้วย `node` ยืดหยุ่นกว่าแต่โครงสร้างไม่ตายตัว |
+| `pipeline` | บล็อกนอกสุดของ declarative วางที่ root ของ Jenkinsfile |
+| `agent` | กำหนดว่า pipeline หรือ stage รันบน node แบบไหน |
+| `stages` | กลุ่มของ `stage` ใน pipeline |
+| `stage` | หนึ่งช่วงของ pipeline เช่น Build, Test, Deploy มี `steps` หรือ `parallel` |
+| `steps` | คำสั่งที่รันใน stage เช่น `sh` และ `echo` |
+| `post` | งานที่ทำหลัง stage หรือทั้ง pipeline ตามผลของ build |
+| `environment` | กำหนดตัวแปรสภาพแวดล้อมระดับ pipeline หรือ stage |
+| `parameters` | ค่าที่กรอกตอนสั่ง build ใช้ได้ระดับ pipeline |
+| `triggers` | วิธีเริ่ม build อัตโนมัติ เช่น cron หรือ poll SCM ใช้ได้ระดับ pipeline |
+| `options` | ตัวเลือก เช่น timeout, retry และการเก็บบันทึก build |
+| `when` | เงื่อนไขว่า stage นี้จะรันหรือถูกข้าม |
+| workspace | directory บน agent ที่ใช้ checkout โค้ดและรันคำสั่งของ build นั้น |
+| build | การรัน job หนึ่งครั้ง อ้างด้วย `BUILD_NUMBER` |
+| artifact | ไฟล์ที่ archive ติดกับ build เพื่อดาวน์โหลดทีหลัง คนละอย่างกับ `stash` |
+| plugin | ส่วนขยายที่เพิ่ม step, หน้า UI หรือตัวเชื่อม SCM |
+| credentials | secret ที่เก็บใน Jenkins แล้วอ้างด้วย credentials ID จาก Jenkinsfile |
+| shared library | โค้ด Groovy ที่ใช้ซ้ำข้าม Pipeline โหลดจาก repository แยก |
+| SCM | ระบบเก็บโค้ด เช่น Git ที่ job ใช้ checkout |
+| webhook | การให้ SCM เรียก Jenkins เมื่อมี push แทนการ poll เป็นระยะ |
+| Blue Ocean | UI ทางเลือกสำหรับดู Pipeline เปิดที่ `/blue` โปรเจกต์อยู่ใน maintenance mode ไม่ได้เพิ่มฟีเจอร์ใหม่แล้ว |
+
+Scripted pipeline เริ่มที่ `node` แล้วเขียน Groovy ได้ตรง ๆ:
+
+```groovy
+// กำหนด node ที่จะรัน แล้วสั่ง step ใน stage
+node('<agent-label>') {
+    stage('Build') {
+        sh '<build-command>'
+    }
+}
+```
+
+Shared library ที่ไม่ได้ตั้ง Load implicitly ต้องประกาศที่บรรทัดบนสุดของ Jenkinsfile เครื่องหมาย `_` ทำให้ annotation ครอบทั้งไฟล์ หรือประกาศใน pipeline ด้วย `libraries { lib('<library-name>@<branch>') }`
+
+```groovy
+// โหลด shared library จาก branch ที่ระบุ
+@Library('<library-name>@<branch>') _
+```
+
+<ChatMessage message={'ตั้ง executor ของ built-in node บน controller เป็น `0` แล้วส่ง build ไปรันบน agent เพื่อไม่ให้ controller รับงาน compile หรือ test'} avatarKey="whiteCat" />
+
+## Declarative Jenkinsfile
+
+โครงนี้ใส่ directive ที่ใช้บ่อยไว้ครบ รายละเอียดของแต่ละก้อนอยู่ในหัวข้อถัดไป `stages` ต้องมีอย่างน้อยหนึ่ง stage
+
+```groovy
+pipeline {
+    agent any
+
+    options {
+        timeout(time: <minutes>, unit: 'MINUTES')
+        timestamps()
+    }
+
+    environment {
+        APP_NAME = '<app-name>'
+    }
+
+    parameters {
+        string(name: 'VERSION', defaultValue: '<version>', description: '<description>')
+    }
+
+    triggers {
+        pollSCM('<poll-cron>')
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                sh '<build-command>'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh '<test-command>'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'pipeline จบแล้ว'
+        }
+    }
+}
+```
+
+## agent
+
+`agent` วางที่ pipeline หรือใน stage ถ้า pipeline ใช้ `agent none` stage ที่ลงมือรันคำสั่งต้องกำหนด agent เอง บรรทัดด้านล่างเป็นรูปแบบที่ใช้ได้ ไม่ใช่ไฟล์ที่รันได้ทั้งก้อน
+
+```groovy
+// executor ว่างบน node ไหนก็ได้ รวม built-in node ถ้ายังเปิด executor ไว้
+agent any
+
+// ยังไม่จอง executor จนกว่า stage จะขอ agent
+agent none
+
+// node ที่มี label นี้
+agent {
+    label '<agent-label>'
+}
+
+// รัน steps ใน container ต้องมี Docker Pipeline plugin และ Docker บน node
+agent {
+    docker {
+        image '<image>:<tag>'
+        label '<agent-label>'
+        args '<docker-args>'
+        registryUrl '<registry-url>'
+        registryCredentialsId '<credentials-id>'
+    }
+}
+```
+
+`label` ในบล็อก `docker` คือ node ที่จะสั่ง `docker run` ไม่ใช่ label ของ container image สาธารณะตัด `registryUrl` กับ `registryCredentialsId` ออกได้ `<registry-url>` รวม scheme เช่น `https://<registry-host>`
+
+```groovy
+pipeline {
+    agent none
+    stages {
+        stage('Build') {
+            // จอง executor เฉพาะตอนถึง stage นี้
+            agent { label '<agent-label>' }
+            steps {
+                sh '<build-command>'
+            }
+        }
+    }
+}
+```
+
+## environment และ credentials
+
+`environment` ใช้ได้ทั้ง pipeline และ stage ชื่อซ้ำใน stage จะทับค่าของ pipeline `credentials()` มาจาก Credentials Binding plugin อ้าง ID ที่สร้างไว้ใน Manage Jenkins แล้ว ไม่ได้สร้าง secret ใหม่ใน Jenkinsfile
+
+- **Secret text** - ค่าอยู่ในตัวแปรชื่อนั้นตรง ๆ
+- **Username with password** - `<name>` เป็น `username:password` และมี `<name>_USR` กับ `<name>_PSW` เพิ่ม
+- **Secret file** - ค่าคือ path ของไฟล์ชั่วคราวบน agent
+
+```groovy
+environment {
+    REGISTRY_HOST = '<registry-host>'
+    REGISTRY_CREDENTIALS = credentials('<credentials-id>')
+}
+```
+
+`withCredentials` ผูก secret เฉพาะในบล็อกที่ครอบ และพยายาม mask ค่าใน console log
+
+```groovy
+steps {
+    withCredentials([
+        usernamePassword(
+            credentialsId: '<credentials-id>',
+            usernameVariable: 'REGISTRY_USER',
+            passwordVariable: 'REGISTRY_PASSWORD'
+        ),
+        string(credentialsId: '<api-token-id>', variable: 'API_TOKEN')
+    ]) {
+        // ใช้ตัวแปรใน shell ได้เฉพาะในบล็อกนี้
+        sh 'curl --silent --header "Authorization: Bearer $API_TOKEN" <api-url>'
+    }
+}
+```
+
+<ChatMessage message={'อย่า echo secret หรือเอาไปต่อเป็นสตริงใหม่ก่อนพิมพ์. Jenkins mask ค่าเดิมจาก `withCredentials` ได้ แต่ข้อความที่ประกอบขึ้นมาทีหลังอาจหลุดลง log'} avatarKey="blackCat" />
+
+## parameters
+
+พารามิเตอร์อยู่ระดับ pipeline เท่านั้น เข้าถึงด้วย `params.<name>` และถูกส่งเข้า environment ในชื่อเดียวกันด้วย ลิงก์ Build with Parameters จะโผล่หลัง Jenkins โหลด Jenkinsfile ที่มี `parameters` แล้ว build แรกใช้ `defaultValue`
+
+```groovy
+parameters {
+    string(name: 'VERSION', defaultValue: '<version>', description: '<description>')
+    text(name: 'RELEASE_NOTES', defaultValue: '<notes>', description: '<description>')
+    booleanParam(name: 'DEPLOY', defaultValue: false, description: '<description>')
+    choice(name: 'DEPLOY_ENV', choices: ['<env-a>', '<env-b>'], description: '<description>')
+    password(name: 'API_TOKEN', defaultValue: '', description: '<description>')
+}
+```
+
+```groovy
+steps {
+    echo "version=${params.VERSION} deploy=${params.DEPLOY}"
+}
+```
+
+<ChatMessage message="อย่าใส่ secret จริงลง defaultValue ของ password parameter ค่านั้นถูกเก็บใน config ของ job ใช้ credentials แทน" avatarKey="blackCat" />
+
+## when
+
+`when` อยู่ภายใน `stage` ก่อน `steps` ถ้าเงื่อนไขไม่จริง Jenkins ข้าม stage นั้น รูปแบบสั้นของ `branch` และ `tag` เป็น Ant-style pattern จึงใช้ `*` ได้ เงื่อนไขด้านล่างเป็นชิ้นส่วนให้วางใน stage ไม่ใช่ Jenkinsfile ทั้งไฟล์
+
+```groovy
+when { branch '<branch-pattern>' }
+when { tag '<tag-pattern>' }
+when { changeset '<path-glob>' }
+when { expression { return params.DEPLOY == true } }
+when { environment name: '<variable-name>', value: '<expected-value>' }
+
+when {
+    // ต้องจริงทุกข้อ
+    allOf {
+        branch '<branch-pattern>'
+        expression { return params.DEPLOY == true }
+    }
+}
+
+when {
+    // จริงข้อใดข้อหนึ่ง
+    anyOf {
+        branch '<branch-pattern>'
+        tag '<tag-pattern>'
+    }
+}
+
+when {
+    not { branch '<branch-pattern>' }
+}
+```
+
+`changeset` ดูไฟล์ที่เปลี่ยนใน build นั้นเทียบจาก root ของ repo และใช้ได้เมื่อมี changelog ซึ่งมากับ Multibranch Pipeline `environment` เทียบชื่อตัวแปรกับค่าแบบตรงตัว
+
+<ChatMessage message={'`branch` และ `tag` อ่าน `BRANCH_NAME` กับ `TAG_NAME` ซึ่ง Multibranch Pipeline เป็นคนตั้ง บน pull request ของ GitHub ค่า `BRANCH_NAME` มักเป็น `PR-<id>` ไม่ใช่ชื่อ branch ต้นทาง'} avatarKey="whiteCat" />
+
+## post
+
+`post` วางท้าย pipeline หรือท้าย stage ได้ หลายเงื่อนไขรันใน build เดียวกันได้ เช่น `always` กับ `success` ส่วน `failure` ไม่รวมสถานะ unstable
+
+```groovy
+post {
+    always {
+        echo 'รันทุกสถานะ รวมถึงถูก abort'
+    }
+    success {
+        echo 'build สำเร็จ'
+    }
+    failure {
+        echo 'build ล้มเหลว'
+    }
+    unstable {
+        echo 'build unstable เช่น test fail จาก junit'
+    }
+    cleanup {
+        // รันท้ายสุดหลัง post อื่น แม้บล็อกก่อนหน้าจะพัง
+        // เอา deleteDir() ออกถ้ายังต้องใช้ไฟล์ใน workspace หลังจบ
+        deleteDir()
+    }
+}
+```
+
+`deleteDir()` ลบไฟล์ใน workspace ปัจจุบันบน agent
+
+## options
+
+บล็อกนี้เป็นระดับ pipeline `timeout` กับ `retry` ย้ายไปใส่ใน stage ได้ถ้าอยากจำกัดเฉพาะช่วงนั้น `retry` ระดับ pipeline จะรันใหม่ทั้งก้อน
+
+```groovy
+options {
+    // หน่วยที่ใช้ได้: SECONDS, MINUTES, HOURS, DAYS ครบเวลาแล้ว build ถูก abort
+    timeout(time: <minutes>, unit: 'MINUTES')
+    // จำนวนครั้งที่ลองใหม่เมื่อ pipeline ล้มเหลว
+    retry(<retry-count>)
+    // ค่าจำนวนต้องเป็น string
+    buildDiscarder(logRotator(numToKeepStr: '<keep-count>', artifactNumToKeepStr: '<artifact-keep-count>'))
+    // กันไม่ให้ job เดียวกันรันซ้อน
+    // ถ้าอยากยกเลิกตัวที่กำลังรันแล้วเริ่มตัวใหม่: disableConcurrentBuilds(abortPrevious: true)
+    disableConcurrentBuilds()
+    // ต้องมี Timestamper plugin เติมเวลาข้างหน้าแต่ละบรรทัดใน log
+    timestamps()
+}
+```
+
+<ChatMessage message={'stage ที่ล้มเหลวเป็นครั้งคราว ให้ใส่ `retry` ใน `options` ของ stage นั้น จะได้ไม่ต้องรันขั้นที่ผ่านแล้วซ้ำทั้ง pipeline'} avatarKey="whiteCat" />
+
+## triggers
+
+`triggers` อยู่ระดับ pipeline `pollSCM` จะ build เมื่อ SCM มีการเปลี่ยนแปลง `cron` จะ build ตามเวลาแม้ไม่มี commit ใหม่ `upstream` จะ build เมื่อ job อื่นจบ
+
+```groovy
+triggers {
+    pollSCM('<poll-cron>')
+    cron('<build-cron>')
+    upstream(upstreamProjects: '<job-name>', threshold: hudson.model.Result.SUCCESS)
+}
+```
+
+รูปแบบ cron ของ Jenkins มี 5 ช่อง: นาที, ชั่วโมง, วันในเดือน, เดือน, วันในสัปดาห์ `H` คือเลขที่ Jenkins คำนวณจากชื่อ job เช่น `H/15 * * * *` คือทุก 15 นาทีโดยไม่ยิงทุก job พร้อมกัน หลาย job ใน `upstreamProjects` คั่นด้วยจุลภาค `<job-a>,<job-b>` ค่า `threshold` หมายถึงผลที่เท่ากันหรือดีกว่าถึงจะเริ่ม build SUCCESS ดีกว่า UNSTABLE และ UNSTABLE ดีกว่า FAILURE
+
+`pollSCM` ใน Jenkinsfile คนละอย่างกับการ scan หา branch ใหม่ของ Multibranch Pipeline การ scan ตั้งที่ตัว job หรือให้ SCM ยิง webhook มาเมื่อมี push
+
+## steps ที่ใช้บ่อย
+
+บน Windows agent ให้ใช้ `bat` แทน `sh` ตัวอย่างด้านล่างเป็นชิ้นส่วนใน `steps` หรือ `stage` ไม่ต้องวางเรียงแบบนี้ใน stage เดียว
+
+### sh, echo, script, dir
+
+`script` ใช้เมื่อต้องเก็บค่ากลับจาก step หรือเขียน Groovy ใน declarative `sh` ที่อยู่นอก `script` เรียกอย่างเดียวแล้วทิ้งค่าที่คืน
+
+```groovy
+steps {
+    echo "build ${env.BUILD_NUMBER}"
+    sh '<build-command>'
+    dir('<subdirectory>') {
+        sh '<test-command>'
+    }
+    script {
+        // returnStdout คืนข้อความจากคำสั่ง ใช้ได้ในบล็อก script
+        def commit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        echo commit
+    }
+}
+```
+
+### stash และ archiveArtifacts
+
+`stash` ส่งไฟล์ไปอีก stage หรืออีก agent ภายใน build เดียวกัน ของใน stash ไม่ได้โชว์เป็นไฟล์ดาวน์โหลดบนหน้า build `archiveArtifacts` เก็บไฟล์ไว้กับ build
+
+```groovy
+steps {
+    stash name: '<stash-name>', includes: '<path-glob>'
+    unstash '<stash-name>'
+    archiveArtifacts artifacts: '<artifact-glob>', fingerprint: true
+    junit '<junit-report-glob>'
+}
+```
+
+ถ้า glob ของ `archiveArtifacts` หรือ `junit` ไม่เจอไฟล์ step จะ fail `junit` ที่เจอ test ไม่ผ่านจะตั้ง build เป็น unstable ไม่ใช่ failure ต้องมี JUnit plugin
+
+### input
+
+`input` หยุดรอคนกดต่อจากหน้า build ถ้ากด abort แล้ว build จะถูกยกเลิก
+
+```groovy
+stage('Approve') {
+    agent none
+    steps {
+        input message: '<message>', ok: '<ok-button>'
+    }
+}
+```
+
+<ChatMessage message={'stage ที่รอ `input` ควรใช้ `agent none` ไม่งั้น executor จะถูกจองตลอดเวลาที่รอคนกด'} avatarKey="blackCat" />
+
+### parallel
+
+stage ที่มี `parallel` ไม่ใส่ `steps` คู่กัน แต่ละสาขาย่อยเป็น `stage` ของตัวเอง และกำหนด `agent` แยกได้
+
+```groovy
+stage('Checks') {
+    parallel {
+        stage('Unit') {
+            steps {
+                sh '<unit-command>'
+            }
+        }
+        stage('Lint') {
+            steps {
+                sh '<lint-command>'
+            }
+        }
+    }
+}
+```
+
+### checkout
+
+declarative checkout SCM ของ job ให้อัตโนมัติเมื่อเข้า agent ถ้าจะ checkout เองทั้งก้อน ให้ใส่ `skipDefaultCheckout()` ใน `options` แล้วเรียก `checkout scm` จุดที่ต้องการ `git` ใช้เมื่อต้องชี้ repository เอง และต้องมี Git plugin
+
+```groovy
+steps {
+    // ใช้ SCM ที่ผูกกับ job นี้อยู่แล้ว
+    checkout scm
+
+    // ชี้ repository เอง
+    git branch: '<branch>',
+        credentialsId: '<credentials-id>',
+        url: '<git-url>'
+}
+```
+
+## ตัวแปร environment
+
+ตัวแปรเหล่านี้ Jenkins หรือ plugin เป็นคนตั้งให้ อ่านด้วย `env.<name>` ใน Groovy หรือใน shell ผ่านชื่อตัวแปรนั้น
+
+| Variable | Description | Example |
+| --- | --- | --- |
+| `BUILD_NUMBER` | เลขลำดับของ build ใน job นั้น เป็น string และเพิ่มทุกครั้งที่รัน | `<build-number>` |
+| `BRANCH_NAME` | ชื่อ branch ที่ Multibranch Pipeline กำลัง build บน pull request ของ GitHub มักเป็น `PR-<id>` | `<branch-name>` |
+| `TAG_NAME` | ชื่อ tag เมื่อ build นั้นมาจาก tag ถ้าไม่ใช่ tag จะว่าง | `<tag-name>` |
+| `GIT_COMMIT` | commit SHA ที่ Git plugin checkout มา มีค่าหลัง checkout | `<git-commit>` |
+| `WORKSPACE` | path ของ workspace บน agent ที่รัน stage นั้น | `<workspace-path>` |
+| `JOB_NAME` | ชื่อ job รวมโฟลเดอร์ คั่นด้วย `/` | `<folder>/<job-name>` |
+| `CHANGE_ID` | เลข pull request หรือ change request ว่างเมื่อ build นั้นไม่ใช่ change | `<change-id>` |
+
+## Build และ push image
+
+ต้องมี Docker Pipeline plugin และ agent ที่ใช้ Docker ได้ `docker.withRegistry` login ให้ก่อน แล้ว `docker.build` สร้าง image จาก Dockerfile (`docker build -t`) และ `image.push()` ส่งขึ้น registry (`docker push`) ชื่อ image ไม่ต้องใส่ host ของ registry ซ้ำ credentials ID เป็นแบบ username/password ของ registry
+
+```groovy
+stage('Push image') {
+    steps {
+        script {
+            // registry URL รวม scheme เช่น https://<registry-host>
+            docker.withRegistry('<registry-url>', '<credentials-id>') {
+                // ใช้ double quote เมื่อต้องแทรกค่าจาก Groovy argument ที่สองเป็น argument ของ docker build
+                def image = docker.build("<image>:${env.BUILD_NUMBER}")
+                image.push()
+            }
+        }
+    }
+}
+```
+
+ถ้า tag เป็นค่าคงที่ ให้ใช้ `docker.build('<image>:<tag>')` แทน
+
+## รัน Jenkins ด้วย Docker
+
+image `jenkins/jenkins:lts` คือ Jenkins LTS พอร์ต 8080 เป็นเว็บ UI พอร์ต 50000 เป็นพอร์ต inbound agent volume ที่ mount ไป `/var/jenkins_home` เก็บ job และ plugin ไว้ข้ามการสร้าง container ใหม่
+
+```bash
+# เปิด Jenkins LTS แล้วเก็บ home ไว้ใน volume
+docker run --detach \
+  --name <container-name> \
+  --publish 8080:8080 \
+  --publish 50000:50000 \
+  --volume <volume-name>:/var/jenkins_home \
+  jenkins/jenkins:lts
+
+# อ่านรหัส admin ครั้งแรกจากใน container
+docker exec <container-name> cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+เปิด `http://localhost:8080` แล้วใส่รหัสจากคำสั่งด้านบน รหัสนี้ใช้ตอน unlock ครั้งแรก หลังสร้าง user แล้วให้เข้าด้วย user นั้น รหัสชุดเดียวกันอยู่ใน log ของ container ระหว่างบรรทัดดอกจัน ดูได้จาก `docker logs <container-name>`
+
+<ChatMessage message="อย่า mount โฟลเดอร์ว่างจาก host ทับ jenkins_home แล้วคาดว่า container จะเขียนได้ image นี้รันด้วย user jenkins ไม่ใช่ root named volume ไม่ติดปัญหานี้" avatarKey="blackCat" />
+
+## URL ที่ใช้บ่อย
+
+path เหล่านี้ต่อท้าย Jenkins root ถ้าตั้ง context path ไว้ ให้ใส่ prefix นั้นข้างหน้าด้วย
+
+| Path | ใช้ทำอะไร |
+| --- | --- |
+| `/restart` | restart ทันที build ที่กำลังรันจะถูกตัด |
+| `/safeRestart` | หยุดรับงานใหม่ แล้ว restart เมื่อ build ที่ค้างอยู่จบ |
+| `/script` | Script Console สำหรับรัน Groovy บน controller |
+| `/pipeline-syntax` | หน้า Pipeline Syntax มี Snippet Generator สำหรับ step และ Declarative Directive Generator สำหรับ directive |
+
+Snippet Generator ไม่ได้แยกเป็น path ของตัวเอง มันเป็นแท็บใน `/pipeline-syntax` เลือก step แล้วกด Generate Pipeline Script จะได้โค้ดไปวางใน `steps`
+
+<ChatMessage message={'`/script` รัน Groovy ด้วยสิทธิ์ของ controller ได้ และ `/restart` ตัด build ที่กำลังทำงาน ทั้งคู่ควรจำกัดไว้ที่ admin'} avatarKey="blackCat" />
+
+## Useful Links
+
+- [Jenkins Documentation](https://www.jenkins.io/doc/)
+- [Pipeline Syntax](https://www.jenkins.io/doc/book/pipeline/syntax/)
+- [Using Docker with Pipeline](https://www.jenkins.io/doc/book/pipeline/docker/)
+- [Installing Jenkins with Docker](https://www.jenkins.io/doc/book/installing/docker/)
+- [Jenkins GitHub](https://github.com/jenkinsci/jenkins)
