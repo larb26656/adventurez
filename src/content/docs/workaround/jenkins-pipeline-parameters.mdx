@@ -1,0 +1,290 @@
+---
+title: ใช้ Parameters ใน Jenkins Declarative Pipeline
+description: ตั้ง parameters ใน Jenkinsfile แล้วอ่านด้วย params และ env เพื่อเลือก environment, ระบุ image tag, บังคับ build, ข้าม test หรือ dry run
+tags: [Jenkins, CI/CD]
+publishedAt: "2026-11-18T01:23:00"
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+บล็อก `parameters {}` ใน Declarative Pipeline รับค่าตอนกด build โดยไม่ต้องแก้ Jenkinsfile ทุกครั้งที่ต้องเปลี่ยน environment, image tag, บังคับ build, ข้าม test หรือลอง dry run
+
+ค่าที่อยู่ใน `<...>` เป็น placeholder ให้แทนด้วยชื่อจริงก่อนเอาไปใช้
+
+## ประกาศ parameters
+
+วาง `parameters {}` ไว้ใน `pipeline {}` ชื่อ parameter ใช้ตัวพิมพ์ใหญ่ที่ตั้งเป็น environment variable ได้ เช่น `IMAGE_TAG` ไม่ใส่ช่องว่างหรือขีด
+
+| ชนิด | ใช้เมื่อ | ค่าใน `params` |
+|------|----------|----------------|
+| `string` | ข้อความบรรทัดเดียว เช่น image tag | String |
+| `booleanParam` | เปิดหรือปิด เช่น บังคับ build | Boolean |
+| `choice` | เลือกจากรายการคงที่ | String ตามตัวเลือก |
+| `text` | ข้อความหลายบรรทัด เช่น release note | String |
+| `password` | ค่าที่ไม่อยากให้เห็นตอนกรอก | String ที่ log พยายาม mask |
+
+```groovy
+pipeline {
+  agent any
+
+  parameters {
+    string(
+      name: 'IMAGE_TAG',
+      defaultValue: '<default-tag>',
+      description: 'Image tag ที่จะ deploy หรือ rollback',
+      trim: true
+    )
+    booleanParam(
+      name: 'FORCE_BUILD',
+      defaultValue: false,
+      description: 'Build แม้ changeset จะไม่ตรง'
+    )
+    choice(
+      name: 'DEPLOY_ENV',
+      choices: ['dev', 'staging', 'prod'],
+      description: 'Environment ปลายทาง'
+    )
+    text(
+      name: 'RELEASE_NOTE',
+      defaultValue: '',
+      description: 'บันทึกสั้น ๆ ของรอบนี้'
+    )
+    password(
+      name: 'DEPLOY_TOKEN',
+      defaultValue: '',
+      description: 'Token ชั่วคราวสำหรับรอบที่กดมือ'
+    )
+    booleanParam(
+      name: 'SKIP_TESTS',
+      defaultValue: false,
+      description: 'ข้าม stage Test'
+    )
+    booleanParam(
+      name: 'DRY_RUN',
+      defaultValue: false,
+      description: 'ซ้อม deploy โดยไม่ apply'
+    )
+  }
+
+  stages {
+    stage('Show') {
+      steps {
+        echo "env=${params.DEPLOY_ENV} tag=${params.IMAGE_TAG}"
+      }
+    }
+  }
+}
+```
+
+`choice` ไม่มี `defaultValue` แยก ตัวเลือกแรกใน `choices` คือค่าเริ่มต้น ในตัวอย่างนี้คือ `dev` ส่วน `trim: true` บน `string` ตัดช่องว่างหัวท้าย กัน tag ที่คัดลอกมาแล้วติด space
+
+`text` อ่านแบบเดียวกับ `string` ผ่าน `params.RELEASE_NOTE` ใช้กับข้อความหลายบรรทัด ไม่ใช้ต่อท้ายคำสั่ง shell
+
+<ChatMessage message="อย่าใส่ secret จริงใน defaultValue ของ password ค่านั้นถูกเก็บใน job definition คนที่เปิด config จะเห็น ให้ใช้ Credentials Binding (withCredentials) สำหรับ credential ประจำ และสงวน password parameter ไว้กับค่าชั่วคราวที่ส่งเข้ามาเฉพาะรอบนั้น" avatarKey="blackCat" />
+
+## อ่านด้วย params.NAME และ env
+
+ใน Groovy เช่น `script` และ `when` ใช้ `params.NAME` อย่าอ้างชื่อเปล่า ๆ อย่าง `IMAGE_TAG` ใน Groovy เพราะรอบแรกที่ parameter ยังไม่ถูก inject จะเจอ `MissingPropertyException`
+
+ใน `sh` Jenkins ส่ง parameter เข้า environment ของ build ด้วยชื่อเดียวกัน อ้างด้วย `$IMAGE_TAG` หรือ `${IMAGE_TAG}`
+
+```groovy
+stage('Read') {
+  steps {
+    script {
+      if (params.FORCE_BUILD == true) {
+        echo 'force build'
+      }
+    }
+    // single quote ให้ shell ขยาย env เอง Groovy จะได้ไม่แทรกค่าลงสคริปต์
+    sh 'echo "deploy ${DEPLOY_ENV} tag ${IMAGE_TAG}"'
+  }
+}
+```
+
+`params.FORCE_BUILD` เป็น boolean แต่ใน shell ชื่อเดียวกันกลายเป็นข้อความ `"true"` หรือ `"false"`
+
+```bash
+if [ "$FORCE_BUILD" = "true" ]; then
+  echo "forced"
+fi
+```
+
+รอบแรกที่เพิ่งเพิ่ม parameter `params.IMAGE_TAG` อาจเป็น `null` ทั้งที่เขียน `defaultValue` ไว้แล้ว อย่าใช้ `?:` กับ boolean เพราะใน Groovy ค่า `false` เป็น falsy จะถูกแทนด้วยค่าสำรองทุกครั้ง
+
+```groovy
+// string ว่างหรือ null ค่อยตกไปค่าสำรอง
+def imageTag = params.IMAGE_TAG?.trim() ?: '<default-tag>'
+
+// เทียบตรง ๆ รอบที่ยังเป็น null จะได้ false ตาม default
+def forceBuild = params.FORCE_BUILD == true
+def skipTests = params.SKIP_TESTS == true
+def dryRun = params.DRY_RUN == true
+```
+
+<ChatMessage message="อย่า echo `params.DEPLOY_TOKEN` หรือ `$DEPLOY_TOKEN` และอย่าต่อค่านี้เข้า command line ค่าจะไปอยู่ใน process list ได้ แม้ Jenkins จะพยายาม mask ใน console log" avatarKey="blackCat" />
+
+## ฟอร์มอัปเดตหลังรัน Jenkinsfile ครั้งแรก
+
+Jenkins ไม่อ่าน `parameters {}` มาวาดฟอร์มตอน push. มันบันทึกนิยาม parameter ลง job ตอนที่มี build รัน Jenkinsfile นั้น ทั้ง Pipeline job ธรรมดาและ Multibranch
+
+ลำดับที่เจอบ่อย:
+
+1. เพิ่มหรือแก้ `parameters {}` แล้ว push
+2. หน้า job ยังไม่มีปุ่ม **Build with Parameters** หรือฟอร์มยังเป็นชุดเก่า
+3. กด **Build Now** สักครั้ง หรือรอ SCM/webhook ยิงมา เพื่อให้ Jenkins โหลด Jenkinsfile ใหม่
+4. พอบิลด์นั้นประมวลผลบล็อก `parameters` แล้ว ฟอร์มถึงเปลี่ยน รอบถัดไปกด **Build with Parameters** จึงเห็นช่องใหม่
+
+บิลด์รอบที่เพิ่งแนะนำ parameter มักยังไม่มีค่าจากฟอร์ม `params.NAME` จึงเป็น `null` ได้ ให้กันค่านี้ใน Jenkinsfile ตามด้านบน
+
+การแก้ `defaultValue` ก็ใช้ลำดับเดียวกัน บิลด์ที่รันไฟล์ใหม่ยังถือค่าที่ถูกส่งมา หรือ default เก่าที่ job จำไว้ ส่วน default ใหม่มีผลตั้งแต่บิลด์ถัดไป
+
+<ChatMessage message="ถ้าเปลี่ยนชนิดของชื่อเดิม เช่น จาก string เป็น booleanParam ให้รันหนึ่งครั้งเพื่ออัปเดตนิยาม แล้วค่อยกด Build with Parameters ใหม่ ถ้าค่าที่ส่งมายังเพี้ยน ลบ parameter ชื่อนั้นออกจากหน้า configure ของ job แล้วรันซ้ำ" avatarKey="whiteCat" />
+
+## Default ตอนกดมือ กับตอน SCM หรือ webhook
+
+- **Build with Parameters**: คนกดเลือกเอง ช่องที่ไม่ได้แก้จะส่งค่าที่ฟอร์มแสดง ค่านั้นมาจากนิยามที่ job จำไว้หลังรอบที่แล้ว
+- **Build Now**, SCM poll, webhook และ cron ไม่เปิดฟอร์ม. Jenkins ใส่ default ที่บันทึกไว้ให้ทุก parameter
+- Webhook บางแบบส่งค่ามาทับ default ได้ ถ้าไม่ได้ map ไว้ รอบนั้นได้ default
+
+ค่าที่รอบอัตโนมัติใช้จึงต้องปลอดภัย: `FORCE_BUILD`, `SKIP_TESTS` และ `DRY_RUN` เป็น `false` ตัวแรกของ `DEPLOY_ENV` เป็น `dev` และ `IMAGE_TAG` เป็น tag ที่ deploy ซ้ำได้ ไม่ใช่ค่าว่าง
+
+## ข้ามหรือเปิด stage ด้วย when
+
+`when { expression { ... } }` อ่าน `params` ได้ และถูกเช็คก่อนทำ steps ของ stage
+
+```groovy
+stage('Test') {
+  when {
+    beforeAgent true
+    expression { return params.SKIP_TESTS != true }
+  }
+  steps {
+    sh 'npm test'
+  }
+}
+```
+
+ใช้ `!= true` ไม่ใช่ `== false` รอบแรกที่ค่ายังเป็น `null` จะยังรัน test ซึ่งตรงกับ default ที่ไม่ข้าม test ส่วน `beforeAgent true` ทำให้ไม่จอง agent ถ้า stage ถูกข้าม
+
+## ตัวอย่างที่ใช้บ่อย
+
+ตัวอย่างด้านล่างเป็น stage สำหรับใส่ใน `stages` ของ Jenkinsfile ชุดเดียวกับ `parameters {}` ด้านบน
+
+### FORCE_BUILD เมื่อ changeset ไม่ตรง
+
+ใช้เมื่อ stage ถูกข้ามเพราะ `changeset` ไม่ชน path ที่สนใจ แต่ต้องบังคับรันจากปุ่ม เช่น แก้แค่ Jenkinsfile หรือ rebuild image เดิม
+
+```groovy
+stage('Build') {
+  when {
+    anyOf {
+      changeset '<service-path>/**'
+      expression { return params.FORCE_BUILD == true }
+    }
+  }
+  steps {
+    sh 'docker build -t <registry>/<image>:${IMAGE_TAG} <service-path>'
+  }
+}
+```
+
+`changeset` เทียบไฟล์ที่เปลี่ยนในบิลด์นี้กับบิลด์ก่อน บิลด์แรกหรือบิลด์ที่ไม่มี changelog จะไม่เข้าเงื่อนไข path ต้องติ๊ก `FORCE_BUILD` ถ้าต้องการให้รัน
+
+### เลือก environment ด้วย choice
+
+วาง `dev` ไว้ตัวแรก จึงเป็นค่าของรอบที่ไม่มีคนกดฟอร์ม stage ของ `prod` แยกออกมา และถามก่อนลงมือเฉพาะเมื่อเลือก `prod`
+
+```groovy
+stage('Deploy') {
+  when {
+    expression { return params.DEPLOY_ENV != 'prod' && params.DRY_RUN != true }
+  }
+  steps {
+    sh '''
+      case "$DEPLOY_ENV" in
+        dev|staging)
+          kubectl -n "$DEPLOY_ENV" set image deployment/<deployment> \
+            <container>=<registry>/<image>:${IMAGE_TAG}
+          ;;
+        *)
+          echo "unknown DEPLOY_ENV: $DEPLOY_ENV" >&2
+          exit 1
+          ;;
+      esac
+    '''
+  }
+}
+
+stage('Deploy prod') {
+  when {
+    beforeInput true
+    expression { return params.DEPLOY_ENV == 'prod' && params.DRY_RUN != true }
+  }
+  input {
+    message 'Deploy <registry>/<image> ไป prod ด้วย tag ที่เลือก?'
+  }
+  steps {
+    sh 'kubectl -n "$DEPLOY_ENV" set image deployment/<deployment> <container>=<registry>/<image>:${IMAGE_TAG}'
+  }
+}
+```
+
+<ChatMessage message="อย่าวาง prod เป็นตัวเลือกแรกของ choice รอบที่ webhook หรือ cron ยิงมาจะได้ค่านั้นโดยไม่มีคนกดฟอร์ม วาง dev ไว้แรกสุด แล้วให้คนกด Build with Parameters เลือก staging หรือ prod เอง ถ้า stage มี input ต้องใส่ beforeInput true ใน when ไม่งั้น Jenkins ถามก่อนเช็คเงื่อนไข และรอบที่ไม่ใช่ prod ก็โดนถามด้วย" avatarKey="blackCat" />
+
+### string สำหรับ image tag และ rollback
+
+Rollback ใช้ pipeline เดิม: กด **Build with Parameters** แล้วใส่ tag เก่าใน `IMAGE_TAG` เช่น `<previous-tag>` ไม่ต้องแยก job
+
+ถ้า deploy ด้วย Helm ให้ใช้คำสั่งนี้ใน stage Deploy แทน `kubectl set image` ด้านบน อย่าวางทั้งสองคำสั่งพร้อมกัน ไม่งั้นจะ apply สองรอบ
+
+```groovy
+stage('Deploy tag') {
+  when {
+    expression { return params.DRY_RUN != true }
+  }
+  steps {
+    sh '''
+      if [ -z "$IMAGE_TAG" ]; then
+        echo "IMAGE_TAG is empty" >&2
+        exit 1
+      fi
+      helm upgrade --install <release> <chart> \
+        --namespace "$DEPLOY_ENV" \
+        --set image.tag="$IMAGE_TAG"
+    '''
+  }
+}
+```
+
+เช็คค่าว่างใน shell ด้วย เพราะรอบแรกหรือรอบที่ default ยังไม่อัปเดต `params.IMAGE_TAG` อาจเป็น `null` แล้ว env จะว่าง
+
+### ข้าม test หรือเปิด dry run
+
+stage Test ด้านบนข้ามเมื่อติ๊ก `SKIP_TESTS` stage ด้านล่างรันเฉพาะตอนติ๊ก `DRY_RUN` และไม่ apply ของจริง
+
+```groovy
+stage('Deploy plan') {
+  when {
+    expression { return params.DRY_RUN == true }
+  }
+  steps {
+    sh '''
+      helm upgrade --install <release> <chart> \
+        --namespace "$DEPLOY_ENV" \
+        --set image.tag="$IMAGE_TAG" \
+        --dry-run
+    '''
+  }
+}
+```
+
+| ต้องการ | ใช้อะไร |
+|---------|---------|
+| Rebuild ทั้งที่ path ไม่เปลี่ยน | `FORCE_BUILD` รวมกับ `changeset` ใน `anyOf` |
+| เลือก dev / staging / prod | `choice` ชื่อ `DEPLOY_ENV` โดยวาง `dev` ไว้แรก |
+| Deploy หรือ rollback ตาม tag | `string` ชื่อ `IMAGE_TAG` พร้อม `trim: true` |
+| ข้าม test ชั่วคราว | `SKIP_TESTS` แล้วเช็ค `!= true` ใน `when` |
+| ซ้อม deploy | `DRY_RUN` แล้วแยก stage ที่ใส่ `--dry-run` |
+
+<ChatMessage message="ตั้ง default ให้ปลอดภัยสำหรับรอบที่ไม่มีคนกดฟอร์ม: ไม่ force build, ไม่ skip test, ไม่ dry run, environment เป็น dev และ image tag เป็นค่าที่ deploy ซ้ำได้ จากนั้นกัน null ของรอบแรกใน Jenkinsfile ด้วย `== true` สำหรับ boolean และ `?:` เฉพาะ string" avatarKey="whiteCat" />
