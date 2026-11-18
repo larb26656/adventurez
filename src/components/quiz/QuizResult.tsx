@@ -12,78 +12,61 @@ export function QuizResult({ questions, answers, onRetry }: QuizResultProps) {
   const earnedPoints = answers.reduce((sum, a) => sum + a.points, 0);
   const percentage = Math.round((earnedPoints / totalPoints) * 100);
 
-  const getGrade = () => {
-    if (percentage >= 80)
-      return { text: "ดีเยี่ยม!", color: "text-[--sl-color-accent-high]" };
-    if (percentage >= 60)
-      return { text: "ดี", color: "text-[--sl-color-accent]" };
-    if (percentage >= 40)
-      return { text: "พอใช้", color: "text-[--sl-color-gray-3]" };
-    return { text: "ควรทบทวน", color: "text-red-500" };
-  };
-
-  const grade = getGrade();
+  const grade =
+    percentage >= 80
+      ? { text: "ดีเยี่ยม!", tone: "quiz-grade--great" }
+      : percentage >= 60
+        ? { text: "ดี", tone: "quiz-grade--good" }
+        : percentage >= 40
+          ? { text: "พอใช้", tone: "quiz-grade--ok" }
+          : { text: "ควรทบทวน", tone: "quiz-grade--review" };
 
   return (
-    <div className="max-w-2xl mx-auto text-center">
-      <h3 className="text-lg font-semibold mb-4 text-border-gray-100">
-        ผลการทดสอบ
-      </h3>
+    <div className="quiz-result">
+      <h3 className="quiz-result-title">ผลการทดสอบ</h3>
 
-      <div className="mb-4">
-        <div className="text-3xl font-bold mb-1 text-border-gray-100">
-          {percentage}%
-        </div>
-        <div className={`text-base font-medium ${grade.color}`}>
-          {grade.text}
-        </div>
-        <p className="text-sm text-[--sl-color-gray-3]">
+      <div>
+        <div className="quiz-result-percent">{percentage}%</div>
+        <div className={`quiz-grade ${grade.tone}`}>{grade.text}</div>
+        <p className="quiz-result-score">
           ได้คะแนน {earnedPoints} / {totalPoints} คะแนน
         </p>
       </div>
 
-      <div className="text-left space-y-2 mb-4">
-        <h4 className="font-medium text-sm text-border-gray-100">สรุปคำตอบ:</h4>
-        {questions.map((q, idx) => {
-          const answer = answers.find((a) => a.questionId === q.id);
-          return (
-            <div
-              key={q.id}
-              className={`p-2 rounded-lg border ${
-                answer?.isCorrect
-                  ? "bg-green-500/10 border-green-500"
-                  : "bg-red-500/10 border-red-500"
-              }`}
-            >
-              <div className="flex items-start gap-2">
-                <span
-                  className={
-                    answer?.isCorrect ? "text-green-500" : "text-red-500"
-                  }
-                >
-                  {answer?.isCorrect ? "✓" : "✗"}
-                </span>
-                <div>
-                  <p className="text-sm text-border-gray-100">{q.question}</p>
-                  <p className="text-xs text-border-gray-100">
-                    คำตอบ:{" "}
-                    {Array.isArray(answer?.answer)
-                      ? answer.answer.join(", ")
-                      : answer?.answer}
-                  </p>
-                  {!answer?.isCorrect && (
-                    <p className="text-xs text-border-gray-100">
-                      เฉลย:{" "}
-                      {Array.isArray(q.correctAnswer)
-                        ? q.correctAnswer.join(", ")
-                        : q.correctAnswer}
+      <div className="quiz-summary">
+        <h4 className="quiz-summary-title">สรุปคำตอบ:</h4>
+        <div className="quiz-summary-list">
+          {questions.map((q) => {
+            const answer = answers.find((a) => a.questionId === q.id);
+            const tone = answer?.isCorrect ? "is-correct" : "is-incorrect";
+            return (
+              <div key={q.id} className={`quiz-summary-item ${tone}`}>
+                <div className="quiz-summary-row">
+                  <span className="quiz-summary-mark">
+                    {answer?.isCorrect ? "✓" : "✗"}
+                  </span>
+                  <div>
+                    <p className="quiz-summary-question">{q.question}</p>
+                    <p className="quiz-summary-answer">
+                      คำตอบ:{" "}
+                      {Array.isArray(answer?.answer)
+                        ? answer.answer.join(", ")
+                        : answer?.answer}
                     </p>
-                  )}
+                    {!answer?.isCorrect && (
+                      <p className="quiz-summary-answer">
+                        เฉลย:{" "}
+                        {Array.isArray(q.correctAnswer)
+                          ? q.correctAnswer.join(", ")
+                          : q.correctAnswer}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       <Button onClick={onRetry} variant="primary" size="sm">
