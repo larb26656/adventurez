@@ -1,6 +1,6 @@
 # ร้านชา (React Tea Shop)
 
-แอปตัวอย่างของคอร์ส React Adventure ร้านชาหน้าตาเดียวตั้งแต่บทแรกจน deploy ราคาเป็นบาท ไม่มี backend: login กับ checkout เป็นของจำลองในเบราว์เซอร์
+แอปตัวอย่างของคอร์ส React Adventure ตั้งแต่พาร์ต 3 จน deploy ราคาเป็นบาท ไม่มี backend: login กับ checkout เป็นของจำลองในเบราว์เซอร์
 
 รันด้วย Node 22
 
@@ -32,26 +32,25 @@ npm run build
 
 Tailwind ใช้ Vite plugin ของ v4 ไม่มี `tailwind.config.js`
 
+พาร์ต 1 และ 2 อยู่คนละโปรเจกต์ ที่ [examples/react/basics](https://github.com/larb26656/adventurez/tree/main/examples/react/basics) ร้านนี้เริ่มตั้งแต่พาร์ต 3
+
 ## บทเรียนกับไฟล์
 
 | บท | ไฟล์ |
 | --- | --- |
-| 01 Setup | `package.json`, `index.html`, `src/main.tsx` |
-| 01 TypeScript | `src/data/products.ts` |
-| 02 useMemo, custom hook | `src/hooks/useTeaFilter.ts` |
-| 02 useCallback | `src/components/ProductCard.tsx` |
-| 02 useEffect, Context | `src/contexts/ThemeContext.tsx` |
-| 02 useRef, checkout | `src/components/CheckoutForm.tsx` |
-| 02 custom hook | `src/hooks/useCartCount.ts` |
 | 03 Tailwind | `src/index.css`, `vite.config.ts` |
 | 03 Router | `src/main.tsx`, `src/routeTree.gen.ts`, `src/routes/` |
 | 03 Layout | `src/routes/__root.tsx` |
+| 03 เมนู, ตะกร้า, login | `src/routes/index.tsx`, `src/routes/cart.tsx`, `src/routes/login.tsx`, `src/data/products.ts` |
 | 04 Zustand | `src/stores/cartStore.ts` |
-| 04 เชื่อม UI | `src/routes/index.tsx`, `src/routes/cart.tsx`, `src/components/ProductCard.tsx` |
+| 04 เชื่อม UI | `src/routes/index.tsx`, `src/routes/cart.tsx`, `src/components/ProductCard.tsx`, `src/hooks/useCartCount.ts` |
+| 04 ธีม | `src/contexts/ThemeContext.tsx` |
 | 05 Login | `src/schemas/loginSchema.ts`, `src/stores/authStore.ts`, `src/components/LoginForm.tsx`, `src/routes/login.tsx` |
 | 05 Checkout | `src/schemas/checkoutSchema.ts`, `src/components/CheckoutForm.tsx`, `src/routes/checkout.tsx` |
 | 06 Vercel | `vercel.json` |
 | 07 Loader | `src/routes/index.tsx`, `public/products.json` |
 | 08 Test | `src/components/ProductCard.test.tsx` |
+
+`src/hooks/useTeaFilter.ts` คือตัวกรองของหน้าร้าน จับคู่กับ `useTeaFilter` ในตัวอย่างฝึก แต่รับรายการจาก loader
 
 เมนูในหน้าเว็บอ่านจาก `public/products.json` ผ่าน loader ของ TanStack Router รายการใน `src/data/products.ts` ต้องเป็นชุดเดียวกัน ใช้เป็น type และเป็นตัวอย่างในบทเรียน

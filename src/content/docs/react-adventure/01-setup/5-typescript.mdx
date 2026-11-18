@@ -7,9 +7,9 @@ sidebar:
 
 import ChatMessage from "@/components/ChatMessage.astro"
 
-โปรเจกต์นี้เป็น TypeScript ตั้งแต่ต้น ไฟล์ที่มี JSX ใช้นามสกุล `.tsx` ไฟล์ที่ไม่มี JSX ใช้ `.ts`
+โปรเจกต์ฝึกเป็น TypeScript ตั้งแต่ต้น ไฟล์ที่มี JSX ใช้นามสกุล `.tsx` ไฟล์ที่ไม่มี JSX ใช้ `.ts`
 
-บทนี้ไม่ไล่ไวยากรณ์ทั้งภาษา เอาแค่รูปข้อมูลที่ร้านชาใช้จริง
+บทนี้ไม่ไล่ไวยากรณ์ทั้งภาษา เอาแค่รูปข้อมูลที่ตัวอย่างชาใช้ รายการเต็มของร้านที่ต้องตรงกับ `public/products.json` อยู่ในพาร์ต 3 เป็นต้นไป
 
 ## type กับ interface
 
@@ -35,7 +35,7 @@ type TeaFilter = 'all' | TeaTemperature
 
 `image` ในคอร์สนี้เป็น emoji เพื่อให้เปิดได้โดยไม่ต้องโหลดรูปจากเว็บอื่น
 
-ไฟล์จริง:
+ไฟล์จริงของตัวอย่างฝึก:
 
 ```ts
 export type TeaTemperature = 'cold' | 'hot'
@@ -54,7 +54,6 @@ export interface CartItem extends Product {
   quantity: number
 }
 
-// รายการนี้ต้องตรงกับ public/products.json ที่หน้าเมนูโหลดตอนรัน
 export const products: Product[] = [
   {
     id: 'milk-tea',
@@ -78,44 +77,16 @@ export const products: Product[] = [
     temperature: 'cold',
   },
   {
-    id: 'lemon-black',
-    name: 'ชาดำมะนาว',
-    price: 40,
-    image: '🍋',
-    temperature: 'cold',
-  },
-  {
     id: 'green-hot',
     name: 'ชาเขียวร้อน',
     price: 35,
     image: '🍃',
     temperature: 'hot',
   },
-  {
-    id: 'lemon-hot',
-    name: 'ชามะนาวร้อน',
-    price: 40,
-    image: '🍋',
-    temperature: 'hot',
-  },
-  {
-    id: 'oolong',
-    name: 'ชาอู่หลง',
-    price: 50,
-    image: '🫖',
-    temperature: 'hot',
-  },
-  {
-    id: 'fruit-tea',
-    name: 'ชาผลไม้',
-    price: 55,
-    image: '🍓',
-    temperature: 'cold',
-  },
 ]
 ```
 
-<ChatMessage message="รายการในไฟล์นี้ต้องตรงกับ public/products.json พาร์ต 7 ให้หน้าเมนูไปอ่าน JSON ไฟล์นั้นตอนรัน" avatarKey="whiteCat" />
+<ChatMessage message="รายการสั้นนี้ใช้ในตัวอย่างฝึก ร้านชามีเมนูยาวกว่า และต้องตรงกับ public/products.json" avatarKey="whiteCat" />
 
 ## สิ่งที่พอใช้ต่อ
 
@@ -123,4 +94,4 @@ export const products: Product[] = [
 - `?` หลังชื่อ field แปลว่าไม่ส่งมาก็ได้ เช่น `note?` แต่ในฟอร์มสั่งชาเราส่งสตริงว่างแทน เพื่อให้ input มีค่าเสมอ
 - `z.infer` ในพาร์ต 5 จะสร้าง type จาก schema ของ Zod ไม่ต้องประกาศซ้ำมือ
 
-> ไฟล์ประกอบ: [`src/data/products.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/data/products.ts)
+> ไฟล์ประกอบ: [`src/examples/teaTypes.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/teaTypes.ts), [`src/examples/TypeScriptExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/TypeScriptExample.tsx)

@@ -1,6 +1,6 @@
 ---
 title: "Custom hook"
-description: useTeaFilter กับ useCartCount
+description: useTeaFilter กับ useCupCount ของตัวอย่างฝึก
 sidebar:
   order: 9
 ---
@@ -13,12 +13,9 @@ Custom hook คือฟังก์ชันที่ชื่อขึ้น�
 
 ## useTeaFilter
 
-หน้าร้านต้องมี state ของปุ่มกรอง และรายการที่ผ่านตัวกรอง รวมไว้ที่เดียว หน้าเมนูเลยไม่ต้องเขียน `useState` กับ `useMemo` เอง
+ตัวอย่างฝึกต้องมี state ของปุ่มกรอง และรายการที่ผ่านตัวกรอง รวมไว้ที่เดียว หน้าตัวอย่างเลยไม่ต้องเขียน `useState` กับ `useMemo` เอง หน้าร้านในพาร์ต 3 ใช้ hook ชื่อเดียวกัน
 
-```ts
-import { useMemo, useState } from 'react'
-import type { Product, TeaFilter } from '../data/products.ts'
-
+```tsx
 export function useTeaFilter(products: Product[]) {
   const [filter, setFilter] = useState<TeaFilter>('all')
 
@@ -34,30 +31,28 @@ export function useTeaFilter(products: Product[]) {
 }
 ```
 
-เรียกใช้แบบนี้ในหน้าเมนู:
+เรียกใช้แบบนี้ในตัวอย่าง:
 
 ```tsx
-const { filter, setFilter, visibleProducts } = useTeaFilter(products)
+  const { filter, setFilter, visibleProducts } = useTeaFilter(products)
 ```
 
-`products` มาจาก loader ในพาร์ต 7 ไม่ได้ import array จาก `products.ts` ตอนรัน
+`products` มาจาก `teaTypes.ts` ในไฟล์เดียวกันของตัวอย่างฝึก หน้าร้านจริงในพาร์ต 7 ส่งรายการจาก loader ไม่ได้ import array ตอนรัน
 
-## useCartCount
+## useCupCount
 
-แถบบนอยากได้แค่จำนวนแก้ว ไม่ได้อยาก subscribe รายละเอียดทั้งตะกร้าในไฟล์ layout
+ตัวอย่างฝึกยังไม่มีตะกร้า hook ที่สองเลยนับแก้วด้วย `useState` อยู่ในฟังก์ชันชื่อขึ้นต้นด้วย `use`
 
-```ts
-import { useCartStore } from '../stores/cartStore.ts'
-
-export function useCartCount() {
-  return useCartStore((state) =>
-    state.items.reduce((sum, item) => sum + item.quantity, 0),
-  )
+```tsx
+export function useCupCount() {
+  const [count, setCount] = useState(0)
+  const addCup = () => setCount((current) => current + 1)
+  return { count, addCup }
 }
 ```
 
-ตัวเลขในวงกลมข้างคำว่า "ตะกร้า" คือค่านี้ รวม `quantity` ทุกแถว ไม่ใช่จำนวนแถว ชานม 2 แก้วกับมัทฉะ 1 แก้วขึ้นเลข 3
+พาร์ต 4 ของร้านชามี `useCartCount` ที่อ่าน Zustand แทน ตัวเลขบนแถบนำทางรวม `quantity` ทุกแถว ไม่ใช่จำนวนแถว
 
 <ChatMessage message="ชื่อต้องขึ้นต้นด้วย use ไม่งั้นตัวตรวจจะไม่รู้ว่าข้างในเรียก Hook ได้" avatarKey="whiteCat" />
 
-> ไฟล์ประกอบ: [`src/hooks/useTeaFilter.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/hooks/useTeaFilter.ts), [`src/hooks/useCartCount.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/hooks/useCartCount.ts)
+> ไฟล์ประกอบ: [`src/examples/CustomHookExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/CustomHookExample.tsx)

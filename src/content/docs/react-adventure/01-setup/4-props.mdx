@@ -14,8 +14,11 @@ import ChatMessage from "@/components/ChatMessage.astro"
 การ์ดร้านชารับ `product` ทั้งก้อน ไม่รับทีละ field กระจาย เพราะรูปสินค้ามี id, ชื่อ, ราคา, emoji และอุณหภูมิ
 
 ```tsx
-// ตัวอย่างฝึก ไฟล์จริงรับ product แล้วเรียก store เอง
-function ProductCard({ product }: { product: { name: string; price: number; temperature: 'cold' | 'hot' } }) {
+export function ProductCard({
+  product,
+}: {
+  product: { name: string; price: number; temperature: 'cold' | 'hot' }
+}) {
   return (
     <article>
       <h2>{product.name}</h2>
@@ -26,15 +29,20 @@ function ProductCard({ product }: { product: { name: string; price: number; temp
 }
 ```
 
-ค่าเริ่มต้นใส่ตอนแตก props ได้ เช่น `function Badge({ text = 'ใหม่' }: { text?: string })`
+ค่าเริ่มต้นใส่ตอนแตก props ได้:
+
+```tsx
+export function Badge({ text = 'ใหม่' }: { text?: string }) {
+  return <span>{text}</span>
+}
+```
 
 ## Callback
 
 ลูกคุยกลับหาแม่ด้วยฟังก์ชันที่แม่ส่งมา ปุ่มเพิ่มลงตะกร้าในตัวอย่างฝึกทำแบบนี้:
 
 ```tsx
-// ตัวอย่างฝึก
-function AddButton({ onAdd }: { onAdd: () => void }) {
+export function AddButton({ onAdd }: { onAdd: () => void }) {
   return (
     <button type="button" onClick={onAdd}>
       เพิ่มลงตะกร้า
@@ -43,7 +51,7 @@ function AddButton({ onAdd }: { onAdd: () => void }) {
 }
 ```
 
-ของจริงในร้านชาไม่ส่ง `onAdd` ผ่าน props การ์ดเรียก `addItem` จาก Zustand เองในพาร์ต 4 เพราะตะกร้าถูกใช้ทั้งหน้าเมนู แถบบน และหน้าตะกร้า การส่ง callback ไล่จากบนลงล่างจะกลายเป็น props drilling
+ตัวอย่างฝึกส่ง `onAdd` ผ่าน props การ์ดร้านชาในพาร์ต 4 ไม่ทำแบบนี้ มันเรียก `addItem` จาก Zustand เอง เพราะตะกร้าถูกใช้ทั้งหน้าเมนู แถบบน และหน้าตะกร้า การส่ง callback ไล่จากบนลงล่างจะกลายเป็น props drilling
 
 <ChatMessage message="props เป็นข้อมูลอ่านอย่างเดียว อยากเปลี่ยนตะกร้าให้เรียกฟังก์ชันของ store อย่าไปเขียนทับ product.price" avatarKey="blackCat" />
 
@@ -93,4 +101,4 @@ import { Quiz } from "@/components/quiz"
   }}
 />
 
-> ไฟล์ประกอบ: [`src/components/ProductCard.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/components/ProductCard.tsx), [`src/data/products.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/data/products.ts)
+> ไฟล์ประกอบ: [`src/examples/PropsExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/PropsExample.tsx)

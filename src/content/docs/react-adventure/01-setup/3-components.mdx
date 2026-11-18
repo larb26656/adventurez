@@ -11,11 +11,10 @@ import ChatMessage from "@/components/ChatMessage.astro"
 
 Component คือฟังก์ชันที่ return JSX รับข้อมูลเข้า (props) แล้วคืน UI
 
-ร้านชาไม่ได้เขียนทั้งหน้าในไฟล์เดียว เราแยกอย่างน้อยเป็นแถบบน (`RootLayout`), การ์ดเมนู (`ProductCard`), ฟอร์มเข้าสู่ระบบ (`LoginForm`) และฟอร์มสั่งชา (`CheckoutForm`)
+บทนี้แยกการ์ดออกมาเป็นฟังก์ชัน แล้วเรียกสองครั้งในหน้าเดียวกัน ร้านชาในพาร์ต 3 จะแยกต่อเป็นแถบบน, การ์ดเมนู, ฟอร์มเข้าสู่ระบบ และฟอร์มสั่งชา
 
 ```tsx
-// ตัวอย่างฝึก การ์ดจริงมีปุ่มและอ่าน store
-function ProductCard() {
+export function ProductCard() {
   return (
     <article>
       <h2>ชานมไต้หวัน</h2>
@@ -34,11 +33,7 @@ function ProductCard() {
 
 ### 1. ชื่อขึ้นต้นด้วยตัวใหญ่
 
-```tsx
-// ตัวอย่างฝึก
-function ProductCard() {}
-// function productCard() {}  React จะไม่มองว่าเป็น component
-```
+`ProductCard` ด้านบนขึ้นต้นด้วยตัวใหญ่ ถ้าชื่อเป็น `productCard` React จะไม่มองว่าเป็น component
 
 ### 2. ต้อง return บางอย่าง
 
@@ -49,8 +44,7 @@ return JSX หรือ `null` ถ้าไม่ต้องการแสด�
 ถ้าต้องคืนหลายก้อนโดยไม่เพิ่ม `<div>` ให้ใช้ Fragment:
 
 ```tsx
-// ตัวอย่างฝึก
-function TeaHeading() {
+export function TeaHeading() {
   return (
     <>
       <h1>เมนูชา</h1>
@@ -62,16 +56,9 @@ function TeaHeading() {
 
 <ChatMessage message="Fragment ไม่สร้าง element ใน DOM ถ้าต้องใส่ className ให้ใช้ div หรือ article" avatarKey="whiteCat" />
 
-## ร้านชาประกอบจาก component ยังไง
+## เรียกซ้ำจากหน้าเดียวกัน
 
-`main.tsx` ไม่ได้ render `<App />` แล้วสลับหน้าเอง มันห่อ `RouterProvider` ด้วย `ThemeProvider` แล้วแต่ละ URL ไปที่ไฟล์ใน `src/routes/`
-
-- `/` แสดงเมนู แล้วเมนูเรียก `ProductCard` ทีละใบ
-- `/cart` แสดงตะกร้า
-- `/login` เรียก `LoginForm`
-- `/checkout` เรียก `CheckoutForm`
-
-บทหน้าตาเว็บจะประกอบ route พวกนี้ ส่วนบท component นี้ขอให้จำแค่ว่า UI ที่ซ้ำกันควรเป็นฟังก์ชันที่ return JSX
+`ComponentsExample` เรียก `TeaHeading` ครั้งเดียว และเรียก `ProductCard` สองครั้ง การ์ดทั้งสองใบคือฟังก์ชันเดียวกัน พาร์ต 3 ค่อยให้แต่ละ URL ไปคนละไฟล์ใน `src/routes/` ของร้านชา
 
 import { Quiz } from "@/components/quiz"
 
@@ -119,4 +106,4 @@ import { Quiz } from "@/components/quiz"
   }}
 />
 
-> ไฟล์ประกอบ: [`src/components/ProductCard.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/components/ProductCard.tsx)
+> ไฟล์ประกอบ: [`src/examples/ComponentsExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/ComponentsExample.tsx)

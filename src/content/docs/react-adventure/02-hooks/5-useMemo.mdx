@@ -12,19 +12,19 @@ import ChatMessage from "@/components/ChatMessage.astro"
 ตัวอย่างที่พังบ่อยคือใส่ dependency ที่สูตรไม่ได้อ่าน การบวกเลขล้านรอบด้านล่างไม่ได้ใช้ `count` แต่ใส่ `[count]` ทำให้ทุกครั้งที่กดเพิ่มตัวนับ ลูปวิ่งใหม่ทั้งที่คำตอบเดิม
 
 ```tsx
-// ตัวอย่างที่ห้ามทำ ผลลัพธ์ไม่ได้ขึ้นกับ count
-const result = useMemo(() => {
-  let total = 0
-  for (let i = 0; i < 1000000; i++) total += i
-  return total
-}, [count])
+  // ตัวอย่างที่ห้ามทำ ผลลัพธ์ไม่ได้ขึ้นกับ count
+  const result = useMemo(() => {
+    let total = 0
+    for (let i = 0; i < 1000000; i++) total += i
+    return total
+  }, [count])
 ```
 
 ถ้าคำตอบไม่ขึ้นกับอะไรเลย dependency ควรเป็น `[]` และถ้างานไม่หนักก็ไม่ต้องห่อ `useMemo` เลย
 
-## ของร้านชา
+## ของตัวอย่างฝึก
 
-รายการที่มองเห็นขึ้นกับเมนูทั้งก้อนและปุ่มที่กด สูตรอ่านทั้ง `products` และ `filter` ดังนั้นสองตัวนี้ต้องอยู่ใน dependency
+รายการที่มองเห็นขึ้นกับเมนูทั้งก้อนและปุ่มที่กด สูตรอ่านทั้ง `products` และ `filter` ดังนั้นสองตัวนี้ต้องอยู่ใน dependency `useTeaFilter` ในบท custom hook ใช้สูตรเดียวกัน
 
 ```tsx
   const visibleProducts = useMemo(
@@ -40,8 +40,6 @@ const result = useMemo(() => {
 - กด "ร้อน" เหลือ `'hot'`
 - กด "ทั้งหมด" คืนทุกรายการ
 
-`useTeaFilter` คืน `filter`, `setFilter`, และ `visibleProducts` ให้หน้าเมนู บท custom hook แปะไฟล์เต็ม
-
 <ChatMessage message="dependency คือรายการที่สูตรอ่านจริงๆ ใส่น้อยไปค่าจะค้าง ใส่มากไปจะคำนวณทั้งที่ผลไม่เปลี่ยน" avatarKey="whiteCat" />
 
-> ไฟล์ประกอบ: [`src/hooks/useTeaFilter.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/hooks/useTeaFilter.ts)
+> ไฟล์ประกอบ: [`src/examples/UseMemoExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/UseMemoExample.tsx)

@@ -9,7 +9,26 @@ import ChatMessage from "@/components/ChatMessage.astro"
 
 Hook คือฟังก์ชันที่ขึ้นต้นด้วย `use` ใช้ต่อ component เข้ากับความสามารถของ React เช่น จำค่า, ทำงานหลังวาดจอ, หรือชี้ไปที่ DOM
 
-ถ้าไม่มี Hook, ฟังก์ชัน component ถูกเรียกใหม่ทุกครั้งที่ render ตัวแปรธรรมดาจะเริ่มนับหนึ่งใหม่ทุกครั้ง ปุ่มกรองชาจะเด้งกลับไปที่ "ทั้งหมด" ทันทีที่กด
+ถ้าไม่มี Hook, ฟังก์ชัน component ถูกเรียกใหม่ทุกครั้งที่ render ตัวแปรธรรมดาจะเริ่มนับหนึ่งใหม่ทุกครั้ง ปุ่มเพิ่มแก้วจะเด้งกลับไปที่ 0 ทันทีที่กด
+
+```tsx
+import { useState } from 'react'
+
+export function HooksIntro() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <section>
+      <h2>Hooks</h2>
+      <p>ตัวแปรธรรมดาเริ่มใหม่ทุกครั้งที่ render useState จำจำนวนแก้วไว้</p>
+      <p>จำนวนแก้ว: {count}</p>
+      <button type="button" onClick={() => setCount((current) => current + 1)}>
+        เพิ่มแก้ว
+      </button>
+    </section>
+  )
+}
+```
 
 ## กฎสองข้อ
 
@@ -18,17 +37,19 @@ Hook คือฟังก์ชันที่ขึ้นต้นด้วย
 
 <ChatMessage message="ถ้าเรียก useState ใน if ลำดับ Hook จะเหลื่อมกัน แล้วค่าที่จำไว้จะสลับช่อง" avatarKey="blackCat" />
 
-## ร้านชาใช้ตัวไหน
+## ตัวอย่างฝึกใช้ตัวไหน
 
-| Hook | ใช้ทำอะไร | ไฟล์ |
+| Hook | ใช้ทำอะไร | ไฟล์ในตัวอย่างฝึก |
 | --- | --- | --- |
-| `useState` | จำปุ่มกรอง และจำออเดอร์ที่เพิ่งสั่ง | `useTeaFilter.ts`, `CheckoutForm.tsx` |
-| `useEffect` | ติด class `dark` ที่ `<html>` แล้วเก็บธีม | `ThemeContext.tsx` |
-| `useRef` | ชี้ input ชื่อผู้รับ เพื่อ focus ตอนเปิดหน้า | `CheckoutForm.tsx` |
-| `useMemo` | คำนวณรายการที่ผ่านตัวกรอง | `useTeaFilter.ts` |
-| `useCallback` | ฟังก์ชันกดเพิ่มลงตะกร้า | `ProductCard.tsx` |
-| custom hook | รวมของด้านบนให้หน้าอื่นเรียกสั้นๆ | `useTeaFilter.ts`, `useCartCount.ts` |
+| `useState` | จำปุ่มกรอง และจำนวนแก้ว | `UseStateExample.tsx`, `HooksIntro.tsx` |
+| `useEffect` | ติด class `dark` ที่ `<html>` แล้วเก็บธีม | `UseEffectExample.tsx` |
+| `useRef` | ชี้ input ชื่อผู้รับ เพื่อ focus ตอนเปิดตัวอย่าง | `UseRefExample.tsx` |
+| `useMemo` | คำนวณรายการที่ผ่านตัวกรอง | `UseMemoExample.tsx` |
+| `useCallback` | ฟังก์ชันกดเพิ่มลงตะกร้า | `UseCallbackExample.tsx` |
+| custom hook | รวมตัวกรอง และจำนวนแก้ว | `CustomHookExample.tsx` |
 
-บทนี้ยังไม่ต้องจำ API ทั้งก้อน บทถัดไปไล่ทีละตัว โดยโค้ดที่แปะเป็นไฟล์ของร้านชาคือของที่รันได้จริง โค้ดที่เขียนว่า "ตัวอย่างฝึก" หรือ "ตัวอย่างที่ห้ามทำ" ไม่ได้อยู่ในโปรเจกต์
+บทนี้ยังไม่ต้องจำ API ทั้งก้อน บทถัดไปไล่ทีละตัว โค้ดที่แปะคือไฟล์ใน `examples/react/basics` ร้านชาในพาร์ต 3 เป็นต้นไปเอาแนวเดียวกันไปใส่ใน route, store และฟอร์ม
+
+> ไฟล์ประกอบ: [`src/examples/HooksIntro.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/HooksIntro.tsx)
 
 <ChatMessage message="ทุก Hook ขึ้นต้นด้วย use เป็นข้อตกลงของ React ตัวตรวจจะได้เตือนได้" avatarKey="whiteCat" />

@@ -10,7 +10,7 @@ import ChatMessage from "@/components/ChatMessage.astro"
 `useState` จำค่าข้ามการ render เมื่อเรียกฟังก์ชันตั้งค่า React จะวาด component ใหม่
 
 ```tsx
-const [filter, setFilter] = useState<TeaFilter>('all')
+  const [filter, setFilter] = useState<TeaFilter>('all')
 ```
 
 - `filter` คือค่าปัจจุบัน อ่านได้อย่างเดียว
@@ -25,7 +25,7 @@ const [filter, setFilter] = useState<TeaFilter>('all')
 | `cold` | เย็น |
 | `hot` | ร้อน |
 
-กดปุ่มแล้วเรียก `setFilter(item.id)` รายการที่โชว์จะถูกกรองใน `useMemo` ของบท useMemo
+กดปุ่มแล้วเรียก `setFilter(item.id)` รายการที่โชว์ถูกกรองจาก `filter` ในไฟล์เดียวกัน บท useMemo จะย้ายการกรองเข้า `useMemo`
 
 ## ห้ามเขียนทับ state
 
@@ -39,11 +39,12 @@ filter = 'cold'
 ถ้าค่าใหม่ขึ้นกับค่าเก่า ใช้รูปฟังก์ชัน เพื่อไม่ไปอ่านค่าที่ค้างใน closure:
 
 ```tsx
-// ตัวอย่างฝึก จำนวนแก้ว
-setCount((current) => current + 1)
+      <button type="button" onClick={() => setCount((current) => current + 1)}>
+        เพิ่มแก้ว
+      </button>
 ```
 
-ร้านชาใช้รูปนี้ตอนสลับธีม: `setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))`
+บท useEffect ใช้รูปนี้ตอนสลับธีม: `setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))`
 
 ## ก้อน object
 
@@ -51,4 +52,4 @@ setCount((current) => current + 1)
 
 <ChatMessage message="setFilter('cold') ได้ เพราะค่าใหม่ไม่ได้อ่านจาก filter เดิม ถ้าจะบวกจำนวนให้ใช้รูปฟังก์ชัน" avatarKey="whiteCat" />
 
-> ไฟล์ประกอบ: [`src/hooks/useTeaFilter.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/hooks/useTeaFilter.ts)
+> ไฟล์ประกอบ: [`src/examples/UseStateExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/UseStateExample.tsx)

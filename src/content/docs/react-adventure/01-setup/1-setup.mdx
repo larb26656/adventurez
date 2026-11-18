@@ -1,6 +1,6 @@
 ---
 title: "สร้างโปรเจกต์"
-description: เปิดโปรเจกต์ร้านชาด้วย Vite, React 19 และ TypeScript 5 บน Node 22
+description: เปิดโปรเจกต์ฝึกด้วย Vite, React 19 และ TypeScript 5 บน Node 22
 sidebar:
   order: 1
 ---
@@ -14,23 +14,25 @@ node --version
 npm --version
 ```
 
-ต้องขึ้นต้นด้วย `v22` ถ้าเครื่องมีหลายเวอร์ชัน ให้ใช้ไฟล์ `.nvmrc` ที่มีเลข `22` ในตัวอย่างร้านชา
+ต้องขึ้นต้นด้วย `v22` ถ้าเครื่องมีหลายเวอร์ชัน ให้ใช้ไฟล์ `.nvmrc` ที่มีเลข `22`
 
-## สร้างโปรเจกต์
+## สร้างโปรเจกต์ฝึก
+
+พาร์ต 1 และ 2 ใช้โปรเจกต์เล็กชื่อ `react-basics` หนึ่งไฟล์ต่อหนึ่งบท ยังไม่มี Tailwind, router หรือ store ร้านชาเป็นโปรเจกต์คนละตัว เริ่มที่พาร์ต 3
 
 ```bash
-npm create vite@latest tea-shop -- --template react-ts
-cd tea-shop
+npm create vite@latest react-basics -- --template react-ts
+cd react-basics
 npm install
 npm run dev
 ```
 
-- `tea-shop` คือชื่อโฟลเดอร์
+- `react-basics` คือชื่อโฟลเดอร์
 - `--template react-ts` คือ React + TypeScript
 
-เปิด `http://localhost:5173` จะเจอหน้าตัวอย่างของ Vite บทถัดไปจะรื้อหน้านี้ทิ้ง แล้วค่อยๆ เปลี่ยนเป็นร้านชา
+เปิด `http://localhost:5173` จะเจอหน้าตัวอย่างของ Vite บทถัดไปจะรื้อหน้านี้ทิ้ง แล้วใส่ตัวอย่าง JSX
 
-ใน repo นี้ของที่ทำเสร็จอยู่ที่ `examples/react-tea-shop` ไม่ใช่โฟลเดอร์ `tea-shop` ที่คุณสร้างเอง โครงสร้างไฟล์เหมือนกัน
+ใน repo นี้ของที่ทำเสร็จของสองพาร์ตแรกอยู่ที่ `examples/react/basics` ไม่ใช่โฟลเดอร์ที่คุณสร้างเอง โครงสร้างช่วงเริ่มเหมือนกัน และมี `src/examples/` เพิ่มมาหนึ่งไฟล์ต่อบท
 
 ## เวอร์ชันที่ล็อก
 
@@ -41,17 +43,17 @@ npm run dev
 | vite | 7 |
 | react, react-dom | 19 |
 | typescript | 5 |
-| tailwindcss, @tailwindcss/vite | 4 (ติดตั้งในพาร์ต 3) |
-| @tanstack/react-router, @tanstack/router-plugin | 1 (ติดตั้งในพาร์ต 3) |
-| zustand | 5 (พาร์ต 4) |
-| react-hook-form, @hookform/resolvers | 7 และ 3 (พาร์ต 5) |
-| zod | 3 (พาร์ต 5) |
+| tailwindcss, @tailwindcss/vite | 4 (ร้านชา พาร์ต 3) |
+| @tanstack/react-router, @tanstack/router-plugin | 1 (ร้านชา พาร์ต 3) |
+| zustand | 5 (ร้านชา พาร์ต 4) |
+| react-hook-form, @hookform/resolvers | 7 และ 3 (ร้านชา พาร์ต 5) |
+| zod | 3 (ร้านชา พาร์ต 5) |
 
-ไฟล์จริงของตัวอย่าง:
+ไฟล์จริงของตัวอย่างฝึก:
 
 ```json
 {
-  "name": "react-tea-shop",
+  "name": "react-basics",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -61,31 +63,18 @@ npm run dev
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "test": "vitest run"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.10.0",
-    "@tanstack/react-router": "^1.132.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-hook-form": "^7.62.0",
-    "zod": "^3.25.76",
-    "zustand": "^5.0.8"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.13",
-    "@tanstack/router-plugin": "^1.132.0",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
-    "jsdom": "^26.1.0",
-    "tailwindcss": "^4.1.13",
     "typescript": "~5.8.3",
-    "vite": "^7.0.4",
-    "vitest": "^3.2.4"
+    "vite": "^7.0.4"
   }
 }
 ```
@@ -95,7 +84,7 @@ npm run dev
 ## โครงไฟล์ช่วงเริ่ม
 
 ```text
-tea-shop/
+react-basics/
 ├── index.html
 ├── package.json
 ├── tsconfig.json
@@ -104,6 +93,7 @@ tea-shop/
 ├── vite.config.ts
 └── src/
     ├── main.tsx
+    ├── App.tsx
     └── index.css
 ```
 
@@ -111,10 +101,11 @@ tea-shop/
 | --- | --- |
 | `index.html` | จุดเข้าของเว็บ มี `<div id="root">` |
 | `src/main.tsx` | สั่ง React render ลง root |
-| `vite.config.ts` | รวม plugin ของ Vite, ภายหลังจะมี Tailwind กับ TanStack Router |
+| `src/App.tsx` | หน้ารวมที่สลับตัวอย่างแต่ละบทด้วย `useState` |
+| `vite.config.ts` | รวม plugin ของ Vite ตอนนี้มีแค่ React |
 | `tsconfig*.json` | ตั้งค่า TypeScript แบบที่ Vite สร้างให้ |
 
-`index.html` ของร้านชาตั้ง `lang="th"` และชื่อแท็บเป็นร้านชา:
+`index.html` ตั้ง `lang="th"` และชื่อแท็บเป็น React พื้นฐาน:
 
 ```html
 <!doctype html>
@@ -122,7 +113,7 @@ tea-shop/
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ร้านชา</title>
+    <title>React พื้นฐาน</title>
   </head>
   <body>
     <div id="root"></div>
@@ -131,4 +122,30 @@ tea-shop/
 </html>
 ```
 
-> ไฟล์ประกอบ: [`package.json`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/package.json), [`index.html`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/index.html)
+`src/main.tsx` ยังไม่รู้จัก router มัน render `<App />`:
+
+```tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { App } from './App.tsx'
+import './index.css'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+```
+
+`vite.config.ts` ของช่วงนี้มี plugin React ตัวเดียว:
+
+```ts
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [react()],
+})
+```
+
+> ไฟล์ประกอบ: [`package.json`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/package.json), [`index.html`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/index.html), [`vite.config.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/vite.config.ts), [`src/main.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/main.tsx)

@@ -27,8 +27,7 @@ JSX คือ syntax ที่ให้เขียน markup คล้าย HT
 ใน JSX ใส่นิพจน์ JavaScript ด้วยปีกกา `{ }` ราคาชาเป็นตัวเลข แล้วเราเติม `฿` เอง:
 
 ```tsx
-// ตัวอย่างฝึก ไม่ได้เป็นไฟล์ในร้านชา
-function TeaPrice() {
+export function TeaPrice() {
   const name = 'ชานมไต้หวัน'
   const price = 50
   const cold = true
@@ -48,12 +47,11 @@ function TeaPrice() {
 ใช้ ternary เมื่อมีสองทาง ใช้ `&&` เมื่ออยากแสดงเฉพาะตอนเงื่อนไขเป็นจริง และใช้ `return` ก่อนเมื่ออยากจบทั้ง component
 
 ```tsx
-// ตัวอย่างฝึก
-function ColdBadge({ cold }: { cold: boolean }) {
+export function ColdBadge({ cold }: { cold: boolean }) {
   return <span>{cold ? 'เย็น' : 'ร้อน'}</span>
 }
 
-function CartBadge({ count }: { count: number }) {
+export function CartBadge({ count }: { count: number }) {
   return <span>{count > 0 && count}</span>
 }
 ```
@@ -63,13 +61,12 @@ function CartBadge({ count }: { count: number }) {
 วนเมนูด้วย `.map()` ทุกตัวที่วนต้องมี `key` ที่ไม่ซ้ำ ร้านชาใช้ `product.id`
 
 ```tsx
-// ตัวอย่างฝึก
 const menu = [
   { id: 'milk-tea', name: 'ชานมไต้หวัน' },
   { id: 'matcha', name: 'ชาเขียวมัทฉะ' },
 ]
 
-function MenuList() {
+export function MenuList() {
   return (
     <ul>
       {menu.map((item) => (
@@ -128,4 +125,4 @@ import { Quiz } from "@/components/quiz"
   }}
 />
 
-> ไฟล์ประกอบ: การ์ดจริงอยู่ที่ [`src/components/ProductCard.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/components/ProductCard.tsx)
+> ไฟล์ประกอบ: [`src/examples/JsxExamples.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/JsxExamples.tsx)

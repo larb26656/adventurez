@@ -9,7 +9,7 @@ import ChatMessage from "@/components/ChatMessage.astro"
 
 `useRef` เก็บกล่องที่เปลี่ยนค่าได้โดยไม่ทำให้ component render ใหม่ ใช้ชี้ DOM หรือเก็บ id ของ timer
 
-หน้าสั่งชาโฟกัสช่อง "ชื่อผู้รับ" ตอนเปิดหน้า ผู้ใช้ได้พิมพ์เลย
+ตัวอย่างฝึกโฟกัสช่อง "ชื่อผู้รับ" ตอนเปิดตัวอย่าง ผู้ใช้ได้พิมพ์เลย
 
 ```tsx
   const nameInputRef = useRef<HTMLInputElement>(null)
@@ -23,14 +23,7 @@ import ChatMessage from "@/components/ChatMessage.astro"
 
 `current` เริ่มเป็น `null` หลัง React แปะ input จริงแล้วจะชี้ไปที่ element เครื่องหมาย `?.` กันกรณีที่ยังไม่มี node
 
-ช่องนี้ผูกกับ React Hook Form ด้วย `register('name')` ซึ่งก็อยากได้ ref ของมันเอง เราเลยส่ง ref ทั้งสองทางใน callback เดียว:
-
-```tsx
-          ref={(node) => {
-            nameRegisterRef(node)
-            nameInputRef.current = node
-          }}
-```
+ปุ่ม "นับใน ref" บวก `clicks.current` โดยไม่เรียก `setState` เลขนั้นเลยไม่วาดบนจอ หน้าสั่งชาของร้านชาในพาร์ต 5 ใช้ ref ตัวเดียวกันเพื่อโฟกัส และส่ง ref ร่วมกับ React Hook Form เพราะ `register('name')` อยากได้ ref ของมันเองด้วย
 
 ## ต่างจาก useState
 
@@ -43,4 +36,4 @@ import ChatMessage from "@/components/ChatMessage.astro"
 
 <ChatMessage message="useState เปลี่ยนแล้วจอตาม useRef เปลี่ยนแล้วจอไม่ตาม เว้นแต่มี state ตัวอื่นทำให้วาดใหม่" avatarKey="whiteCat" />
 
-> ไฟล์ประกอบ: [`src/components/CheckoutForm.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/components/CheckoutForm.tsx)
+> ไฟล์ประกอบ: [`src/examples/UseRefExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/UseRefExample.tsx)

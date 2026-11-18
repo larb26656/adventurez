@@ -10,26 +10,25 @@ import ChatMessage from "@/components/ChatMessage.astro"
 การ์ดชาต้องมีระยะ, สีพื้น, และปุ่มที่กดได้ วิธีหนึ่งคือ CSS Modules: ไฟล์ `.module.css` ที่ class ไม่ชนกับ component อื่น
 
 ```css
-/* ตัวอย่างฝึก ร้านชาไม่ได้ใช้ไฟล์นี้ */
 .card {
   border-radius: 1rem;
   padding: 1rem;
+  background: #fef3c7;
 }
 ```
 
 ```tsx
-// ตัวอย่างฝึก ร้านชาไม่ได้มีไฟล์นี้
 import styles from './TeaCard.module.css'
 
-function TeaCard() {
+export function TeaCard() {
   return <article className={styles.card}>ชานมไต้หวัน</article>
 }
 ```
 
-อีกทางคือ inline style ผ่าน prop `style` มันติดกับค่าที่เปลี่ยนตาม state ได้ตรงๆ แต่อ่านยากเมื่อหน้าใหญ่ขึ้น ร้านชาไม่ใช้ทางนี้เป็นหลัก
+อีกทางคือ inline style ผ่าน prop `style` มันติดกับค่าที่เปลี่ยนตาม state ได้ตรงๆ แต่อ่านยากเมื่อหน้าใหญ่ขึ้น ตัวอย่างฝึกไม่ใช้ทางนี้เป็นหลัก
 
-พาร์ต 3 จะติดตั้ง Tailwind CSS 4 ผ่าน Vite plugin แล้วเขียน utility class บน element เช่น `rounded-2xl`, `bg-amber-800`, `grid-cols-4` ไม่มี `tailwind.config.js` และไม่มี `@tailwind base` แบบเวอร์ชัน 3
+พาร์ต 3 ของร้านชาจะติดตั้ง Tailwind CSS 4 ผ่าน Vite plugin แล้วเขียน utility class บน element เช่น `rounded-2xl`, `bg-amber-800`, `grid-cols-4` ไม่มี `tailwind.config.js` และไม่มี `@tailwind base` แบบเวอร์ชัน 3 อย่าติดตั้ง Tailwind ลงในโปรเจกต์ `react-basics`
 
 <ChatMessage message="อย่าติดตั้ง tailwindcss แบบ v3 ทับของร้านชา คำสั่ง init -p กับไฟล์ config เป็นของเวอร์ชันเก่า" avatarKey="blackCat" />
 
-> ไฟล์ประกอบ: style จริงอยู่ที่ [`src/index.css`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/index.css) และ class บน [`ProductCard.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/components/ProductCard.tsx)
+> ไฟล์ประกอบ: [`src/examples/TeaCard.module.css`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/TeaCard.module.css), [`src/examples/StylingExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/StylingExample.tsx)

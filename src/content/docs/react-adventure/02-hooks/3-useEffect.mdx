@@ -10,7 +10,7 @@ import ChatMessage from "@/components/ChatMessage.astro"
 `useEffect` ทำงานหลัง React วาดจอเสร็จ ใช้กับงานข้างเคียง เช่น แตะ DOM, ตั้ง timer, หรือเขียน `localStorage`
 
 ```tsx
-// ตัวอย่างรูปแบบ ไม่ใช่ไฟล์ในร้านชา
+// รูปร่างของ effect ไม่ได้เป็นไฟล์ในตัวอย่างฝึก
 useEffect(() => {
   // ทำงานหลัง render
   return () => {
@@ -25,21 +25,22 @@ useEffect(() => {
 | `[]` | ครั้งเดียวหลัง mount |
 | `[theme]` | หลัง mount และทุกครั้งที่ `theme` เปลี่ยน |
 
-## ธีมของร้านชา
+## ธีมของตัวอย่าง
 
-`ThemeProvider` จำ `'light' | 'dark'` ด้วย `useState` แล้วใช้ effect นี้แปะ class ที่ `<html>` เพื่อให้ Tailwind v4 เห็นคลาส `dark`
+ตัวอย่างฝึกจำ `'light' | 'dark'` ด้วย `useState` แล้วใช้ effect นี้แปะ class ที่ `<html>` พาร์ต 4 ของร้านชาทำแบบเดียวกันใน `ThemeProvider` เพื่อให้ Tailwind v4 เห็นคลาส `dark` และใช้กุญแจ `tea-shop-theme`
 
 ```tsx
   useEffect(() => {
     const root = document.documentElement
     root.classList.toggle('dark', theme === 'dark')
-    localStorage.setItem('tea-shop-theme', theme)
+    localStorage.setItem('basics-theme', theme)
+    return () => {
+      root.classList.remove('dark')
+    }
   }, [theme])
 ```
 
-dependency มีแค่ `theme` เพราะบรรทัดใน effect อ่านแค่ตัวนี้ เปิดร้านครั้งถัดไปจะอ่าน `tea-shop-theme` จาก `localStorage` มาก่อน ถ้ายังไม่เคยเลือกจะดู `prefers-color-scheme`
-
-ไฟล์เต็มอยู่บท Context พาร์ต 4 เพราะเรื่องนี้คือการส่งธีมข้ามต้นไม้ component ไม่ใช่แค่ effect
+dependency มีแค่ `theme` เพราะบรรทัดใน effect อ่านแค่ตัวนี้ cleanup ถอดคลาส `dark` ตอนออกจากตัวอย่างนี้ เพื่อไม่ให้หน้ารวมของแอปฝึกค้างธีมมืด
 
 ## Cleanup
 
@@ -54,6 +55,6 @@ useEffect(() => {
 }, [count])
 ```
 
-`count` เปลี่ยน เลยรัน effect อีก แล้วก็เปลี่ยน `count` อีก ร้านชาไม่ทำแบบนี้ effect ของธีมเขียน `theme` ลง storage แต่ไม่ได้เรียก `setTheme` ข้างใน
+`count` เปลี่ยน เลยรัน effect อีก แล้วก็เปลี่ยน `count` อีก ตัวอย่างธีมไม่ทำแบบนี้ effect เขียน `theme` ลง storage แต่ไม่ได้เรียก `setTheme` ข้างใน
 
-> ไฟล์ประกอบ: [`src/contexts/ThemeContext.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react-tea-shop/src/contexts/ThemeContext.tsx)
+> ไฟล์ประกอบ: [`src/examples/UseEffectExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/UseEffectExample.tsx)
