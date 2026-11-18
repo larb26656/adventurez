@@ -119,38 +119,49 @@ export function QuizQuestion({
     onSubmit();
   };
 
+  const selectedSingle = isAnswered
+    ? typeof submittedAnswer === "string"
+      ? submittedAnswer
+      : ""
+    : singleValue;
+  const selectedMultiple = isAnswered
+    ? Array.isArray(submittedAnswer)
+      ? submittedAnswer
+      : submittedAnswer
+        ? [submittedAnswer]
+        : []
+    : multipleValues;
+
+  const optionClass = (option: string, selected: boolean) => {
+    if (!isAnswered) return selected ? "quiz-option is-selected" : "quiz-option";
+    if (question.type === "multiple") {
+      const correct = Array.isArray(correctAnswer) && correctAnswer.includes(option);
+      if (correct) return "quiz-option is-correct";
+      if (selected) return "quiz-option is-incorrect";
+      return "quiz-option";
+    }
+    if (option === correctAnswer) return "quiz-option is-correct";
+    if (selected) return "quiz-option is-incorrect";
+    return "quiz-option";
+  };
+
   const renderOptions = () => {
     const options = question.options || [];
 
     if (question.type === "single") {
       return (
-        <div className="space-y-2">
+        <div className={`quiz-options${isAnswered ? " is-locked" : ""}`}>
           {options.map((option, idx) => (
-            <label
-              key={idx}
-              className={`flex items-center p-3 rounded-lg gap-3 cursor-pointer transition-colors border ${
-                isAnswered
-                  ? option === correctAnswer
-                    ? "bg-green-500/10 border-green-500"
-                    : singleValue === option
-                      ? "bg-red-500/10 border-red-500"
-                      : "bg-transparent border-gray-500"
-                  : singleValue === option
-                    ? "bg-blue-950 border-blue-400"
-                    : "bg-transparent border-gray-500 hover:border-gray-400"
-              }`}
-            >
+            <label key={idx} className={optionClass(option, selectedSingle === option)}>
               <input
                 type="radio"
                 name={`question-${question.id}`}
                 value={option}
-                checked={singleValue === option}
+                checked={selectedSingle === option}
                 onChange={() => handleSingleChange(option)}
                 disabled={isAnswered}
-                className="w-4 h-4"
-                style={{ accentColor: "var(--sl-color-accent-high)" }}
               />
-              <span className="ml-3 text-gray-100">{option}</span>
+              <span>{option}</span>
             </label>
           ))}
         </div>
@@ -159,33 +170,20 @@ export function QuizQuestion({
 
     if (question.type === "multiple") {
       return (
-        <div className="space-y-2">
+        <div className={`quiz-options${isAnswered ? " is-locked" : ""}`}>
           {options.map((option, idx) => (
             <label
               key={idx}
-              className={`flex items-center p-3 rounded-lg gap-3 cursor-pointer transition-colors border ${
-                isAnswered
-                  ? Array.isArray(correctAnswer) &&
-                    correctAnswer.includes(option)
-                    ? "bg-green-500/10 border-green-500"
-                    : multipleValues.includes(option)
-                      ? "bg-red-500/10 border-red-500"
-                      : "bg-transparent border-gray-500"
-                  : multipleValues.includes(option)
-                    ? "bg-blue-950 border-blue-400"
-                    : "bg-transparent border-gray-500 hover:border-gray-400"
-              }`}
+              className={optionClass(option, selectedMultiple.includes(option))}
             >
               <input
                 type="checkbox"
                 value={option}
-                checked={multipleValues.includes(option)}
+                checked={selectedMultiple.includes(option)}
                 onChange={() => handleMultipleChange(option)}
                 disabled={isAnswered}
-                className="w-4 h-4 rounded"
-                style={{ accentColor: "var(--sl-color-accent-high)" }}
               />
-              <span className="ml-3 text-gray-100">{option}</span>
+              <span>{option}</span>
             </label>
           ))}
         </div>
@@ -197,23 +195,19 @@ export function QuizQuestion({
 
   const renderInput = () => {
     if (question.type === "text") {
+      const textAnswer =
+        isAnswered && typeof submittedAnswer === "string" ? submittedAnswer : textValue;
       return (
-        <div className="space-y-2">
-          <input
-            type="text"
-            value={textValue}
-            onChange={(e) => handleTextChange(e.target.value)}
-            disabled={isAnswered}
-            placeholder="พิมพ์คำตอบของคุณ..."
-            className={`w-full p-3 rounded-lg border bg-neutral-950 text-gray-100 ${
-              isAnswered
-                ? isCorrect
-                  ? "bg-green-500/10 border-green-500"
-                  : "bg-red-500/10 border-red-500"
-                : "border-gray-500"
-            }`}
-          />
-        </div>
+        <input
+          type="text"
+          value={textAnswer}
+          onChange={(e) => handleTextChange(e.target.value)}
+          disabled={isAnswered}
+          placeholder="พิมพ์คำตอบของคุณ..."
+          className={`quiz-input${
+            isAnswered ? (isCorrect ? " is-correct" : " is-incorrect") : ""
+          }`}
+        />
       );
     }
 
@@ -228,22 +222,12 @@ export function QuizQuestion({
       : correctAnswer;
 
     return (
-      <div
-        className={`mt-4 p-4 rounded-lg border ${
-          isCorrect
-            ? "bg-green-500/10 border-green-500"
-            : "bg-red-500/10 border-red-500"
-        }`}
-      >
-        <p
-          className={`font-medium ${
-            isCorrect ? "text-green-500" : "text-red-500"
-          }`}
-        >
+      <div className={`quiz-feedback${isCorrect ? " is-correct" : " is-incorrect"}`}>
+        <p className="quiz-feedback-status">
           {isCorrect ? "✓ ถูกต้อง!" : "✗ ไม่ถูกต้อง"}
         </p>
-        <p className="mt-1">เฉลย: {correctText}</p>
-        <p className="mt-1 text-sm">
+        <p>เฉลย: {correctText}</p>
+        <p className="quiz-feedback-points">
           ได้คะแนน: {isCorrect ? points : 0} / {points}
         </p>
       </div>
@@ -251,13 +235,11 @@ export function QuizQuestion({
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h3 className="text-base font-medium mb-3 text-gray-100">
-        {question.question}
-      </h3>
+    <div className="quiz-body">
+      <h3 className="quiz-question">{question.question}</h3>
 
       {question.type === "multiple" && (
-        <p className="text-xs mb-2 text-gray-400">(เลือกได้หลายข้อ)</p>
+        <p className="quiz-hint">(เลือกได้หลายข้อ)</p>
       )}
 
       {renderInput()}

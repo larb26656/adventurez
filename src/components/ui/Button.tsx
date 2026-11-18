@@ -19,29 +19,24 @@ export function Button({
   children,
   type = "button",
 }: ButtonProps) {
-  const baseClasses =
-    "inline-flex items-center justify-center font-semibold transition-all duration-150 rounded-[10px] no-underline cursor-pointer border not-content";
+  const baseClasses = "quiz-button not-content";
 
   const variantClasses = {
-    primary:
-      "bg-primary-low text-primary-high border-transparent hover:opacity-90 dark:bg-primary dark:text-primary-foreground",
-    secondary:
-      "bg-transparent text-primary border-primary hover:bg-primary-low hover:text-primary-high dark:border-grey dark:text-grey dark:hover:bg-primary-low/10",
-    ghost:
-      "bg-transparent text-muted border-transparent hover:text-foreground dark:hover:text-gray-2",
+    primary: "quiz-button--primary",
+    secondary: "quiz-button--secondary",
+    ghost: "quiz-button--ghost",
   };
 
   const sizeClasses = {
-    sm: "px-3 py-1.5 text-[13px]",
-    md: "px-7 py-3.5 text-[16px]",
-    lg: "px-7 py-3.5 text-[16px]",
+    sm: "quiz-button--sm",
+    md: "quiz-button--md",
+    lg: "quiz-button--lg",
   };
 
   const classes = [
     baseClasses,
     variantClasses[variant],
     sizeClasses[size],
-    disabled && "opacity-50 cursor-not-allowed",
     className,
   ]
     .filter(Boolean)

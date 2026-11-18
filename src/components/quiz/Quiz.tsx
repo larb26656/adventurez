@@ -162,7 +162,7 @@ export function Quiz({ quiz, onComplete }: QuizProps) {
 
   if (isComplete) {
     return (
-      <div className="p-4 rounded-lg border bg-inherit border-gray-500 text-border-gray-100">
+      <div className="quiz not-content">
         <QuizResult
           questions={processedQuestions}
           answers={answers}
@@ -175,8 +175,8 @@ export function Quiz({ quiz, onComplete }: QuizProps) {
   const isCurrentAnswered = !!currentAnswer;
 
   return (
-    <div className="p-4 rounded-lg border bg-inherit border-gray-500 text-border-gray-100 not-content">
-      <h2 className="text-lg font-semibold mb-4">{quiz.title}</h2>
+    <div className="quiz not-content">
+      <h2 className="quiz-title">{quiz.title}</h2>
 
       <QuizProgress current={currentIndex} total={processedQuestions.length} />
 
@@ -191,7 +191,7 @@ export function Quiz({ quiz, onComplete }: QuizProps) {
         pendingAnswer={pendingAnswer || undefined}
       />
 
-      <div className="flex justify-between mt-4">
+      <div className="quiz-actions">
         <Button
           variant="secondary"
           onClick={handleBack}
