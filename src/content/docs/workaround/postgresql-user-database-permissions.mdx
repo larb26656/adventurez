@@ -156,6 +156,9 @@ GRANT SELECT ON SEQUENCES TO <backup_role>;
 -- ไม่ใช่ INSERT, UPDATE, DELETE บนตารางจริง แต่ทำให้ backup user ไม่ได้ read-only จริง
 -- การถอนมีผลกับทุก user
 REVOKE TEMPORARY ON DATABASE <database> FROM PUBLIC;
+-- ถอน TEMP ที่ให้ <backup_role> โดยตรง ถ้า PUBLIC ยังมี TEMP user ยังได้ผ่าน PUBLIC
+-- ต้องถอนจาก PUBLIC ด้วย ไม่งั้น has_database_privilege ยังเป็น true
+REVOKE TEMPORARY ON DATABASE <database> FROM <backup_role>;
 
 -- คืน TEMP ให้ role ของ application เพราะคำสั่งด้านบนถอนจากทุกคน
 GRANT TEMPORARY ON DATABASE <database> TO <app_full_role>;
