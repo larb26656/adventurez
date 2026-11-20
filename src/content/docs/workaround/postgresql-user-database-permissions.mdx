@@ -25,6 +25,10 @@ GRANT <app_full_role> TO <app_user>;
 
 -- อนุญาตให้เชื่อมต่อ database
 GRANT CONNECT ON DATABASE <database> TO <app_full_role>;
+
+-- ไม่มี CREATE บน database แล้ว migration จะล้มเหลว
+-- สิทธิ์นี้ให้สร้าง schema ได้ เช่น tool สร้าง schema เก็บตาราง migration
+GRANT CREATE ON DATABASE <database> TO <app_full_role>;
 ```
 
 #### 2. เชื่อมต่อเข้า database แล้วกำหนดสิทธิ์ใน schema `public`
