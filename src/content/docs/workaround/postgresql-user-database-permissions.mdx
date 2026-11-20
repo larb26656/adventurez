@@ -97,13 +97,19 @@ GRANT SELECT ON TABLES TO <reader_role>;
 
 ### Backup role (สำหรับ pg_dump)
 
-role นี้ใช้รัน `pg_dump` อ่านได้อย่างเดียว
+user นี้ใช้รัน `pg_dump` อ่านได้อย่างเดียว
 
-#### 1. สร้าง role แล้วอนุญาตให้เชื่อมต่อ database
+#### 1. สร้าง role และ user แล้วอนุญาตให้เชื่อมต่อ database
 
 ```sql
--- สร้าง role ที่ login ได้ สำหรับรัน pg_dump
-CREATE ROLE <backup_role> WITH LOGIN PASSWORD '<backup_password>';
+-- สร้าง role สำหรับสำรองข้อมูล
+CREATE ROLE <backup_role> NOLOGIN;
+
+-- สร้าง user สำหรับรัน pg_dump
+CREATE USER <backup_user> WITH PASSWORD '<backup_password>';
+
+-- ให้ user รับสิทธิ์จาก role สำหรับ backup
+GRANT <backup_role> TO <backup_user>;
 
 -- อนุญาตให้เชื่อมต่อ database
 GRANT CONNECT ON DATABASE <database> TO <backup_role>;
