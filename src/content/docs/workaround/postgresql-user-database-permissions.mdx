@@ -61,6 +61,10 @@ GRANT USAGE, CREATE ON SCHEMA public TO <migration_role>;
 -- ไม่มี CREATE บน database แล้ว migration จะล้มเหลว
 -- สิทธิ์นี้ให้สร้าง schema ได้ เช่น tool สร้าง schema เก็บตาราง migration
 GRANT CREATE ON DATABASE <database> TO <migration_role>;
+
+-- migration tool หรือ ORM อาจสร้าง temp table
+-- ต้องมีสิทธิ์นี้หลัง REVOKE TEMPORARY จาก PUBLIC ในส่วน backup role
+GRANT TEMPORARY ON DATABASE <database> TO <migration_role>;
 ```
 
 <ChatMessage message="สิทธิ์ CREATE บน schema ใช้สร้าง table ได้ แต่ PostgreSQL ไม่มี privilege แยกสำหรับ DROP table; การ DROP ต้องมี ownership ของ table นั้น หาก migration ต้องลบ table ที่สร้างโดย role อื่น ให้รัน migration ในฐานะ owner หรือ SET ROLE เป็น <table_owner> ก่อน" avatarKey="whiteCat" />
@@ -141,4 +145,23 @@ GRANT SELECT ON SEQUENCES TO <backup_role>;
 
 -- ทางลัด PostgreSQL 14+ แทน GRANT ด้านบน
 -- GRANT pg_read_all_data TO <backup_role>;
+```
+
+#### 3. ถอน TEMP จาก PUBLIC แล้วคืนให้ role ที่ต้องใช้
+
+```sql
+-- PUBLIC ได้ TEMPORARY บน database เป็นค่าเริ่มต้น
+-- ทุก user รวม <backup_user> จึงสร้าง temp table ได้
+-- Databasus เตือน 'Current user has the following write privileges: TEMP'
+-- ไม่ใช่ INSERT, UPDATE, DELETE บนตารางจริง แต่ทำให้ backup user ไม่ได้ read-only จริง
+-- การถอนมีผลกับทุก user
+REVOKE TEMPORARY ON DATABASE <database> FROM PUBLIC;
+
+-- คืน TEMP ให้ role ของ application เพราะคำสั่งด้านบนถอนจากทุกคน
+GRANT TEMPORARY ON DATABASE <database> TO <app_full_role>;
+
+-- <migration_role> ได้ GRANT TEMPORARY ไว้ในบล็อก migration role ด้านบน
+
+-- ตรวจว่า <backup_user> สร้าง temp table ไม่ได้ ผลต้องเป็น false
+SELECT has_database_privilege('<backup_user>', '<database>', 'TEMP') AS can_create_temp; -- should be false
 ```
