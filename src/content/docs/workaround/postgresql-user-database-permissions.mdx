@@ -1,7 +1,7 @@
 ---
 title: สร้าง User และกำหนดสิทธิ์ Database ใน PostgreSQL
-description: ขั้นตอนสร้าง user และกำหนดสิทธิ์ database สำหรับ application ทั้งแบบอ่านเขียนและอ่านอย่างเดียว
-tags: [PostgreSQL]
+description: ขั้นตอนสร้าง user และกำหนดสิทธิ์ database สำหรับ application ทั้งแบบอ่านเขียนและอ่านอย่างเดียว รวม role สำหรับ backup
+tags: [PostgreSQL, backup]
 publishedAt: "2026-11-04T18:55:39"
 ---
 
@@ -94,3 +94,102 @@ GRANT SELECT ON TABLES TO <reader_role>;
 ```
 
 <ChatMessage message="ALTER DEFAULT PRIVILEGES มีผลเฉพาะ object ที่สร้างโดย role ซึ่งรันคำสั่งนี้ หากมีหลาย role เป็นผู้สร้างตาราง ให้รันคำสั่ง ALTER DEFAULT PRIVILEGES FOR ROLE ... แยกตามแต่ละ owner" avatarKey="whiteCat" />
+
+### Backup role (สำหรับ pg_dump)
+
+role นี้ใช้รัน `pg_dump` เพื่อสำรองข้อมูล: อ่านได้อย่างเดียว ไม่มีสิทธิ์เขียน แทน placeholder ใน `<...>` ให้เป็นค่าจริงก่อนรัน SQL และรันคำสั่งสร้าง role ด้วย account ที่มีสิทธิ์จัดการ role ตัวอย่างใช้ schema `public` ถ้าต้องสำรอง schema อื่น ให้รันชุด `GRANT` เดียวกันโดยเปลี่ยนชื่อ schema
+
+#### 1. สร้าง role แล้วอนุญาตให้เชื่อมต่อ database
+
+```sql
+-- สร้าง role ที่ login ได้ สำหรับรัน pg_dump
+CREATE ROLE <backup_role> WITH LOGIN PASSWORD '<backup_password>';
+
+-- อนุญาตให้เชื่อมต่อ database
+GRANT CONNECT ON DATABASE <database> TO <backup_role>;
+```
+
+#### 2. เชื่อมต่อเข้า database แล้วให้สิทธิ์อ่าน schema, ตาราง และ sequence
+
+```sql
+-- อนุญาตให้ใช้งาน schema
+GRANT USAGE ON SCHEMA public TO <backup_role>;
+
+-- ให้สิทธิ์อ่านตารางและ view ที่มีอยู่
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO <backup_role>;
+
+-- ให้สิทธิ์อ่าน sequence ที่มีอยู่
+-- pg_dump อ่าน last_value และ is_called ด้วย SELECT บน sequence
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO <backup_role>;
+```
+
+`pg_dump` ต้องอ่านสถานะ sequence (`last_value` และ `is_called`) ด้วย `SELECT` บน sequence นั้น สิทธิ์ `SELECT` บนตารางไม่ครอบคลุม sequence แม้ sequence จะผูกกับคอลัมน์ `SERIAL` ถ้าไม่ได้ให้สิทธิ์นี้ การสำรองจะล้ม: PostgreSQL 17 และเก่ากว่าขึ้น `permission denied for sequence` ส่วน PostgreSQL 18 ขึ้นไป `pg_dump` บอกว่า role ไม่มี `SELECT` บน sequence
+
+`USAGE` บน sequence ใช้เรียก `currval` และ `nextval` ซึ่ง `pg_dump` ไม่ได้เรียกตอนอ่านสถานะ จึงไม่ต้องให้กับ role นี้
+
+#### 3. ให้สิทธิ์กับตารางและ sequence ที่สร้างใหม่
+
+`ALTER DEFAULT PRIVILEGES` ไม่เปลี่ยน object ที่มีอยู่แล้ว มีผลเฉพาะ object ที่ role ใน `FOR ROLE` สร้างหลังจากรันคำสั่งนี้ sequence ของคอลัมน์ `SERIAL` หรือ `IDENTITY` ถูกสร้างโดย role เดียวกับตาราง ให้ตั้ง `<table_owner>` เป็น role ที่รัน migration
+
+รันคำสั่ง `FOR ROLE` ได้เมื่อเป็น `<table_owner>` เอง, เป็นสมาชิกของ role นั้น, หรือเป็น superuser ถ้ามีหลาย owner ให้รันแยกตามแต่ละ role
+
+```sql
+-- ให้สิทธิ์อ่านตารางที่ <table_owner> สร้างใหม่
+ALTER DEFAULT PRIVILEGES FOR ROLE <table_owner> IN SCHEMA public
+GRANT SELECT ON TABLES TO <backup_role>;
+
+-- ให้สิทธิ์อ่าน sequence ที่ <table_owner> สร้างใหม่
+ALTER DEFAULT PRIVILEGES FOR ROLE <table_owner> IN SCHEMA public
+GRANT SELECT ON SEQUENCES TO <backup_role>;
+```
+
+#### ทางลัด: pg_read_all_data (PostgreSQL 14+)
+
+ตั้งแต่ PostgreSQL 14 มี built-in role `pg_read_all_data` ที่อ่านตาราง, view, sequence และ large object ได้เทียบเท่า `SELECT` และมี `USAGE` บนทุก schema โดยไม่ต้อง `GRANT` ทีละ object สิทธิ์นี้ครอบคลุม object ที่สร้างใหม่ด้วย จึงไม่ต้องตั้ง `ALTER DEFAULT PRIVILEGES` ยังต้องสร้าง role แบบ `LOGIN` และให้ `CONNECT` เอง
+
+role นี้กว้างกว่า schema `public`: เมื่อเชื่อมต่อ database ได้จะอ่านได้ทุก schema และไม่ผ่าน row-level security ถ้าตารางมี policy การ dump จะเห็นเฉพาะแถวที่ policy อนุญาต
+
+```sql
+CREATE ROLE <backup_role> WITH LOGIN PASSWORD '<backup_password>';
+
+GRANT CONNECT ON DATABASE <database> TO <backup_role>;
+
+GRANT pg_read_all_data TO <backup_role>;
+```
+
+#### ตรวจว่าสำรองข้อมูลได้
+
+รัน `pg_dump` ด้วย role นี้ ถ้าสิทธิ์ sequence ไม่ครบ คำสั่งจะล้มด้วย `permission denied for sequence` (PostgreSQL 17 และเก่ากว่า) หรือข้อความว่าไม่มี `SELECT` บน sequence (PostgreSQL 18 ขึ้นไป)
+
+```bash
+pg_dump \
+  --host=<host> \
+  --username=<backup_role> \
+  --dbname=<database> \
+  --schema=public \
+  --file=<backup_file>
+```
+
+query ด้านล่างใช้ได้ทั้งการ `GRANT` เองและทางลัด `pg_read_all_data` ค่า `can_connect`, `can_use_schema` และ `can_select` ควรเป็น `true`
+
+```sql
+-- ตรวจ CONNECT และ USAGE บน schema
+SELECT has_database_privilege('<backup_role>', '<database>', 'CONNECT')
+         AS can_connect,
+       has_schema_privilege('<backup_role>', 'public', 'USAGE')
+         AS can_use_schema;
+
+-- relkind: r/p ตาราง, v view, m materialized view, f foreign table, S sequence
+SELECT c.relname,
+       c.relkind,
+       CASE
+         WHEN c.relkind = 'S'
+           THEN has_sequence_privilege('<backup_role>', c.oid, 'SELECT')
+         ELSE has_table_privilege('<backup_role>', c.oid, 'SELECT')
+       END AS can_select
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public'
+  AND c.relkind IN ('r', 'p', 'v', 'm', 'f', 'S')
+ORDER BY c.relname;
+```
