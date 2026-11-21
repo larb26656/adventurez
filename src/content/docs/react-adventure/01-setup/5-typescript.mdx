@@ -1,0 +1,97 @@
+---
+title: "TypeScript สั้นๆ"
+description: type, interface และ union ที่ใช้กับเมนูชา
+sidebar:
+  order: 5
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+โปรเจกต์ฝึกเป็น TypeScript ตั้งแต่ต้น ไฟล์ที่มี JSX ใช้นามสกุล `.tsx` ไฟล์ที่ไม่มี JSX ใช้ `.ts`
+
+บทนี้ไม่ไล่ไวยากรณ์ทั้งภาษา เอาแค่รูปข้อมูลที่ตัวอย่างชาใช้ รายการเต็มของร้านที่ต้องตรงกับ `public/products.json` อยู่ในพาร์ต 3 เป็นต้นไป
+
+## type กับ interface
+
+`interface` ใช้ประกาศรูป object เช่นสินค้าหนึ่งแก้ว `type` ใช้ตั้งชื่อให้ union หรือรูปที่ประกอบจากของเดิม
+
+```ts
+type TeaTemperature = 'cold' | 'hot'
+```
+
+ค่าของ `temperature` มีได้สองค่านี้เท่านั้น เขียนอย่างอื่น TypeScript จะฟ้อง
+
+`TeaFilter` เพิ่ม `'all'` สำหรับปุ่มทั้งหมด:
+
+```ts
+type TeaFilter = 'all' | TeaTemperature
+```
+
+## สินค้ากับตะกร้า
+
+`Product` คือเมนูหนึ่งรายการ `CartItem` คือสินค้าในตะกร้า ซึ่งเป็น `Product` บวก `quantity`
+
+ราคาเป็นตัวเลขบาท ไม่ใส่สัญลักษณ์สกุลเงินไว้ใน data หน้าเว็บค่อยเติม `฿` ตอน render
+
+`image` ในคอร์สนี้เป็น emoji เพื่อให้เปิดได้โดยไม่ต้องโหลดรูปจากเว็บอื่น
+
+ไฟล์จริงของตัวอย่างฝึก:
+
+```ts
+export type TeaTemperature = 'cold' | 'hot'
+
+export type TeaFilter = 'all' | TeaTemperature
+
+export interface Product {
+  id: string
+  name: string
+  price: number
+  image: string
+  temperature: TeaTemperature
+}
+
+export interface CartItem extends Product {
+  quantity: number
+}
+
+export const products: Product[] = [
+  {
+    id: 'milk-tea',
+    name: 'ชานมไต้หวัน',
+    price: 50,
+    image: '🧋',
+    temperature: 'cold',
+  },
+  {
+    id: 'matcha',
+    name: 'ชาเขียวมัทฉะ',
+    price: 55,
+    image: '🍵',
+    temperature: 'hot',
+  },
+  {
+    id: 'thai-tea',
+    name: 'ชาไทย',
+    price: 45,
+    image: '🧡',
+    temperature: 'cold',
+  },
+  {
+    id: 'green-hot',
+    name: 'ชาเขียวร้อน',
+    price: 35,
+    image: '🍃',
+    temperature: 'hot',
+  },
+]
+```
+
+<ChatMessage message="รายการสั้นนี้ใช้ในตัวอย่างฝึก ร้านชามีเมนูยาวกว่า และต้องตรงกับ public/products.json" avatarKey="whiteCat" />
+
+## สิ่งที่พอใช้ต่อ
+
+- ใส่ type ให้ props และ state อย่าใช้ `any` กลบ error
+- `?` หลังชื่อ field แปลว่าไม่ส่งมาก็ได้ เช่น `note?` แต่ในฟอร์มสั่งชาเราส่งสตริงว่างแทน เพื่อให้ input มีค่าเสมอ
+- `z.infer` ในพาร์ต 5 จะสร้าง type จาก schema ของ Zod ไม่ต้องประกาศซ้ำมือ
+
+> ไฟล์ประกอบ: [`src/examples/teaTypes.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/teaTypes.ts), [`src/examples/TypeScriptExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/TypeScriptExample.tsx)

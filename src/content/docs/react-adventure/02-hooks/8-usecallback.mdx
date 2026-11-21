@@ -1,0 +1,26 @@
+---
+title: "useCallback"
+description: คงฟังก์ชันเพิ่มลงตะกร้าของการ์ดชา
+sidebar:
+  order: 8
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+ทุกครั้งที่ component render ฟังก์ชันที่เขียนในตัวมันจะเป็นคนละตัวกับรอบที่แล้ว `useCallback` จำฟังก์ชันเดิมไว้ จนกว่าค่าใน dependency จะเปลี่ยน
+
+ตัวอย่างฝึกทำแบบนี้ แล้วส่ง `handleAdd` เข้าปุ่มที่ห่อด้วย `memo`:
+
+```tsx
+  const handleAdd = useCallback(() => {
+    setNotice(`เพิ่ม ${product.name} แล้ว`)
+  }, [product])
+```
+
+`handleAdd` อ่าน `product` จึงใส่ใน dependency กดปุ่มแล้วเปลี่ยนข้อความบนจอ ไม่ได้เปิด store
+
+ไม่ต้องห่อทุกฟังก์ชัน ห่อเมื่อส่งฟังก์ชันนั้นลงไปใน component ที่ถูก `memo` หรือเมื่อฟังก์ชันไปอยู่ใน dependency ของ Hook อื่น การ์ดร้านชาในพาร์ต 4 ใช้รูปแบบเดียวกัน แต่เรียก `addItem(product)` จาก Zustand และใส่ทั้ง `addItem` กับ `product` ใน dependency
+
+<ChatMessage message="ลืมใส่ product ใน dependency แล้วการ์ดจะเพิ่มชาใบเก่าค้างอยู่ แม้ props จะเปลี่ยนแล้ว" avatarKey="blackCat" />
+
+> ไฟล์ประกอบ: [`src/examples/UseCallbackExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/UseCallbackExample.tsx)

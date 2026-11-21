@@ -1,26 +1,21 @@
 ---
-title: "Form Validation"
+title: "ฟอร์ม"
+description: เข้าสู่ระบบและสั่งชาด้วย React Hook Form กับ Zod
 sidebar:
   order: 5
+  label: "05 ฟอร์ม"
   collapsed: false
 ---
 
-## Part 5: Form Validation - ทำ Form ให้มีประสิทธิภาพ
+## Part 5: ฟอร์มของร้านชา
 
-ใน part นี้เราจะเรียนรู้การทำ form validation อย่างมีประสิทธิภาพ:
+มีสองฟอร์ม ทั้งคู่ไม่มี backend
 
-- **React Hook Form** - จัดการ form state ง่าย ๆ
-- **Zod** - validate data ด้วย schema
-- **Login Form ทำงานจริง** - เช็ค email, password และแสดง error
+- **เข้าสู่ระบบ** ตรวจอีเมลกับรหัสผ่านเป็นภาษาไทย แล้วจำอีเมลไว้ใน auth store
+- **สั่งชา** รับชื่อผู้รับกับโน้ต พอผ่านแล้วโชว์ว่าจัดออเดอร์แล้ว และล้างตะกร้า
 
-```mermaid
-flowchart TB
-    subgraph FormValidation
-        RHF[React Hook Form<br/>State Management]
-        Zod[Zod<br/>Validation Schema]
-        Login[Login Form<br/>Working]
-    end
-    
-    classDef important fill:#f472b6,stroke:#db2777,stroke-width:2px
-    class RHF,Zod,Login important
+ใช้ React Hook Form 7 คู่กับ Zod 3 ผ่าน `@hookform/resolvers`
+
+```bash
+npm install react-hook-form zod @hookform/resolvers
 ```

@@ -1,0 +1,78 @@
+---
+title: "สรุป Hooks"
+description: สรุป Hook ที่ร้านชาใช้
+sidebar:
+  order: 10
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+import { Quiz } from "@/components/quiz"
+
+- **useState** จำตัวกรองและค่าที่ต้องวาดบนจอ
+- **useEffect** ทำงานหลัง render เช่น ติดคลาสธีม อย่า setState ตัวที่อยู่ใน dependency โดยไม่มีเงื่อนไขหยุด
+- **useRef** ชี้ DOM โดยไม่ทำให้ render ใหม่ ตัวอย่างฝึกใช้โฟกัสชื่อผู้รับ
+- **useMemo** จำผลคำนวณ dependency ต้องเป็นค่าที่สูตรอ่านจริง
+- **useCallback** จำฟังก์ชัน เช่น `handleAdd`
+- **custom hook** รวม Hook เป็น `useTeaFilter` และ `useCupCount`
+
+> ไฟล์ประกอบ: [examples/react/basics](https://github.com/larb26656/adventurez/tree/main/examples/react/basics)
+
+<ChatMessage message="พาร์ตหน้าจะใส่ Tailwind v4 แล้วเปิด route ของร้านชา" avatarKey="whiteCat" />
+
+<Quiz client:load
+  quiz={{
+    id: "hooks-basics",
+    title: "Quiz: Hooks พื้นฐาน",
+    questions: [
+      {
+        id: "q1",
+        type: "single",
+        question: "useEffect ทำงานเมื่อไหร่?",
+        options: ["ก่อน render", "ระหว่าง render", "หลัง render เสร็จ", "ตอน unmount เท่านั้น"],
+        correctAnswer: "หลัง render เสร็จ"
+      },
+      {
+        id: "q2",
+        type: "single",
+        question: "ถ้าไม่ทำ cleanup ใน useEffect ที่ตั้ง interval จะเกิดอะไรขึ้น?",
+        options: ["ไม่เกิดอะไร", "Memory Leak", "Error ทันที", "Component จะหายไป"],
+        correctAnswer: "Memory Leak"
+      },
+      {
+        id: "q3",
+        type: "single",
+        question: "useRef ต่างจาก useState อย่างไร?",
+        options: ["useRef เก็บได้มากกว่า", "useRef ไม่ทำให้ re-render", "useState เร็วกว่า", "ไม่ต่างกัน"],
+        correctAnswer: "useRef ไม่ทำให้ re-render"
+      },
+      {
+        id: "q4",
+        type: "single",
+        question: "useMemo ของร้านชาควรใส่ dependency อะไรสำหรับตัวกรองเมนู?",
+        options: ["ไม่ต้องใส่", "ตัวแปรที่สูตรไม่ได้อ่าน", "products กับ filter", "count ที่ไม่เกี่ยวกับเมนู"],
+        correctAnswer: "products กับ filter"
+      },
+      {
+        id: "q5",
+        type: "single",
+        question: "empty dependency array [] ใน useEffect หมายความว่าอะไร?",
+        options: ["ไม่เคย run", "run ทุกครั้ง", "run ครั้งเดียวตอน mount", "run ตอน unmount"],
+        correctAnswer: "run ครั้งเดียวตอน mount"
+      },
+      {
+        id: "q6",
+        type: "single",
+        question: "useCallback ใช้ทำอะไรในการ์ดชา?",
+        options: ["จำฟังก์ชัน handleAdd", "จำราคาสินค้า", "ยิง API", "เปลี่ยนสีปุ่ม"],
+        correctAnswer: "จำฟังก์ชัน handleAdd"
+      },
+      {
+        id: "q7",
+        type: "single",
+        question: "custom hook ต้องตั้งชื่ออย่างไร?",
+        options: ["ขึ้นต้นด้วย use", "ขึ้นต้นด้วย get", "ลงท้ายด้วย Hook", "เป็น class"],
+        correctAnswer: "ขึ้นต้นด้วย use"
+      }
+    ]
+  }}
+/>

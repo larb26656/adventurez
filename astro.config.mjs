@@ -41,7 +41,7 @@ export default defineConfig({
             link: "/react-adventure/",
             items: [
               {
-                label: "Start Hear",
+                label: "Start Here",
                 autogenerate: { directory: "react-adventure" },
               },
             ],

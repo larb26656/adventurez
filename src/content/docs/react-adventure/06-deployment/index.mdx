@@ -1,24 +1,14 @@
 ---
-title: "Deployment"
+title: "Deploy"
+description: เอาหน้าร้านชาขึ้น Vercel
 sidebar:
   order: 6
+  label: "06 Deploy"
   collapsed: false
 ---
 
-## Part 6: Deployment - ขึ้น Vercel กัน!
+## Part 6: ขึ้น Vercel
 
-ใน part สุดท้ายเราจะ deploy application ขึ้น Vercel:
+ร้านชาเป็น SPA ไม่มีเซิร์ฟเวอร์ของตัวเอง Vercel แจกไฟล์ที่ `vite build` สร้างไว้ แล้วเขียน URL ที่ไม่ตรงไฟล์กลับไปที่ `index.html` เพื่อให้เปิด `/cart` ตรงๆ ได้
 
-- **เตรียม Production Build**
-- **Deploy ไป Vercel**
-- **ตั้งค่า Domain (optional)**
-
-```mermaid
-flowchart TB
-    subgraph Deployment
-        Build[Build<br/>Production] --> Vercel[Vercel<br/>Deploy] --> Live[Live URL]
-    end
-    
-    classDef important fill:#34d399,stroke:#059669,stroke-width:2px
-    class Build,Vercel,Live important
-```
+พาร์ต 7 กับ 8 เพิ่ม loader และเทสต์เข้าโปรเจกต์เดียวกัน ถ้าจะ deploy รอบเดียว ให้ทำสองพาร์ตนั้นก่อนแล้วค่อย push
