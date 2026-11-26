@@ -1,104 +1,59 @@
 ---
 title: "Props"
-description: ส่งข้อมูลระหว่าง Component ด้วย Props
+description: ส่งเมนูชาเข้า ProductCard
 sidebar:
   order: 4
-  parent: 01-setup
 ---
 
 import ChatMessage from "@/components/ChatMessage.astro"
 
-## Props: ส่งข้อมูลระหว่าง Component
+## Props คือ arguments ของ component
 
-### Props คืออะไร?
+แม่ส่งข้อมูลให้ลูกผ่าน attribute ของ JSX ลูกอ่านได้อย่างเดียว ไม่แก้ props ตรงๆ
 
-Props ย่อมาจาก "properties" - คือ **arguments** ที่ส่งเข้า component
-
-### ส่ง Props
+การ์ดร้านชารับ `product` ทั้งก้อน ไม่รับทีละ field กระจาย เพราะรูปสินค้ามี id, ชื่อ, ราคา, emoji และอุณหภูมิ
 
 ```tsx
-// Parent component
-function App() {
-  return <Greeting name="Somchai" />
-}
-
-// Child component (รับ props เป็น parameter)
-function Greeting({ name }: { name: string }) {
-  return <h1>สวัสดีครับ {name}!</h1>
-}
-```
-
-### Multiple Props
-
-```tsx
-function UserCard({ name, age, city }: { name: string; age: number; city: string }) {
+export function ProductCard({
+  product,
+}: {
+  product: { name: string; price: number; temperature: 'cold' | 'hot' }
+}) {
   return (
-    <div className="card">
-      <h2>{name}</h2>
-      <p>อายุ: {age}</p>
-      <p>เมือง: {city}</p>
-    </div>
-  )
-}
-
-// ใช้งาน
-<UserCard name="Somchai" age={25} city="กรุงเทพ" />
-```
-
-### Default Props
-
-```tsx
-function Badge({ text = "New", color = "blue" }: { text?: string; color?: string }) {
-  return <span className={`badge badge-${color}`}>{text}</span>
-}
-
-// <Badge /> → <span class="badge badge-blue">New</span>
-// <Badge text="Sale" /> → <span class="badge badge-blue">Sale</span>
-```
-
-### Callback Props
-
-เราสามารถส่ง function เป็น props เพื่อให้ child component สื่อสารกลับไปยัง parent ได้
-
-```tsx
-// Parent component
-function App() {
-  const handleDelete = (id: number) => {
-    console.log("ลบไอดี:", id)
-  }
-
-  return <DeleteButton onDelete={handleDelete} />
-}
-
-// Child component (รับ function เป็น props)
-function DeleteButton({ onDelete }: { onDelete: (id: number) => void }) {
-  return <button onClick={() => onDelete(1)}>ลบ</button>
-}
-```
-
-```tsx
-import { useState } from "react"
-
-// ตัวอย่าง: Form ที่ส่ง state กลับไปยัง parent
-function LoginForm({ onSubmit }: { onSubmit: (data: { email: string; password: string }) => void }) {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-
-  const handleSubmit = () => {
-    onSubmit({ email, password })
-  }
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button type="submit">Login</button>
-    </form>
+    <article>
+      <h2>{product.name}</h2>
+      <p>{product.temperature === 'cold' ? 'เย็น' : 'ร้อน'}</p>
+      <p>฿{product.price}</p>
+    </article>
   )
 }
 ```
 
-<ChatMessage message="ลองส่ง callback function ผ่าน props ดูนะ จะได้เห็นว่า child สื่อสารกลับกับ parent ได้ยังไง" avatarKey="whiteCat" />
+ค่าเริ่มต้นใส่ตอนแตก props ได้:
+
+```tsx
+export function Badge({ text = 'ใหม่' }: { text?: string }) {
+  return <span>{text}</span>
+}
+```
+
+## Callback
+
+ลูกคุยกลับหาแม่ด้วยฟังก์ชันที่แม่ส่งมา ปุ่มเพิ่มลงตะกร้าในตัวอย่างฝึกทำแบบนี้:
+
+```tsx
+export function AddButton({ onAdd }: { onAdd: () => void }) {
+  return (
+    <button type="button" onClick={onAdd}>
+      เพิ่มลงตะกร้า
+    </button>
+  )
+}
+```
+
+ตัวอย่างฝึกส่ง `onAdd` ผ่าน props การ์ดร้านชาในพาร์ต 4 ไม่ทำแบบนี้ มันเรียก `addItem` จาก Zustand เอง เพราะตะกร้าถูกใช้ทั้งหน้าเมนู แถบบน และหน้าตะกร้า การส่ง callback ไล่จากบนลงล่างจะกลายเป็น props drilling
+
+<ChatMessage message="props เป็นข้อมูลอ่านอย่างเดียว อยากเปลี่ยนตะกร้าให้เรียกฟังก์ชันของ store อย่าไปเขียนทับ product.price" avatarKey="blackCat" />
 
 import { Quiz } from "@/components/quiz"
 
@@ -146,3 +101,4 @@ import { Quiz } from "@/components/quiz"
   }}
 />
 
+> ไฟล์ประกอบ: [`src/examples/PropsExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/PropsExample.tsx)

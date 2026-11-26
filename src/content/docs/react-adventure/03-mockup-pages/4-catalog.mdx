@@ -1,124 +1,119 @@
 ---
-title: "หน้า Catalog - สร้าง Product Grid"
-description: สร้างหน้าแสดงสินค้าแบบ Grid พร้อมตัวอย่างข้อมูล
+title: "หน้าเมนู"
+description: กริดชา ราคาบาท และปุ่มทั้งหมด เย็น ร้อน
+sidebar:
+  order: 4
 ---
+
 import ChatMessage from "@/components/ChatMessage.astro"
 
-ใน part นี้เราจะสร้าง **หน้า Catalog** ที่แสดงสินค้าเป็น grid โดยใช้ code-based routing ที่เราตั้งค่าไว้ก่อนหน้านี้
+หน้าแรกของร้านคือ `src/routes/index.tsx` ไม่ได้แยกไปที่ `/catalog`
 
-## ขั้นตอนที่ 1: สร้าง Catalog Component
+ข้อมูลหนึ่งรายการมีชื่อภาษาไทย ราคาเป็นจำนวนบาท emoji และ `temperature` เป็น `'cold'` หรือ `'hot'` รายการอ้างอิงอยู่ใน `src/data/products.ts` แต่ตอนรันหน้านี้ไม่ import array นั้น มันโหลด `public/products.json` ผ่าน loader ซึ่งอธิบายในพาร์ต 7 ข้อมูลสองที่ต้องเป็นชุดเดียวกัน
 
-ก่อนอื่น สร้างไฟล์ component ใหม่ที่ `src/components/react-adventure/pages/Catalog.tsx`:
+หลังได้ `products` แล้ว `useTeaFilter` ตัดรายการตามปุ่ม:
+
+- ทั้งหมด (`all`) โชว์ครบ 8 แก้ว เป็นกริด 4 คอลัมน์บนจอกว้าง
+- เย็น (`cold`) เหลือชานม, ชาไทย, ชาดำมะนาว, ชาผลไม้
+- ร้อน (`hot`) เหลือมัทฉะ, ชาเขียวร้อน, ชามะนาวร้อน, อู่หลง
+
+แต่ละใบเป็น `ProductCard` และใช้ `product.id` เป็น `key`
 
 ```tsx
-// src/components/react-adventure/pages/Catalog.tsx
-export function Catalog() {
-  return (
-    <div>
-      <h1>Catalog Page</h1>
-    </div>
-  )
-}
+        <div className="mt-8 grid grid-cols-2 gap-6 lg:grid-cols-4">
+          {visibleProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
 ```
 
-## ขั้นตอนที่ 2: เพิ่ม Data สำหรับแสดงสินค้า
+ปุ่ม "เพิ่มลงตะกร้า" อยู่ใน `ProductCard` มันเรียก `addItem` ของตะกร้า ไม่ได้เก็บของไว้ในหน้าเมนูเอง เลยเพิ่มแล้วป้ายบนแถบนำทางขยับทันที
 
-ตอนนี้เราจะเพิ่ม **static data** ของสินค้า ซึ่งในอนาคตเราจะเปลี่ยนเป็นข้อมูลจริงจาก API:
+<ChatMessage message="ราคาบนการ์ดเขียน ฿ ตามด้วยตัวเลข เช่น ฿50 ไม่ใช้ดอลลาร์" avatarKey="whiteCat" />
+
+ไฟล์เต็มของหน้านี้อยู่ด้านล่าง รวม loader, หน้าโหลด, และหน้า error ไว้ด้วย จะได้เห็นของที่รันจริงทั้งก้อน พาร์ต 7 จะอธิบายเฉพาะส่วน loader
 
 ```tsx
-// src/components/react-adventure/pages/Catalog.tsx
+import { createFileRoute, type ErrorComponentProps } from '@tanstack/react-router'
+import { ProductCard } from '../components/ProductCard.tsx'
+import type { Product, TeaFilter } from '../data/products.ts'
+import { useTeaFilter } from '../hooks/useTeaFilter.ts'
 
-// ข้อมูลสินค้าชั่วคราว (mock data)
-const products = [
-  { id: 1, name: "ชาเขียวมัทฉะ", price: 1200, image: "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400" },
-  { id: 2, name: "ชานมไต้หวัน", price: 2500, image: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400" },
-  { id: 3, name: "ชามะม่วง", price: 450, image: "https://images.unsplash.com/photo-1621268438070-4b907a8f9d7c?w=400" },
-  { id: 4, name: "ชาบ๊วย", price: 8000, image: "https://images.unsplash.com/photo-1558160074-4d7d8bdf4256?w=400" },
-  { id: 5, name: "ชานมสด", price: 300, image: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=400" },
-  { id: 6, name: "ชาผลไม้", price: 900, image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400" },
+const filters: { id: TeaFilter; label: string }[] = [
+  { id: 'all', label: 'ทั้งหมด' },
+  { id: 'cold', label: 'เย็น' },
+  { id: 'hot', label: 'ร้อน' },
 ]
 
-export function Catalog() {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">สินค้าทั้งหมด</h1>
-      {/* ตรงนี้เราจะเพิ่ม grid ต่อไป */}
-    </div>
-  )
-}
-```
+export const Route = createFileRoute('/')({
+  loader: async () => {
+    const response = await fetch('/products.json')
+    if (!response.ok) {
+      throw new Error('โหลดรายการชาไม่สำเร็จ')
+    }
 
-## ขั้นตอนที่ 3: ใช้ map แสดงรายการสินค้า
+    const data: unknown = await response.json()
+    if (!Array.isArray(data)) {
+      throw new Error('รูปแบบเมนูชาไม่ถูกต้อง')
+    }
 
-ต่อไปเราจะใช้ **map** เพื่อวน loop แสดงสินค้าทุกชิ้น:
-
-```tsx
-export function Catalog() {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">สินค้าทั้งหมด</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <div key={product.id} className="bg-white rounded-xl shadow-sm p-4">
-            <div className="text-6xl mb-4 text-center">{product.image}</div>
-            <h3 className="font-semibold text-lg text-gray-800">{product.name}</h3>
-            <p className="text-blue-600 font-bold mt-2">฿{product.price}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-```
-
-## ขั้นตอนที่ 4: เพิ่มปุ่ม "เพิ่มลงตะกร้า"
-
-```tsx
-export function Catalog() {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">สินค้าทั้งหมด</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow"
-          >
-            <div className="text-6xl mb-4 text-center">{product.image}</div>
-            <h3 className="font-semibold text-lg text-gray-800">{product.name}</h3>
-            <p className="text-blue-600 font-bold mt-2">฿{product.price}</p>
-            <button className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">
-              เพิ่มลงตะกร้า
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-```
-
-## ขั้นตอนที่ 5: Register Route ใน Router
-
-สุดท้าย ต้องเพิ่ม catalog route ใน `router.tsx`:
-
-```tsx
-// src/components/react-adventure/router.tsx
-import { Catalog } from "./pages/Catalog"
-
-// ... ต่อจาก code เดิม
-
-const catalogRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/catalog",
-  component: Catalog,
+    return { products: data as Product[] }
+  },
+  pendingComponent: CatalogPending,
+  errorComponent: CatalogError,
+  component: CatalogPage,
 })
 
-// เพิ่ม catalogRoute เข้าไปใน routeTree
-const routeTree = rootRoute.addChildren([
-  indexRoute,
-  catalogRoute,  // ← เพิ่มบรรทัดนี้
-  cartRoute,
-  loginRoute,
-])
+function CatalogPending() {
+  return (
+    <p className="text-stone-600 dark:text-stone-300">กำลังโหลดเมนูชา...</p>
+  )
+}
+
+function CatalogError({ error }: ErrorComponentProps) {
+  const message = error instanceof Error ? error.message : 'ไม่ทราบสาเหตุ'
+  return (
+    <p role="alert" className="text-red-700 dark:text-red-300">
+      โหลดเมนูชาไม่สำเร็จ: {message}
+    </p>
+  )
+}
+
+function CatalogPage() {
+  const { products } = Route.useLoaderData()
+  const { filter, setFilter, visibleProducts } = useTeaFilter(products)
+
+  return (
+    <section>
+      <h1 className="text-3xl font-bold">เมนูชา</h1>
+      <div className="mt-4 flex flex-wrap gap-3">
+        {filters.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setFilter(item.id)}
+            className={
+              filter === item.id
+                ? 'rounded-lg border border-amber-800 bg-amber-800 px-4 py-2 text-white'
+                : 'rounded-lg border border-stone-300 bg-white px-4 py-2 text-stone-700 hover:border-amber-800 dark:border-stone-600 dark:bg-stone-900 dark:text-stone-100'
+            }
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+      {visibleProducts.length === 0 ? (
+        <p className="mt-8 text-stone-500">ไม่มีชาในหมวดนี้</p>
+      ) : (
+        <div className="mt-8 grid grid-cols-2 gap-6 lg:grid-cols-4">
+          {visibleProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
 ```
+
+> ไฟล์ประกอบ: [`src/routes/index.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/tea-shop/src/routes/index.tsx), [`src/data/products.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react/tea-shop/src/data/products.ts), [`public/products.json`](https://github.com/larb26656/adventurez/blob/main/examples/react/tea-shop/public/products.json)

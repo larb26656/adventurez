@@ -1,0 +1,58 @@
+---
+title: "Custom hook"
+description: useTeaFilter กับ useCupCount ของตัวอย่างฝึก
+sidebar:
+  order: 9
+---
+
+import ChatMessage from "@/components/ChatMessage.astro"
+
+Custom hook คือฟังก์ชันที่ชื่อขึ้นต้นด้วย `use` แล้วเรียก Hook ตัวอื่นข้างใน ใช้รวมพฤติกรรมที่ซ้ำ หรือซ่อน state ที่หน้าจอไม่จำเป็นต้องเห็นทั้งก้อน
+
+กฎเดียวกับ Hook ทั่วไป: เรียกที่ระดับบนสุด ห้ามเรียกแบบมีเงื่อนไข
+
+## useTeaFilter
+
+ตัวอย่างฝึกต้องมี state ของปุ่มกรอง และรายการที่ผ่านตัวกรอง รวมไว้ที่เดียว หน้าตัวอย่างเลยไม่ต้องเขียน `useState` กับ `useMemo` เอง หน้าร้านในพาร์ต 3 ใช้ hook ชื่อเดียวกัน
+
+```tsx
+export function useTeaFilter(products: Product[]) {
+  const [filter, setFilter] = useState<TeaFilter>('all')
+
+  const visibleProducts = useMemo(
+    () =>
+      products.filter(
+        (product) => filter === 'all' || product.temperature === filter,
+      ),
+    [products, filter],
+  )
+
+  return { filter, setFilter, visibleProducts }
+}
+```
+
+เรียกใช้แบบนี้ในตัวอย่าง:
+
+```tsx
+  const { filter, setFilter, visibleProducts } = useTeaFilter(products)
+```
+
+`products` มาจาก `teaTypes.ts` ในไฟล์เดียวกันของตัวอย่างฝึก หน้าร้านจริงในพาร์ต 7 ส่งรายการจาก loader ไม่ได้ import array ตอนรัน
+
+## useCupCount
+
+ตัวอย่างฝึกยังไม่มีตะกร้า hook ที่สองเลยนับแก้วด้วย `useState` อยู่ในฟังก์ชันชื่อขึ้นต้นด้วย `use`
+
+```tsx
+export function useCupCount() {
+  const [count, setCount] = useState(0)
+  const addCup = () => setCount((current) => current + 1)
+  return { count, addCup }
+}
+```
+
+พาร์ต 4 ของร้านชามี `useCartCount` ที่อ่าน Zustand แทน ตัวเลขบนแถบนำทางรวม `quantity` ทุกแถว ไม่ใช่จำนวนแถว
+
+<ChatMessage message="ชื่อต้องขึ้นต้นด้วย use ไม่งั้นตัวตรวจจะไม่รู้ว่าข้างในเรียก Hook ได้" avatarKey="whiteCat" />
+
+> ไฟล์ประกอบ: [`src/examples/CustomHookExample.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/examples/CustomHookExample.tsx)

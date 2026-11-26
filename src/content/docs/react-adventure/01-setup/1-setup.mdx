@@ -1,76 +1,151 @@
 ---
-title: "Setup & Fundamentals"
-description: ติดตั้ง React ด้วย Vite, เรียนรู้ JSX, Components และ Props
+title: "สร้างโปรเจกต์"
+description: เปิดโปรเจกต์ฝึกด้วย Vite, React 19 และ TypeScript 5 บน Node 22
 sidebar:
   order: 1
 ---
 
-## 1. Setup: สร้าง Project ด้วย Vite
+## ตรวจ Node 22
 
-### ติดตั้ง Node.js ก่อน
-
-ถ้ายังไม่มี Node.js, ดาวน์โหลดจาก [nodejs.org](https://nodejs.org) (แนะนำ LTS version)
-
-เช็คว่าติดตั้งได้หรือยัง:
+คอร์สนี้ใช้ Node 22 ตรวจก่อนสร้างโปรเจกต์:
 
 ```bash
 node --version
 npm --version
 ```
 
-### สร้าง React Project
+ต้องขึ้นต้นด้วย `v22` ถ้าเครื่องมีหลายเวอร์ชัน ให้ใช้ไฟล์ `.nvmrc` ที่มีเลข `22`
 
-เปิด terminal แล้วรันคำสั่งนี้:
+## สร้างโปรเจกต์ฝึก
 
-```bash
-npm create vite@latest my-portfolio -- --template react-ts
-```
-
-**คำอธิบาย:**
-- `npm create vite` - ใช้ Vite สร้าง project
-- `my-portfolio` - ชื่อ folder ที่จะสร้าง
-- `--template react-ts` - template สำหรับ React + TypeScript
-
-### ติดตั้ง Dependencies
+พาร์ต 1 และ 2 ใช้โปรเจกต์เล็กชื่อ `react-basics` หนึ่งไฟล์ต่อหนึ่งบท ยังไม่มี Tailwind, router หรือ store ร้านชาเป็นโปรเจกต์คนละตัว เริ่มที่พาร์ต 3
 
 ```bash
-cd my-portfolio
+npm create vite@latest react-basics -- --template react-ts
+cd react-basics
 npm install
-```
-
-### รัน Development Server
-
-```bash
 npm run dev
 ```
 
-เปิด browser ไปที่ `http://localhost:5173` จะเห็นหน้าว่างๆ พร้อมโลโก้ Vite
+- `react-basics` คือชื่อโฟลเดอร์
+- `--template react-ts` คือ React + TypeScript
 
----
+เปิด `http://localhost:5173` จะเจอหน้าตัวอย่างของ Vite บทถัดไปจะรื้อหน้านี้ทิ้ง แล้วใส่ตัวอย่าง JSX
 
-## 2. โครงสร้าง Project
+ใน repo นี้ของที่ทำเสร็จของสองพาร์ตแรกอยู่ที่ `examples/react/basics` ไม่ใช่โฟลเดอร์ที่คุณสร้างเอง โครงสร้างช่วงเริ่มเหมือนกัน และมี `src/examples/` เพิ่มมาหนึ่งไฟล์ต่อบท
 
-หลังจากสร้าง project เสร็จ, โครงสร้างจะเป็นแบบนี้:
+## เวอร์ชันที่ล็อก
 
+หลัง `npm create` ให้ปรับ `package.json` ให้ major ตรงกับคอร์ส แล้วรัน `npm install` ใหม่
+
+| แพ็กเกจ | major |
+| --- | --- |
+| vite | 7 |
+| react, react-dom | 19 |
+| typescript | 5 |
+| tailwindcss, @tailwindcss/vite | 4 (ร้านชา พาร์ต 3) |
+| @tanstack/react-router, @tanstack/router-plugin | 1 (ร้านชา พาร์ต 3) |
+| zustand | 5 (ร้านชา พาร์ต 4) |
+| react-hook-form, @hookform/resolvers | 7 และ 3 (ร้านชา พาร์ต 5) |
+| zod | 3 (ร้านชา พาร์ต 5) |
+
+ไฟล์จริงของตัวอย่างฝึก:
+
+```json
+{
+  "name": "react-basics",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4"
+  }
+}
 ```
-my-portfolio/
+
+`engines.node` คือ `22.x` สคริปต์ `build` คือ `tsc -b && vite build`
+
+## โครงไฟล์ช่วงเริ่ม
+
+```text
+react-basics/
 ├── index.html
 ├── package.json
 ├── tsconfig.json
+├── tsconfig.app.json
+├── tsconfig.node.json
 ├── vite.config.ts
 └── src/
-    ├── App.tsx
-    ├── App.css
     ├── main.tsx
+    ├── App.tsx
     └── index.css
 ```
 
-### ไฟล์สำคัญ
+| ไฟล์ | หน้าที่ |
+| --- | --- |
+| `index.html` | จุดเข้าของเว็บ มี `<div id="root">` |
+| `src/main.tsx` | สั่ง React render ลง root |
+| `src/App.tsx` | หน้ารวมที่สลับตัวอย่างแต่ละบทด้วย `useState` |
+| `vite.config.ts` | รวม plugin ของ Vite ตอนนี้มีแค่ React |
+| `tsconfig*.json` | ตั้งค่า TypeScript แบบที่ Vite สร้างให้ |
 
-| File | ทำหน้าที่ |
-|------|----------|
-| `index.html` | Entry point ของ web app |
-| `src/main.tsx` | ไฟล์ที่ React จะ render เป็นรูปแบบ web |
-| `src/App.tsx` | Component หลัก - เราจะเขียน code ตรงนี้เป็นส่วนใหญ่ |
-| `vite.config.ts` | Config ของ Vite |
+`index.html` ตั้ง `lang="th"` และชื่อแท็บเป็น React พื้นฐาน:
 
+```html
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React พื้นฐาน</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
+`src/main.tsx` ยังไม่รู้จัก router มัน render `<App />`:
+
+```tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { App } from './App.tsx'
+import './index.css'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+```
+
+`vite.config.ts` ของช่วงนี้มี plugin React ตัวเดียว:
+
+```ts
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [react()],
+})
+```
+
+> ไฟล์ประกอบ: [`package.json`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/package.json), [`index.html`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/index.html), [`vite.config.ts`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/vite.config.ts), [`src/main.tsx`](https://github.com/larb26656/adventurez/blob/main/examples/react/basics/src/main.tsx)
