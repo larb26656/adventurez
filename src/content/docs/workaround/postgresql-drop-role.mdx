@@ -1,0 +1,48 @@
+---
+title: ลบ Role ใน PostgreSQL อย่างปลอดภัย
+description: ถอนสิทธิ์บน object, schema, database และ default privileges ก่อน DROP ROLE
+tags: [PostgreSQL, database, permission]
+publishedAt: "2026-11-26"
+---
+
+`DROP ROLE` จะล้มเหลวถ้า `<drop_role>` ยังมีสิทธิ์บน object, schema, database หรือยังถูกระบุใน default privileges ให้ถอนสิทธิ์ก่อน แล้วค่อยลบ role
+แทน placeholder ใน `<...>` ด้วยค่าจริงก่อนรัน และเชื่อมต่อเข้า `<database>` ด้วย account ที่ถอนสิทธิ์ได้
+
+### 1. ถอนสิทธิ์บน object, schema และ database
+
+```sql
+-- ถอนสิทธิ์ทั้งหมดบนตารางที่มีอยู่ใน schema public
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM <drop_role>;
+
+-- ถอนสิทธิ์ทั้งหมดบน sequence ที่มีอยู่ใน schema public
+REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM <drop_role>;
+
+-- ถอนสิทธิ์ทั้งหมดบน function ที่มีอยู่ใน schema public
+REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM <drop_role>;
+
+-- ถอนสิทธิ์ทั้งหมดบน schema public
+REVOKE ALL PRIVILEGES ON SCHEMA public FROM <drop_role>;
+
+-- ถอนสิทธิ์ทั้งหมดบน database เช่น CONNECT และ TEMPORARY
+REVOKE ALL PRIVILEGES ON DATABASE <database> FROM <drop_role>;
+```
+
+### 2. ถอน default privileges
+
+```sql
+-- ถอน default privileges ของตารางที่ <owner_role> สร้างใน schema public
+-- <owner_role> คือ role ที่ตั้ง default privileges ไว้ มักเป็น postgres
+ALTER DEFAULT PRIVILEGES FOR ROLE <owner_role> IN SCHEMA public
+REVOKE ALL PRIVILEGES ON TABLES FROM <drop_role>;
+
+-- ถอน default privileges ของ sequence ที่ <owner_role> สร้างใน schema public
+ALTER DEFAULT PRIVILEGES FOR ROLE <owner_role> IN SCHEMA public
+REVOKE ALL PRIVILEGES ON SEQUENCES FROM <drop_role>;
+```
+
+### 3. ลบ role
+
+```sql
+-- ลบ role หลังจากถอนสิทธิ์และ default privileges แล้ว
+DROP ROLE <drop_role>;
+```
