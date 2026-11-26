@@ -1,0 +1,805 @@
+---
+title: Go
+description: A cheatsheet of Go - modules, syntax, concurrency, and testing
+tags: [Go, Golang]
+categories: [Technology]
+---
+
+import ChatMessage from '../../../components/ChatMessage.astro';
+
+[Go](https://go.dev/) คือภาษาที่คอมไพล์เป็นไบนารีเดียว มี garbage collector และสั่งรันฟังก์ชันพร้อมกันด้วยคีย์เวิร์ด `go` จัดโค้ดเป็น package ภายใต้ module ส่วน dependency, build และ test ใช้คำสั่ง `go` ตัวเดียวกัน บางที่เรียกภาษานี้ว่า Golang
+
+คำสั่งและค่าในรูปแบบ `<...>` เป็น placeholder ให้แทนด้วยค่าจริงก่อนนำไปใช้ เครื่องหมายนี้เป็นสัญลักษณ์ในเอกสาร ไม่ใช่ syntax ของ Go หรือ shell ตัวอย่างโค้ดด้านล่างใช้ชื่อสมมติเพื่อโชว์ syntax
+
+## จุดเด่นของ Go
+
+- **ไบนารีเดียว** - `go build` ได้ไฟล์ที่รันได้โดยไม่ต้องติด runtime แยก
+- **module** - เวอร์ชันของ dependency อยู่ใน `go.mod` และตรวจ checksum ด้วย `go.sum`
+- **goroutine และ channel** - เริ่มงานพร้อมกันในตัวภาษา แล้วส่งค่าข้ามกันโดยไม่ต้องแชร์หน่วยความจำตรง ๆ
+- **zero value** - ตัวแปรที่ยังไม่กำหนดค่าใช้ได้เลยในหลายชนิด เช่น `sync.Mutex`, slice ที่ยังเป็น nil
+- **เครื่องมือมากับภาษา** - format, vet, test และ coverage อยู่ในคำสั่ง `go`
+
+## คำศัพท์
+
+| คำ | ความหมาย |
+| --- | --- |
+| package | หน่วยคอมไพล์ ทุกไฟล์ใน directory เดียวกันต้องเป็น package ชื่อเดียวกัน ยกเว้นไฟล์ test ที่ใช้ `<package>_test` |
+| module | กลุ่ม package ที่เวอร์ชันร่วมกัน รากของ module คือ directory ที่มี `go.mod` |
+| module path | prefix ของ import path ควรเป็นที่อยู่ repository เช่น `github.com/<org>/<repo>` |
+| `go.mod` | ไฟล์ประกาศ module path, เวอร์ชัน Go ขั้นต่ำ และ dependency |
+| `go.sum` | checksum ของ module ที่โหลดมา ใช้ตรวจว่าเนื้อหาไม่ถูกสลับ |
+| `package main` | package ที่เป็นโปรแกรม มีฟังก์ชัน `main` แล้ว build เป็นไบนารี |
+| export | ชื่อที่ขึ้นต้นด้วยตัวพิมพ์ใหญ่ใช้ข้าม package ได้ ชื่อที่ขึ้นต้นด้วยตัวพิมพ์เล็กใช้ได้แค่ใน package |
+| zero value | ค่าเริ่มของชนิดเมื่อประกาศโดยไม่กำหนดค่า `false`, `0`, `""` หรือ nil ตามชนิด |
+| nil | zero value ของ pointer, slice, map, channel, function และ interface |
+| `bool` | จริงหรือเท็จ zero value คือ `false` |
+| `string` | ลำดับ byte ที่แก้ไม่ได้ ส่วนใหญ่เป็น UTF-8 การ index ได้ byte ไม่ใช่ตัวอักษร |
+| `byte` | alias ของ `uint8` |
+| `rune` | alias ของ `int32` ใช้แทน Unicode code point |
+| array | ลำดับค่าความยาวคงที่ ความยาวเป็นส่วนหนึ่งของชนิด เช่น `[3]int` |
+| slice | หน้าต่างที่ชี้ไปที่ array เก็บ pointer, `len` และ `cap` |
+| map | ตาราง key ไป value อ่าน key ที่ไม่มีได้ zero value เขียนลง nil map แล้ว panic |
+| struct | ชนิดที่รวม field ที่มีชื่อ zero value คือทุก field เป็น zero value |
+| embedding | field ที่ไม่ตั้งชื่อ method และ field ของชนิดที่ฝังถูก promote ออกมาที่ชนิดนอก |
+| pointer | ค่าที่ชี้ไปที่ตัวแปรชนิด `T` เขียนเป็น `*T` เอา address ด้วย `&` อ่านค่าด้วย `*` |
+| function | ฟังก์ชัน คืนค่าได้หลายตัว ตัวสุดท้ายมักเป็น `error` |
+| method | ฟังก์ชันที่ผูกกับชนิดผ่าน receiver |
+| interface | ชุด method signature ค่าใน interface คือคู่ของ type กับ value |
+| `any` | alias ของ `interface{}` รับค่าชนิดใดก็ได้ |
+| generic | ฟังก์ชันหรือชนิดที่มี type parameter อยู่ในวงเล็บเหลี่ยม |
+| `error` | interface ที่มี method `Error() string` ค่า nil แปลว่าสำเร็จ |
+| `defer` | เลื่อนการเรียกฟังก์ชันไปตอนฟังก์ชันที่ครอบอยู่ return เรียกย้อนจากตัวที่ defer ทีหลัง |
+| panic | หยุด goroutine นั้นทันที ถ้าไม่มี `recover` กระบวนการทั้งตัวจบ |
+| `recover` | จับ panic ได้เฉพาะในฟังก์ชันที่ `defer` ไว้ใน goroutine เดียวกัน |
+| goroutine | ฟังก์ชันที่รันไปพร้อมกัน สั่งด้วย `go` runtime จัดตารางบน OS thread |
+| channel | ท่อส่งค่าระหว่าง goroutine ชนิดเป็น `chan T` |
+| `select` | รอหลาย channel พร้อมกัน ถ้าพร้อมมากกว่าหนึ่ง case จะเลือกแบบสุ่ม |
+| `sync.WaitGroup` | ตัวนับงานที่ยังไม่จบ `Wait` จะไปต่อเมื่อตัวนับเป็น 0 |
+| `sync.Mutex` | lock สำหรับกันไม่ให้หลาย goroutine เขียนข้อมูลชุดเดียวกันพร้อมกัน |
+| `context.Context` | ส่งสัญญาณยกเลิก, deadline และค่าประกอบคำขอ ผ่านพารามิเตอร์ตัวแรกของฟังก์ชัน |
+
+> slice ไม่ได้ก็อปข้อมูลตอนตัดช่วง มันชี้ไปที่ array เดิม จนกว่า `append` จะจอง array ใหม่เพราะ `cap` ไม่พอ
+
+ชื่อที่ export ดูจากตัวแรกของชื่อ ไม่ได้ดูจากคีย์เวิร์ด
+
+```go
+package demo
+
+// เรียกจาก package อื่นได้
+func Exported() {}
+
+// ใช้ได้แค่ใน package demo
+func unexported() {}
+```
+
+package ใต้ directory `internal` import ได้เฉพาะโค้ดที่อยู่ใต้ parent ของ `internal` นั้น module อื่น import `<module-path>/internal/...` ไม่ได้
+
+<ChatMessage message={'ชื่อที่ขึ้นต้นด้วยตัวพิมพ์ใหญ่ถูก export ออกนอก package ชื่อที่ขึ้นต้นด้วยตัวพิมพ์เล็กใช้ได้แค่ใน package นั้น'} avatarKey="whiteCat" />
+
+## คำสั่ง go
+
+รันคำสั่งเหล่านี้ใน directory ของ module ยกเว้น `go install` แบบมี `@<version>` ซึ่งไม่สน `go.mod` ของ directory ปัจจุบัน
+
+### module
+
+`go mod init` สร้าง `go.mod` ใน directory ปัจจุบัน ไฟล์นี้ต้องยังไม่มี ถ้าไม่ส่ง `<module-path>` คำสั่งจะพยายามเดาจาก import comment หรือตำแหน่งใน `GOPATH` ปกติให้ใส่ path เอง
+
+```bash
+# สร้าง module ใหม่ module path ควรเป็นที่อยู่ของ repository
+go mod init <module-path>
+
+# เติม dependency ที่ import จริง และตัดตัวที่ไม่ได้ใช้ พร้อมปรับ go.sum
+go mod tidy
+
+# Go 1.21 ขึ้นไป พิมพ์ diff ที่ tidy จะเขียนโดยไม่แก้ไฟล์ ถ้ามี diff จะจบไม่สำเร็จ
+go mod tidy -diff
+```
+
+ไฟล์ที่ `go mod init` เขียนมีอย่างน้อยสองบรรทัด บรรทัด `go` คือเวอร์ชันภาษาขั้นต่ำ ไม่ใช่ชื่อไฟล์
+
+```text
+module <module-path>
+
+go <go-version>
+```
+
+<ChatMessage message={'หลังเพิ่มหรือลบ import ให้รัน `go mod tidy` เพื่อให้ `go.mod` กับ `go.sum` ตรงกับโค้ดที่คอมไพล์จริง'} avatarKey="whiteCat" />
+
+### run และ build
+
+`go run .` คอมไพล์ package ใน directory ปัจจุบันแล้วรัน ต้องเป็น `package main` `go run <file>.go` คอมไพล์เฉพาะไฟล์ที่ระบุ ไม่ดึงไฟล์อื่นใน package เดียวกัน
+
+`go build .` ใน `package main` เขียนไบนารีชื่อตาม directory `go build ./...` คอมไพล์ทุก package ใต้ directory นี้เพื่อตรวจว่า build ผ่าน แต่ไม่ทิ้งไบนารีไว้เมื่อมีหลาย package
+
+```bash
+# รัน package main ใน directory ปัจจุบัน
+go run .
+
+# รันเฉพาะไฟล์ที่ระบุ ไม่รวมไฟล์อื่นใน package
+go run <file>.go
+
+# build package main ปัจจุบัน แล้วตั้งชื่อไฟล์ผลลัพธ์
+go build -o <output> .
+
+# ตรวจว่าทุก package ใต้ directory นี้คอมไพล์ผ่าน
+go build ./...
+```
+
+### test, cover, fmt, vet
+
+`go test` ที่ไม่ระบุ package รัน test ใน directory ปัจจุบันและไม่ cache ผล `go test .` กับ `go test ./...` เป็น package list mode จะ cache ผลที่ผ่าน แล้วพิมพ์ `(cached)` แทนเวลาที่ใช้ ผล cache ใช้ซ้ำเมื่อไบนารี test และ flag ที่ cache ได้ไม่เปลี่ยน วิธีบังคับรันใหม่คือ `-count=1`
+
+`go test` ไม่รันฟังก์ชัน `Benchmark` ต้องใส่ `-bench` ค่าหลัง `-bench` และ `-run` เป็น regexp ของชื่อ ไม่ใช่ path
+
+```bash
+# รัน test ใน directory ปัจจุบัน
+go test
+
+# รัน test ทุก package ใต้ directory นี้
+go test ./...
+
+# รันเฉพาะ Test ที่ชื่อตรง regexp
+go test -run <test-regexp> ./...
+
+# แสดงเปอร์เซ็นต์ coverage ของแต่ละ package
+go test -cover ./...
+
+# เขียน coverage profile รวม แล้วเปิดเป็น HTML
+go test -coverprofile=<cover-file> ./...
+go tool cover -html=<cover-file>
+
+# รัน benchmark ทุกตัวใน directory ปัจจุบัน พร้อมสถิติการจองหน่วยความจำ
+go test -bench . -benchmem
+
+# ไม่ใช้ผลจาก cache
+go test -count=1 ./...
+
+# จัด format ทุก package แล้วพิมพ์ชื่อไฟล์ที่ถูกแก้
+go fmt ./...
+
+# จัด format ไฟล์เดียว go fmt ไม่รับ flag ของ gofmt
+gofmt -w <file>.go
+
+# รายงานรูปแบบที่น่าจะผิด เช่น printf ไม่ตรงชนิด และ copy lock
+go vet ./...
+```
+
+`-run` ที่ไม่ตรงชื่อ test ไหนเลยถือว่าผ่าน เพราะไม่มี test ที่ fail `go test` ยังเรียก `go vet` ชุดตรวจหลักให้ก่อนรัน ปิดได้ด้วย `-vet=off`
+
+<ChatMessage message={'`go test ./...` เก็บผลที่ผ่านไว้ใน cache ถ้าอยากบังคับรันใหม่ให้ใส่ `-count=1`'} avatarKey="whiteCat" />
+
+### get และ install
+
+ตั้งแต่ Go 1.18 `go get` แก้ `go.mod` แล้วโหลดซอร์สเข้า module cache ไม่ได้ติดตั้งไบนารี ติดตั้งโปรแกรมด้วย `go install`
+
+ถ้า `go install` มี `@<version>` จะไม่ใช้ `go.mod` ของ directory ปัจจุบัน ไบนารีไปที่ `GOBIN` ถ้าไม่ได้ตั้ง `GOBIN` จะไปที่ `$GOPATH/bin` ซึ่งค่าเริ่มต้นคือ `$HOME/go/bin`
+
+```bash
+# เพิ่มหรือเปลี่ยนเวอร์ชัน dependency ใน go.mod ของ module ปัจจุบัน
+go get <module>@<version>
+
+# ใช้เวอร์ชัน release ล่าสุด ไม่เลือก pre-release ถ้ามี release อยู่
+go get <module>@latest
+
+# ถอด requirement ของ module นี้ออก แล้วปรับ module ที่เกี่ยวข้องลง
+go get <module>@none
+
+# ติดตั้งไบนารีของเวอร์ชันนั้น โดยไม่แก้ go.mod ใน directory ปัจจุบัน
+go install <module>@<version>
+
+# ติดตั้งคำสั่งจาก module ปัจจุบัน
+go install ./<cmd-dir>
+```
+
+<ChatMessage message={'อย่าใช้ `go get` เพื่อติดตั้งเครื่องมือ ตั้งแต่ Go 1.18 คำสั่งนี้ไม่ได้ build ไบนารีแล้ว ใช้ `go install <module>@<version>`'} avatarKey="blackCat" />
+
+### env
+
+`go env` พิมพ์ตัวแปรที่คำสั่ง `go` ใช้ เป็นสคริปต์ของ shell ใส่ชื่อตัวแปรเพื่อพิมพ์เฉพาะค่า `-json` พิมพ์เป็น JSON `-w` เขียนค่าเริ่มต้นลงไฟล์ตั้งค่าของผู้ใช้ ไม่ใช่ export ใน shell ปัจจุบัน `-u` ลบค่าที่เคยตั้งด้วย `-w`
+
+```bash
+# พิมพ์สภาพแวดล้อมทั้งหมด
+go env
+
+# พิมพ์เฉพาะค่าที่ต้องการ
+go env GOPATH GOROOT GOBIN GOPROXY GOTOOLCHAIN GOWORK
+
+# ตั้งค่าเริ่มต้นแบบถาวรสำหรับผู้ใช้คนนี้
+go env -w GOPROXY=<proxy-url>
+
+# เลิกใช้ค่าที่เคยตั้งด้วย -w
+go env -u GOPROXY
+```
+
+| Variable | Description | Example |
+| --- | --- | --- |
+| `GOPATH` | directory ค่าเริ่มต้นของงาน Go ไบนารีไปที่ `$GOPATH/bin` เมื่อไม่ได้ตั้ง `GOBIN` cache ของ module อยู่ที่ `$GOPATH/pkg/mod` | `<home>/go` |
+| `GOROOT` | directory ของ toolchain ที่กำลังใช้ ปกติไม่ต้องตั้งเอง | `<go-install-dir>` |
+| `GOBIN` | directory ที่ `go install` วางไบนารี ว่างแปลว่าใช้ `$GOPATH/bin` | `<home>/go/bin` |
+| `GOPROXY` | ที่มาของ module ค่าเริ่มต้นถาม proxy ก่อน แล้วจึงดึงจาก repository ตรง | `https://proxy.golang.org,direct` |
+| `GOTOOLCHAIN` | toolchain ที่จะใช้รัน `auto` โหลดเวอร์ชันที่ `go.mod` ขอได้ `local` ใช้ตัวที่ติดตั้งไว้เท่านั้น | `auto` |
+| `GOWORK` | path ของ `go.work` ที่กำลังมีผล ค่าว่างแปลว่าไม่ได้ใช้ workspace `off` ปิด workspace | `off` |
+
+### work
+
+workspace ให้คำสั่ง `go` มองหลาย module ในเครื่องเป็นชุดเดียวกัน ใช้ตอนแก้ library กับโปรแกรมที่ใช้ library นั้นพร้อมกัน `go work init` สร้าง `go.work` ใน directory ปัจจุบัน ไฟล์นี้ต้องยังไม่มี ส่ง path ของ module ที่จะ `use` ได้เลย หรือเว้นว่างแล้วค่อย `go work use`
+
+`go work use` เพิ่ม directory ที่มีอยู่เข้า `go.work` และถอด directive ที่ชี้ไปที่ directory ซึ่งไม่มีอยู่แล้ว `-r` เดินหา `go.mod` ใต้ directory ที่ส่งให้ `go work sync` ยกเวอร์ชัน dependency ในแต่ละ module ให้ไม่ต่ำกว่า build list ของ workspace
+
+```bash
+# สร้าง go.work แล้วใส่สอง module
+go work init ./<module-a> ./<module-b>
+
+# เพิ่ม module ถ้า directory ไม่มีอยู่ directive เดิมที่ชี้มาจะถูกลบ
+go work use ./<module-c>
+
+# หา go.mod ใต้ directory นี้แล้วเพิ่มทั้งหมด
+go work use -r .
+
+# ปรับ go.mod ของ member ให้สอดคล้องกับ build list ของ workspace
+go work sync
+
+# ดูว่ากำลังใช้ go.work ไฟล์ไหน
+go env GOWORK
+```
+
+โดยทั่วไปไม่ commit `go.work` ไฟล์ที่เช็คอินจะทับ workspace ที่คนพัฒนาตั้งไว้ที่ directory แม่ และทำให้ CI ทดสอบ dependency คนละชุดกับตอน module นี้ถูก require จาก module อื่น ถ้า directory แม่มี `go.work` คำสั่ง `go` จะหยิบมาใช้เอง ปิดเฉพาะคำสั่งนั้นด้วย `GOWORK=off`
+
+```bash
+# build แบบ module เดียว ไม่สน go.work
+GOWORK=off go build .
+```
+
+<ChatMessage message={'ถ้า build ไปหยิบโค้ดคนละชุดกับที่คิดไว้ ให้รัน `go env GOWORK` ก่อน มักมี `go.work` ของ directory แม่อยู่'} avatarKey="blackCat" />
+
+## ไวยากรณ์
+
+ชิ้นส่วนในหัวข้อนี้วางในฟังก์ชันได้เลย ยกเว้นบล็อกที่ขึ้นต้นด้วย `package`, `type` หรือ `func` ซึ่งอยู่ระดับไฟล์
+
+### ตัวแปรและ const
+
+`var` ประกาศตัวแปร ถ้าไม่กำหนดค่าจะได้ zero value `:=` ประกาศและกำหนดค่าในฟังก์ชัน โดยต้องมีตัวแปรใหม่อย่างน้อยหนึ่งตัวทางซ้ายในบล็อกเดียวกัน `const` ที่ไม่ระบุชนิดเป็นค่า untyped นำไปใช้กับชนิดที่เข้ากันได้
+
+```go
+var count int
+var name string = "ada"
+title := "cheatsheet"
+
+const scale = 1
+var width float64 = scale
+
+const (
+    StatusReady = iota // 0
+    StatusDone         // 1
+)
+
+// ค่าที่ตั้งใจไม่ใช้เขียนเป็น _
+pairs := []string{"a:1", "b:2"}
+for _, pair := range pairs {
+    fmt.Println(pair)
+}
+
+file, err := os.Open(path)
+if err != nil {
+    return err
+}
+defer file.Close()
+```
+
+### ชนิด
+
+ชนิดตัวเลขที่ใช้บ่อยคือ `int`, `int64` และ `float64` `byte` กับ `rune` เป็น alias ไม่ใช่ชนิดใหม่ composite type ประกาศเป็นค่าได้เลย ไม่ต้องมี class
+
+```go
+var (
+    on      bool
+    label   string
+    n       int
+    score   float64
+    raw     byte
+    char    rune
+    items   []string
+    index   map[string]int
+    handler func(string) error
+    done    chan struct{}
+    ptr     *int
+)
+```
+
+### control flow
+
+มีแต่ `for` ไม่มี `while` `if` กับ `switch` เขียนคำสั่งสั้นข้างหน้าเงื่อนไขได้ `switch` ไม่ตกไป case ถัดไป ต้องใส่ `fallthrough` เอง ตั้งแต่ Go 1.22 `for range` วนบนจำนวนเต็มได้ และตัวแปรของแต่ละรอบเป็นคนละตัว
+
+```go
+items := []string{"a", "b"}
+index := map[string]int{"ada": 1}
+
+if value, ok := index["ada"]; ok {
+    fmt.Println(value)
+}
+
+for i := 0; i < len(items); i++ {
+    fmt.Println(items[i])
+}
+
+for i, item := range items {
+    fmt.Println(i, item)
+}
+
+for len(items) > 0 {
+    items = items[1:]
+}
+
+for range 3 { // Go 1.22 ขึ้นไป
+    fmt.Println("tick")
+}
+
+status := "ready"
+switch status {
+case "ready":
+    fmt.Println("start")
+case "done":
+    fmt.Println("stop")
+default:
+    fmt.Println("wait")
+}
+```
+
+### ฟังก์ชัน
+
+คืนได้หลายค่า ถ้าตั้งชื่อผลลัพธ์ `return` เปล่าจะส่งค่านั้น และ `defer` แก้ไขค่าที่ตั้งชื่อไว้ได้ก่อนฟังก์ชันออกจริง การหาร `int` ตัดเศษเข้าหาศูนย์
+
+```go
+func add(a, b int) int {
+    return a + b
+}
+
+func div(a, b int) (int, error) {
+    if b == 0 {
+        return 0, errors.New("divide by zero")
+    }
+    return a / b, nil
+}
+
+func bounds() (low, high int) {
+    low, high = 1, 10
+    return
+}
+```
+
+### method
+
+receiver ที่เป็นค่าได้สำเนา receiver ที่เป็น pointer แก้ของเดิมได้ method ของ `*T` เรียกบนตัวแปร `T` ที่หา address ได้ แต่ค่าชั่วคราวเช่น `Counter{}.Inc()` คอมไพล์ไม่ผ่าน
+
+```go
+type Counter struct {
+    n int
+}
+
+func (c Counter) Value() int {
+    return c.n
+}
+
+func (c *Counter) Inc() {
+    c.n++
+}
+```
+
+### struct และ embedding
+
+field ที่ขึ้นต้นด้วยตัวพิมพ์ใหญ่ถูก export `encoding/json` มองเห็นเฉพาะ field เหล่านี้ และใช้ tag `json` เป็นชื่อใน JSON เมื่อมี tag field ที่ฝังโดยไม่ตั้งชื่อ promote ชื่อ field และ method ออกมา ถ้าชนิดนอกประกาศชื่อเดียวกันเอง ชื่อของชนิดนอกชนะ ถ้าสอง field ที่ฝังมีชื่อซ้ำ ต้องระบุชื่อชนิดที่ฝังตอนอ่าน
+
+```go
+type User struct {
+    Name string `json:"name"`
+}
+
+func (u User) Label() string {
+    return u.Name
+}
+
+type Admin struct {
+    User
+    Level int
+}
+
+func show(a Admin) string {
+    return a.Label()
+}
+```
+
+### interface
+
+ชนิดจะตรง interface เมื่อมี method ครบตาม signature ไม่ต้องประกาศ `implements`
+
+`v.(T)` เป็น type assert คู่กับ `ok` จะไม่ panic เมื่อชนิดไม่ตรง `any` รับได้ทุกชนิด
+
+```go
+type Stringer interface {
+    String() string
+}
+
+func printLabel(s Stringer) {
+    fmt.Println(s.String())
+}
+
+func asString(v any) (string, bool) {
+    s, ok := v.(string)
+    return s, ok
+}
+
+type label string
+
+func (l label) String() string {
+    return string(l)
+}
+
+var sink Stringer = label("ada")
+printLabel(sink)
+```
+
+method ที่ receiver เป็น pointer ไม่อยู่ใน method set ของค่า `T` การใส่ค่า `T` ลง interface จึงไม่ผ่าน แม้เรียก method นั้นบนตัวแปร `T` ที่หา address ได้จะผ่าน `Counter` คือชนิดจากหัวข้อ method
+
+```go
+type Incrementer interface {
+    Inc()
+}
+
+var value Counter
+var ptr Incrementer = &value
+_ = ptr
+// var copy Incrementer = value
+```
+
+<ChatMessage message={'ค่า interface เป็น nil ก็ต่อเมื่อทั้ง type และ value ว่าง ถ้า return pointer ที่เป็น nil ในชนิด error ผู้เรียกจะเห็นว่า err ไม่เป็น nil'} avatarKey="blackCat" />
+
+### slice และ map
+
+`make([]T, length, capacity)` จอง slice ที่ไม่เป็น nil `append` คืน slice ใหม่ ต้องรับค่ากลับมาเก็บ ถ้า `cap` ยังพอ มันจะเขียนทับ array เดิม การตัดช่วง `s[low:high]` ใช้ array เดิม `s[low:high:max]` จำกัด `cap` เพื่อบังคับให้ `append` ครั้งถัดไปจองใหม่
+
+map ที่สร้างด้วย `make` หรือ composite literal เขียนได้ nil map อ่านได้แต่เขียนแล้ว panic ลำดับตอน range บน map ไม่คงที่ `delete` ลบ key ตั้งแต่ Go 1.21 `clear` ลบทุก entry ของ map หรือทุกสมาชิกของ slice แพ็กเกจ `slices` กับ `maps` มากับเวอร์ชันเดียวกัน
+
+```go
+nums := []int{1, 2, 3}
+nums = append(nums, 4)
+mid := nums[1:3]
+_ = mid
+
+dst := make([]int, len(nums))
+copy(dst, nums)
+
+scores := map[string]int{"ada": 1}
+scores["grace"] = 2
+value, ok := scores["ada"]
+delete(scores, "ada")
+clear(scores)
+_ = value
+_ = ok
+```
+
+แพ็กเกจ `slices` กับ `maps` มีตัวช่วยเช่น `slices.Equal`, `slices.Contains`, `slices.Sort` และ `maps.Clone` slice กับ map เทียบด้วย `==` ไม่ได้ ยกเว้นเทียบกับ nil
+
+<ChatMessage message={'nil map อ่านแล้วได้ zero value แต่บรรทัดที่เขียนค่าลงไปจะ panic ให้สร้างด้วย `make` หรือ composite literal ก่อนใส่ค่า'} avatarKey="blackCat" />
+
+### error
+
+ตรวจ `err != nil` ที่จุดที่ได้ error มา ห่อต่อด้วย `fmt.Errorf` และ `%w` เมื่ออยากให้ผู้เรียกแกะหาของเดิม `errors.Is` เดินโซ่ที่ห่อด้วย `%w` หรือที่รวมด้วย `errors.Join` แล้วเทียบกับค่าเป้าหมาย `errors.As` หา error ตัวแรกในโซ่ที่ลงชนิดเป้าหมายได้ แล้วเขียนลง pointer ที่ส่งให้ `%v` ไม่ได้ต่อโซ่
+
+```go
+func load(path string) error {
+    err := read(path) // read เป็นฟังก์ชันชั้นล่างที่คืน error
+    if err != nil {
+        return fmt.Errorf("load %s: %w", path, err)
+    }
+    return nil
+}
+
+if errors.Is(err, os.ErrNotExist) {
+    return nil
+}
+
+var pathErr *os.PathError
+if errors.As(err, &pathErr) {
+    fmt.Println(pathErr.Path)
+}
+```
+
+`panic` ใช้เมื่อโปรแกรมทำต่อไม่ได้จริง ๆ เช่น invariant พัง `recover` ต้องอยู่ในฟังก์ชันที่ `defer` ใน goroutine ที่ panic goroutine อื่นเรียก `recover` ไม่ได้ช่วย
+
+<ChatMessage message={'`errors.Is` กับ `errors.As` เดินตาม error ที่ห่อด้วย `%w` หรือ `errors.Join` การใช้ `%v` ตัดโซ่ทิ้ง'} avatarKey="blackCat" />
+
+### generic
+
+type parameter อยู่ในวงเล็บเหลี่ยมข้างชื่อฟังก์ชัน `any` แปลว่ารับได้ทุกชนิด constraint ที่แคบกว่าเขียนเป็น interface เช่น `cmp.Ordered` สำหรับชนิดที่เทียบด้วย `<` ได้ ตัวเรียกมักไม่ต้องใส่ type argument เพราะ compiler เดาจากอาร์กิวเมนต์
+
+```go
+func first[T any](items []T) (T, bool) {
+    var zero T
+    if len(items) == 0 {
+        return zero, false
+    }
+    return items[0], true
+}
+
+func smaller[T cmp.Ordered](a, b T) T { // import "cmp"
+    if a < b {
+        return a
+    }
+    return b
+}
+
+// smaller(1, 2) เดา T เป็น int
+```
+
+### goroutine, channel และ select
+
+`go f()` เริ่ม goroutine แล้วไปต่อทันที ไม่รอ `f` จบ channel จาก `make(chan T)` ไม่มี buffer การส่งเกิดพร้อมกับการรับ `make(chan T, n)` ส่งได้จนกว่า buffer จะเต็ม
+
+ปิด channel ด้วย `close` ได้ครั้งเดียว และให้ฝั่งส่งเป็นคนปิด ฝั่งรับดู `ok` หรือ `range` จน channel ปิด การส่งเข้า channel ที่ปิดแล้ว และการปิดซ้ำ จะ panic nil channel ทั้งส่งและรับจะค้างตลอด ใช้ปิด case ใน `select` โดยตั้งตัวแปร channel เป็น nil
+
+`select` รอจนมี case ที่พร้อม ถ้ามี `default` จะไม่รอ
+
+```go
+jobs := make(chan int, 1)
+go func() {
+    jobs <- 1
+    close(jobs)
+}()
+
+for job := range jobs {
+    fmt.Println(job)
+}
+```
+
+```go
+select {
+case v := <-jobs:
+    fmt.Println(v)
+case <-ctx.Done():
+    return ctx.Err()
+default:
+    // default ทำให้ select ไม่รอ เอาออกถ้าต้องการบล็อกจนมี case พร้อม
+}
+```
+
+<ChatMessage message={'ให้ฝั่งที่ส่งเป็นคน `close` channel ปิดซ้ำหรือส่งเข้า channel ที่ปิดแล้วจะ panic ฝั่งรับไม่ต้องปิด'} avatarKey="blackCat" />
+
+### WaitGroup และ Mutex
+
+zero value ของ `sync.WaitGroup` ใช้ได้เลย ตั้งแต่ Go 1.25 `Go` เพิ่มตัวนับ เริ่ม goroutine และเรียก `Done` เมื่อฟังก์ชันคืนค่า ฟังก์ชันที่ส่งให้ `Go` ต้องไม่ panic รูปแบบ `Add` กับ `Done` ใช้เมื่อเริ่ม goroutine เอง หรือเมื่อรอเหตุการณ์ที่ไม่ใช่ goroutine `Add` ต้องเกิดก่อน `Wait` จะเห็นงานนั้น โดยปกติเรียก `Add` ก่อนคีย์เวิร์ด `go` ถ้าจะใช้ `WaitGroup` ชุดเดิมซ้ำ `Add` รอบใหม่ต้องเกิดหลัง `Wait` รอบก่อนคืนค่าแล้ว
+
+`sync.Mutex` กันช่วงที่แก้ข้อมูลร่วม zero value คือยังไม่ถูกล็อก ใช้ `defer Unlock` ทันทีหลัง `Lock` งานที่อ่านอย่างเดียวหลายทางพร้อมกันดู `sync.RWMutex` อย่า copy ค่า lock หลังเริ่มใช้ `go test -race ./...` ให้ runtime รายงาน data race
+
+```go
+var wg sync.WaitGroup
+
+wg.Go(func() {
+    work() // งานใน goroutine
+})
+wg.Wait()
+
+wg.Add(1)
+go func() {
+    defer wg.Done()
+    work()
+}()
+wg.Wait()
+```
+
+```go
+var (
+    mu sync.Mutex
+    n  int
+)
+
+func next() int {
+    mu.Lock()
+    defer mu.Unlock()
+    n++
+    return n
+}
+```
+
+<ChatMessage message={'อย่า copy ค่า `sync.Mutex` หรือ `sync.WaitGroup` หลังเริ่มใช้ ส่งเป็น pointer หรือฝังใน struct แล้วอย่าส่ง struct นั้นเป็นค่า'} avatarKey="blackCat" />
+
+### context
+
+ส่ง `context.Context` เป็นพารามิเตอร์ตัวแรก ใช้ `context.Background` ที่ขอบของโปรแกรม เช่น `main` และ test ใช้ `context.TODO` ชั่วคราวเมื่อยังไม่มี context ที่ถูกกว่า `WithTimeout` กับ `WithCancel` คืนฟังก์ชัน `cancel` ต้องเรียกทุกครั้งเพื่อปล่อย timer แม้เวลาจะหมดเอง
+
+`ctx.Err()` เป็น nil ขณะ context ยังใช้ได้ พอถูกยกเลิกจะเป็น `context.Canceled` พอหมดเวลาจะเป็น `context.DeadlineExceeded` `WithValue` ใช้ส่งค่าประกอบคำขอ key ควรเป็นชนิดที่ไม่ได้ export เพื่อไม่ให้ไปชนกับ package อื่น
+
+```go
+ctx, cancel := context.WithTimeout(parent, 2*time.Second)
+defer cancel()
+
+select {
+case <-ctx.Done():
+    return ctx.Err()
+case result := <-done:
+    return result, nil
+}
+```
+
+<ChatMessage message={'เรียก `cancel` ทุกครั้งที่สร้าง context แม้ timeout จะหมดเอง ถ้าไม่เรียก timer จะค้างจนครบเวลา'} avatarKey="whiteCat" />
+
+## Testing
+
+ไฟล์ test ลงท้าย `_test.go` อยู่ใน package เดียวกับโค้ด หรือเป็น `<package>_test` เมื่อต้องทดสอบผ่านชื่อที่ export เท่านั้น ฟังก์ชัน `TestXxx(t *testing.T)` ถูกรันด้วย `go test` ฟังก์ชัน `BenchmarkXxx(b *testing.B)` ถูกรันเมื่อมี `-bench`
+
+### table-driven test
+
+ตารางเคสทำให้เพิ่ม input โดยไม่ก็อปฟังก์ชัน test `t.Run` แยกชื่อเคสในผลรัน ถ้าจะรันขนาน เรียก `t.Parallel` เป็นบรรทัดแรกของ subtest และอย่าให้เคสไปเขียนตัวแปรชุดเดียวกัน
+
+```go
+func TestAdd(t *testing.T) {
+    tests := []struct {
+        name string
+        a, b int
+        want int
+    }{
+        {name: "zero", a: 0, b: 0, want: 0},
+        {name: "positive", a: 1, b: 2, want: 3},
+    }
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            if got := add(tt.a, tt.b); got != tt.want {
+                t.Fatalf("add(%d, %d) = %d, want %d", tt.a, tt.b, got, tt.want)
+            }
+        })
+    }
+}
+```
+
+### benchmark
+
+ตั้งแต่ Go 1.24 ใช้ `for b.Loop()` งานก่อนลูปไม่ถูกจับเวลา และลูปไม่ถูกลบออกเพราะ compiler มองว่าผลไม่ได้ใช้ รูปแบบเก่า `for range b.N` ยังรันได้ แต่อย่าปนทั้งสองแบบในฟังก์ชันเดียวกัน
+
+```go
+func BenchmarkAdd(b *testing.B) {
+    for b.Loop() {
+        add(1, 2)
+    }
+}
+```
+
+```bash
+# รัน benchmark ที่ชื่อตรง regexp . คือทุกตัว
+go test -bench . -benchmem .
+```
+
+## ข้อควรระวัง
+
+### pointer nil ใน interface
+
+interface ไม่เป็น nil ถ้ามี type อยู่แล้ว แม้ value จะเป็น nil ฟังก์ชันที่ประกาศคืน `error` แล้ว `return` pointer nil จะทำให้ผู้เรียกเข้าสาขา `err != nil`
+
+```go
+func fail() error {
+    var pathErr *os.PathError
+    return pathErr
+}
+
+func main() {
+    err := fail()
+    fmt.Println(err == nil) // false
+}
+```
+
+### nil map และ slice ว่าง
+
+nil map เขียนไม่ได้ nil slice ใช้กับ `append` ได้ และ `len` เป็น 0 เหมือน slice ว่าง แต่ `encoding/json` เข้ารหัส nil slice เป็น `null` และ slice ว่างเป็น `[]`
+
+```go
+var scores map[string]int
+_ = scores["ada"] // 0
+scores["ada"] = 1 // panic
+
+empty := []int{}
+var missing []int
+fmt.Println(missing == nil, empty == nil) // true false
+```
+
+### slice ใช้ array ร่วมกัน
+
+`base[:2]` มี `cap` ถึงท้าย `base` `append` จึงเขียนทับสมาชิกถัดไป ถ้าต้องการสำเนา ให้ใช้ `base[:2:2]` หรือ `slices.Clone`
+
+```go
+base := []int{1, 2, 3, 4}
+head := base[:2]
+head = append(head, 9)
+// base เป็น [1 2 9 4]
+```
+
+### string นับเป็น byte
+
+`len` ของ string คือจำนวน byte `range` ได้ `rune` ตัวอักษรไทยตัวหนึ่งยาว 3 byte ดังนั้น `len("กข")` เป็น 6 นับจำนวนตัวอักษรด้วย `utf8.RuneCountInString`
+
+```go
+s := "กข"
+fmt.Println(len(s))
+for _, r := range s {
+    fmt.Println(r)
+}
+```
+
+### `:=` บังตัวแปร err
+
+ถ้าในบล็อกในมีตัวแปรใหม่อย่างน้อยหนึ่งตัว `:=` จะสร้าง `err` ตัวใหม่ในบล็อกนั้น `err` ด้านนอกไม่เปลี่ยน
+
+```go
+err := stepOne()
+if err != nil {
+    return err
+}
+if ready {
+    result, err := stepTwo()
+    if err != nil {
+        return err
+    }
+    use(result)
+}
+return err // err จาก stepOne ซึ่งเป็น nil
+```
+
+### defer ในลูป
+
+`defer` ทำงานตอนฟังก์ชัน return ไม่ใช่ท้ายรอบของ `for` การเปิดไฟล์ในลูปแล้ว `defer Close` จะถือ descriptor ไว้จนฟังก์ชันจบ ปิดในรอบนั้นเลย หรือแยกฟังก์ชันแล้วย้าย `defer` ไปไว้ในนั้น
+
+```go
+for _, path := range paths {
+    f, err := os.Open(path)
+    if err != nil {
+        return err
+    }
+    defer f.Close()
+}
+```
+
+### copy lock
+
+การกำหนดค่า `sync.Mutex` ได้ lock คนละตัว `go vet` รายงาน `copylocks` ส่ง pointer ของ struct ที่ฝัง mutex แทนการส่ง struct เป็นค่า
+
+```go
+var mu sync.Mutex
+other := mu
+other.Lock()
+mu.Lock() // ไม่ได้รอ other
+```
+
+### channel
+
+รับจาก channel ที่ปิดและไม่มีค่าค้างได้ zero value พร้อม `ok == false` ส่งเข้า channel ที่ปิด หรือ `close` ซ้ำ จะ panic goroutine ที่ส่งแล้วไม่มีใครรับจะค้างทั้งกระบวนการ ถ้า `main` ของโปรแกรมสั้น ๆ return กระบวนการจะจบและทิ้ง goroutine ที่ยังค้าง
+
+```go
+v, ok := <-ch // ok เป็น false เมื่อปิดแล้วและไม่มีค่าค้าง
+_ = v
+close(ch) // ผู้ส่งเรียกครั้งเดียว
+```
+
+### ตัวแปรลูปกับ Go เก่ากว่า 1.22
+
+ตั้งแต่ Go 1.22 แต่ละรอบของ `for` ได้ตัวแปรใหม่ goroutine ที่อ้างตัวแปรลูปจึงไม่ไปเห็นค่าของรอบสุดท้าย ถ้าบรรทัด `go` ใน `go.mod` ต่ำกว่า 1.22 ตัวแปรลูปตัวเดียวถูกใช้ซ้ำ แล้ว goroutine จะเห็นค่าสุดท้าย พฤติกรรมอิงเวอร์ชันใน `go.mod` ไม่ได้อิงแค่เวอร์ชันที่ติดตั้ง
+
+### `time.After` ในลูป
+
+`time.After` สร้าง timer ที่รันจนครบเวลา แม้ `select` จะไปทาง case อื่นก่อน ใช้ `time.NewTimer` แล้ว `Stop` หรือใช้ `context.WithTimeout` เมื่อต้องวนรอซ้ำ
+
+```go
+for {
+    select {
+    case <-time.After(time.Second):
+        poll()
+    case <-stop:
+        return
+    }
+}
+```
+
+## Useful Links
+
+- [Go Documentation](https://go.dev/doc/)
+- [Go command](https://pkg.go.dev/cmd/go)
+- [Managing dependencies](https://go.dev/doc/modules/managing-dependencies)
+- [Workspaces](https://go.dev/doc/tutorial/workspaces)
+- [Effective Go](https://go.dev/doc/effective_go)
+- [Language Specification](https://go.dev/ref/spec)
